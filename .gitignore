@@ -22,6 +22,7 @@ target
 
 # Intellij
 .idea
+*.iml
 
 # Spark
 metastore_db/
