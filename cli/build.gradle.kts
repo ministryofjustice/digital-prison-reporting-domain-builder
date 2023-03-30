@@ -10,7 +10,7 @@ repositories {
 }
 
 micronaut {
-  version.set("3.5.1")
+  version.set("3.8.7")
 }
 
 dependencies {
@@ -22,6 +22,7 @@ dependencies {
   implementation("io.micronaut:micronaut-runtime")
   implementation("io.micronaut:micronaut-validation")
   implementation("jakarta.annotation:jakarta.annotation-api")
+  implementation("info.picocli:picocli-shell-jline3:4.7.1")
 
   runtimeOnly("ch.qos.logback:logback-classic")
 
