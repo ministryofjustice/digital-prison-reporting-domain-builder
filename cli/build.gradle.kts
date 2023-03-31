@@ -36,5 +36,5 @@ tasks.named<Test>("test") {
 }
 
 application {
-  mainClass.set("uk.gov.justice.digital.CliAppKt")
+  mainClass.set("uk.gov.justice.digital.DomainBuilderKt")
 }
