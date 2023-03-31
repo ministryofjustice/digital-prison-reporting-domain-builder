@@ -10,7 +10,7 @@ import uk.gov.justice.digital.service.DomainService
     name = "view",
     description = ["View details for a specific domain"]
 )
-class ViewDomain(private val service: DomainService) : Runnable {
+class ViewDomain(private val service: DomainService) : CommandBase(), Runnable {
 
     @Option(
         names = ["-n", "--name"],
@@ -22,7 +22,7 @@ class ViewDomain(private val service: DomainService) : Runnable {
     override fun run() {
         val domain = service.getDomainWithName(domainName)
         if (domain == null) {
-            println("ERROR - no domain with name '$domainName' was found")
+            printAnsiString("@|red,bold ERROR|@ - no domain with name @|yellow'$domainName'|@ was found")
         }
         else {
             println("Found domain with name: '$domainName'")

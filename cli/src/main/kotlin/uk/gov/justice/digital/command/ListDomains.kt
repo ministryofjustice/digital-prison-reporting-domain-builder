@@ -2,7 +2,6 @@ package uk.gov.justice.digital.command
 
 import jakarta.inject.Singleton
 import picocli.CommandLine.Command
-import picocli.CommandLine.Help.Ansi
 import uk.gov.justice.digital.service.DomainService
 
 @Singleton
@@ -10,7 +9,7 @@ import uk.gov.justice.digital.service.DomainService
     name = "list",
     description = ["List all available domains"]
 )
-class ListDomains(private val service: DomainService) : Runnable {
+class ListDomains(private val service: DomainService) : CommandBase(), Runnable {
 
     private val NAME_WIDTH = 20
     private val DESCRIPTION_WIDTH = 40
@@ -47,10 +46,6 @@ class ListDomains(private val service: DomainService) : Runnable {
     private fun tableRowDelimiter(vararg columnWidth: Int): String {
         return columnWidth
             .joinToString(separator = "+", prefix = "+", postfix = "+") { "-".repeat(it + PADDING) }
-    }
-
-    private fun printAnsiString(s: String) {
-        println(Ansi.AUTO.string(s))
     }
 
 }
