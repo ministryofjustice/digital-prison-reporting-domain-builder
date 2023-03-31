@@ -4,12 +4,16 @@ import io.micronaut.configuration.picocli.PicocliRunner
 import jakarta.inject.Singleton
 import picocli.CommandLine.Command
 import uk.gov.justice.digital.command.ListDomains
+import uk.gov.justice.digital.command.ViewDomain
 
 @Command(
     name = "domain-builder",
     mixinStandardHelpOptions = true,
     version = ["domain-builder 0.0.1"],
-    subcommands = [ListDomains::class]
+    subcommands = [
+        ListDomains::class,
+        ViewDomain::class,
+    ],
 )
 @Singleton
 class DomainBuilder : Runnable {
