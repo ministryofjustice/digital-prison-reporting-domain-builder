@@ -4,7 +4,7 @@ import picocli.CommandLine.Help.Ansi
 
 abstract class CommandBase {
 
-    protected fun printAnsiString(s: String) {
+    protected fun printlnAnsi(s: String) {
         println(Ansi.AUTO.string(s))
     }
 

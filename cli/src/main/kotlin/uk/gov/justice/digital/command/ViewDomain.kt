@@ -22,10 +22,30 @@ class ViewDomain(private val service: DomainService) : CommandBase(), Runnable {
     override fun run() {
         val domain = service.getDomainWithName(domainName)
         if (domain == null) {
-            printAnsiString("@|red,bold ERROR|@ - no domain with name @|yellow'$domainName'|@ was found")
+            printlnAnsi("@|red,bold ERROR|@ - no domain with name '@|bold $domainName|@' was found")
         }
         else {
-            println("Found domain with name: '$domainName'")
+            println("Found domain with name: '$domainName'\n")
+
+            printlnAnsi("""
+               @|bold Name        |@| ${domain.name} 
+               @|bold Description |@| ${domain.description}
+               @|bold Owner       |@| ${domain.owner}
+            """.trimIndent())
+
+            println("\nTables in this domain\n")
+            // TODO - list out each table and corresponding query
+            domain
+                .tables
+                .forEach {
+                    printlnAnsi("""
+                        @|bold Table       |@| ${it.name}
+                        @|bold Description |@| ${it.description}
+                        @|bold Sources     |@| ${it.transform.sources.joinToString()}
+                        @|bold Query       |@| ${it.transform.viewText}
+                        
+                    """.trimIndent())
+                }
         }
     }
 

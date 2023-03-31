@@ -9,6 +9,7 @@ data class Domain(
     val version: String,
     val location: String,
     val tags: Map<String, String>,
+    // TODO - clarify what is meant by domain originator and whether it corresponds to either the owner or author.
     val owner: String,
     val author: String,
     val tables: List<Table>,

@@ -69,6 +69,7 @@ object StaticData {
         name = "Table 3",
         description = "Yet another table containing some data",
         location = "/table3",
+        transform = transform.copy(sources = listOf("source.table", "anotherSource.anotherTable"))
     )
 
     val domain1 = Domain(

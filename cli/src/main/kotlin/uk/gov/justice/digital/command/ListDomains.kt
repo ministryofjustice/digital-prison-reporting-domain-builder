@@ -31,16 +31,17 @@ class ListDomains(private val service: DomainService) : CommandBase(), Runnable 
             val tableRowLine = tableRowDelimiter(NAME_WIDTH, DESCRIPTION_WIDTH)
 
             println(tableRowLine)
-            printAnsiString(String.format("| @|bold %-20s|@ | @|bold %-40s|@ |", "Name", "Description"))
+            printlnAnsi(String.format("| @|bold %-20s|@ | @|bold %-40s|@ |", "Name", "Description"))
             println(tableRowLine)
 
             // Table rows
             result.forEach {
                 println(String.format("| %-20s | %-40s |", it.name, it.description))
-                println(tableRowLine)
             }
+
+            println(tableRowLine)
         }
-        else printAnsiString("@|red,bold ERROR|@ No domains were found")
+        else printlnAnsi("@|red,bold ERROR|@ No domains were found")
     }
 
     private fun tableRowDelimiter(vararg columnWidth: Int): String {
