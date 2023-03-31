@@ -16,8 +16,11 @@ class DomainBuilder : Runnable {
 
     override fun run() {}
 
-}
+    companion object {
+        @JvmStatic
+        fun main(args: Array<String>) {
+            PicocliRunner.execute(DomainBuilder::class.java, *args);
+        }
+    }
 
-fun main(args: Array<String>) {
-    PicocliRunner.run(DomainBuilder::class.java, *args);
 }
