@@ -19,8 +19,14 @@ import java.util.*
 @Singleton
 class DomainService {
 
+    private val domains = listOf(domain1, domain2, domain3)
+
     fun getAllDomains(): List<Domain> {
-        return listOf(domain1, domain2, domain3)
+        return domains
+    }
+
+    fun getDomainWithName(name: String): Domain? {
+        return domains.firstOrNull { it.name == name }
     }
 
 }
@@ -55,11 +61,13 @@ object StaticData {
 
     val table2 = table1.copy(
         name = "Table 2",
+        description = "Another table containing some data",
         location = "/table2",
     )
 
     val table3 = table1.copy(
         name = "Table 3",
+        description = "Yet another table containing some data",
         location = "/table3",
     )
 
@@ -78,6 +86,7 @@ object StaticData {
     val domain2 = domain1.copy(
         id = UUID.randomUUID(),
         name = "Domain 2",
+        description = "Another domain",
         location = "/domain2",
         tables = listOf(table2, table3)
     )
@@ -85,6 +94,7 @@ object StaticData {
     val domain3 = domain1.copy(
         id = UUID.randomUUID(),
         name = "Domain 3",
+        description = "Yet another domain",
         location = "/domain3",
         tables = listOf(table1, table2, table3)
     )
