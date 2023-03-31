@@ -6,11 +6,9 @@ data class Table(
     val version: String,
     val location: String,
     val tags: Map<String, String>,
-    val department: String,
-    val unit: String,
     val owner: String,
     val author: String,
     val primaryKey: String,
     val transform: Transform,
-    val violations: List<String>
+    val violations: List<String>,
 )

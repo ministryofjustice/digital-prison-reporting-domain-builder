@@ -11,5 +11,5 @@ data class Domain(
     val tags: Map<String, String>,
     val owner: String,
     val author: String,
-    val tables: List<Table>
+    val tables: List<Table>,
 )

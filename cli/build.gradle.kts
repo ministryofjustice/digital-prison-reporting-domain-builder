@@ -27,8 +27,8 @@ dependencies {
   runtimeOnly("ch.qos.logback:logback-classic")
 
   testImplementation("io.micronaut.test:micronaut-test-junit5")
-  testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-  testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.1")
+  testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.1")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.1")
 }
 
 tasks.named<Test>("test") {
