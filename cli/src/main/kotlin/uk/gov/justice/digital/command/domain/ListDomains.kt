@@ -8,7 +8,7 @@ import picocli.CommandLine.Command
     description = ["List all available domains"]
 )
 @Singleton
-class ListDomains() : Runnable {
+class ListDomains : Runnable {
     override fun run() {
         println("TODO - domains list goes here")
     }
