@@ -9,7 +9,7 @@ import uk.gov.justice.digital.command.domain.ListDomains
 import kotlin.system.exitProcess
 
 @Command(name = "domain", subcommands = [ListDomains::class] )
-class Domain : Runnable{
+class Domain : Runnable {
 
     @Spec
     var spec: CommandSpec? = null
