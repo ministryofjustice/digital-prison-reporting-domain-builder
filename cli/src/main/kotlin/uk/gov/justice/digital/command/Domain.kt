@@ -15,7 +15,7 @@ class Domain : Runnable {
     var spec: CommandSpec? = null
 
     override fun run() {
-        throw ParameterException(spec?.commandLine(), "Specify subcommand")
+        throw ParameterException(spec?.commandLine(), "ERROR - no subcommand was specified")
     }
 
 }
