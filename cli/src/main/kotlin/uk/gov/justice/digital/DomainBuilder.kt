@@ -3,13 +3,13 @@ package uk.gov.justice.digital
 import io.micronaut.configuration.picocli.PicocliRunner
 import jakarta.inject.Singleton
 import picocli.CommandLine.Command
-import uk.gov.justice.digital.command.Domain
+import uk.gov.justice.digital.command.ListDomains
 
 @Command(
     name = "domain-builder",
     mixinStandardHelpOptions = true,
     version = ["domain-builder 0.0.1"],
-    subcommands = [Domain::class]
+    subcommands = [ListDomains::class]
 )
 @Singleton
 class DomainBuilder : Runnable {
@@ -19,6 +19,7 @@ class DomainBuilder : Runnable {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
+            System.setProperty("picocli.ansi", "true")
             PicocliRunner.execute(DomainBuilder::class.java, *args);
         }
     }
