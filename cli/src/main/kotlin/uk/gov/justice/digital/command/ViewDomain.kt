@@ -8,14 +8,24 @@ import uk.gov.justice.digital.service.DomainService
 @Singleton
 @Command(
     name = "view",
-    mixinStandardHelpOptions = true,
     description = ["View details for a specific domain"]
 )
 class ViewDomain(private val service: DomainService) : CommandBase(), Runnable {
 
     @Option(
+        names = ["-h", "--help"],
+        usageHelp = true,
+        description = [ "display this help message" ]
+    )
+    var usageHelpRequested = false
+
+    @Option(
         names = ["-n", "--name"],
-        description = ["The name of the domain to view"],
+        description = [
+            "the name of the domain to view",
+            "use quotes around the name if it contains spaces",
+            "for example view --name='This name has spaces'"
+        ],
         required = true
     )
     var domainName: String = ""

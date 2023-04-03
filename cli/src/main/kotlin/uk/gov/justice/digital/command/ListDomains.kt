@@ -1,16 +1,20 @@
 package uk.gov.justice.digital.command
 
 import jakarta.inject.Singleton
+import picocli.CommandLine
 import picocli.CommandLine.Command
+import picocli.CommandLine.Option
 import uk.gov.justice.digital.service.DomainService
 
 @Singleton
 @Command(
     name = "list",
-    mixinStandardHelpOptions = true,
-    description = ["List all available domains"]
+    description = ["List all available domains"],
 )
 class ListDomains(private val service: DomainService) : CommandBase(), Runnable {
+
+    @Option(names = ["-h", "--help"], usageHelp = true, description = [ "display this help message" ])
+    var usageHelpRequested = false
 
     private val NAME_WIDTH = 20
     private val DESCRIPTION_WIDTH = 40

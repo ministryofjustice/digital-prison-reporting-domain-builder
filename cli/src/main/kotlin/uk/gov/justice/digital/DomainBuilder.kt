@@ -16,6 +16,7 @@ import org.jline.terminal.TerminalBuilder
 import org.jline.widget.TailTipWidgets
 import picocli.CommandLine
 import picocli.CommandLine.Command
+import picocli.CommandLine.HelpCommand
 import picocli.CommandLine.Option
 import picocli.shell.jline3.PicocliCommands
 import uk.gov.justice.digital.command.ListDomains
@@ -30,6 +31,7 @@ import java.util.function.Supplier
     mixinStandardHelpOptions = true,
     version = ["domain-builder 0.0.1"],
     subcommands = [
+        HelpCommand::class,
         ListDomains::class,
         ViewDomain::class,
     ],
