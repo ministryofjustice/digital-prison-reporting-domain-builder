@@ -1,6 +1,5 @@
 package uk.gov.justice.digital
 
 fun main() {
-    val message = generateMessage("Backend")
-    println(message)
+    TODO("Not implemented yet - see DPR-362")
 }

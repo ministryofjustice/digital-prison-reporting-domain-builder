@@ -25,7 +25,7 @@ class ListDomains(private val service: DomainService) : CommandBase(), Runnable 
 
         if (result.isNotEmpty()) {
 
-            println("Found ${result.size} domains\n")
+            printlnAnsi("\n@|bold,green Found ${result.size} domains|@\n")
 
             // Table headings
             val tableRowLine = tableRowDelimiter(NAME_WIDTH, DESCRIPTION_WIDTH)

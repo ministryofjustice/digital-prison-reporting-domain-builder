@@ -81,6 +81,7 @@ object StaticData {
         tags = tags,
         owner = EMAIL,
         author = EMAIL,
+        originator = EMAIL,
         tables = listOf(table1),
     )
 

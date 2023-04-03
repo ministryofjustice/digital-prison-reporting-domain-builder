@@ -25,16 +25,16 @@ class ViewDomain(private val service: DomainService) : CommandBase(), Runnable {
             printlnAnsi("@|red,bold ERROR|@ - no domain with name '@|bold $domainName|@' was found")
         }
         else {
-            println("Found domain with name: '$domainName'\n")
+            printlnAnsi("\n@|green,bold Found domain with name: '$domainName'|@\n")
 
             printlnAnsi("""
                @|bold Name        |@| ${domain.name} 
                @|bold Description |@| ${domain.description}
-               @|bold Owner       |@| ${domain.owner}
+               @|bold Originator  |@| ${domain.originator}
             """.trimIndent())
 
-            println("\nTables in this domain\n")
-            // TODO - list out each table and corresponding query
+            printlnAnsi("\n@|yellow,bold Tables in this domain|@\n")
+
             domain
                 .tables
                 .forEach {
