@@ -4,21 +4,16 @@ import io.micronaut.configuration.picocli.MicronautFactory
 import io.micronaut.configuration.picocli.PicocliRunner
 import jakarta.inject.Singleton
 import org.fusesource.jansi.AnsiConsole
-import org.jline.builtins.ConfigurationPath
-import org.jline.console.CmdLine
 import org.jline.console.SystemRegistry
-import org.jline.console.impl.Builtins
 import org.jline.console.impl.SystemRegistryImpl
-import org.jline.keymap.KeyMap
 import org.jline.reader.*
 import org.jline.reader.impl.DefaultParser
 import org.jline.terminal.TerminalBuilder
-import org.jline.widget.TailTipWidgets
+import org.jline.widget.AutosuggestionWidgets
 import picocli.CommandLine
-import picocli.CommandLine.Command
-import picocli.CommandLine.HelpCommand
-import picocli.CommandLine.Option
+import picocli.CommandLine.*
 import picocli.shell.jline3.PicocliCommands
+import uk.gov.justice.digital.command.CommandBase
 import uk.gov.justice.digital.command.ListDomains
 import uk.gov.justice.digital.command.ViewDomain
 import java.io.PrintWriter
@@ -37,7 +32,7 @@ import java.util.function.Supplier
     ],
 )
 @Singleton
-class DomainBuilder : Runnable {
+class DomainBuilder : CommandBase(), Runnable {
 
     @Option(
         names = ["-i", "--interactive"],
@@ -52,12 +47,25 @@ class DomainBuilder : Runnable {
         out = reader.terminal.writer()
     }
 
+    private val launchText = """
+        @|bold,cyan Domain Builder|@
+        
+        Type @|bold help|@ to view available commands.
+        
+        Type @|bold <command> --help|@ to view help for a specific command.
+        
+        Type @|bold exit|@ to exit the domain builder.
+        
+        Press the @|bold TAB|@ key to view available commands or autocomplete commands as you type.
+        
+    """.trimIndent()
+
     override fun run() {
         if (interactive) {
-            println("Launching interactive shell")
+            printlnAnsi(launchText)
 
-            // The following is a straight copy and paste from the docs - tidy up as required
             AnsiConsole.systemInstall()
+
             try {
                 val workDir: Supplier<Path> = Supplier {
                     Paths.get(
@@ -66,14 +74,8 @@ class DomainBuilder : Runnable {
                         )
                     )
                 }
-                // set up JLine built-in commands
-                // TODO - does it matter what we set ConfigurationPath to? For now we just set it to /tmp
-                val tmpPath = Paths.get("/tmp")
-                val builtins = Builtins(workDir, ConfigurationPath(tmpPath, tmpPath), null)
-                builtins.rename(Builtins.Command.TTOP, "top")
-                builtins.alias("zle", "widget")
-                builtins.alias("bindkey", "keymap")
-                // set up picocli commands
+
+                // Set up picocli commands
                 val commands = this
                 val factory = MicronautFactory()
                 val cmd = CommandLine(commands, factory)
@@ -82,28 +84,22 @@ class DomainBuilder : Runnable {
 
                 TerminalBuilder.builder().build().use { terminal ->
                     val systemRegistry: SystemRegistry = SystemRegistryImpl(parser, terminal, workDir, null)
-                    systemRegistry.setCommandRegistries(builtins, picocliCommands)
+                    systemRegistry.setCommandRegistries(picocliCommands)
                     systemRegistry.register("help", picocliCommands)
+
                     val reader = LineReaderBuilder.builder()
                         .terminal(terminal)
                         .completer(systemRegistry.completer())
                         .parser(parser)
                         .variable(LineReader.LIST_MAX, 50) // max tab completion candidates
                         .build()
-                    builtins.setLineReader(reader)
                     commands.setReader(reader)
-                    // TODO - what other widgets are there?
-                    val widgets = TailTipWidgets(
-                        reader,
-                        { line: CmdLine? -> systemRegistry.commandDescription(line) },
-                        5,
-                        TailTipWidgets.TipType.COMPLETER
-                    )
-                    widgets.enable()
-                    val keyMap: KeyMap<Binding>? = reader.getKeyMaps().get("main")
-                    keyMap?.bind(Reference("tailtip-toggle"), KeyMap.alt("s"))
-                    val prompt = "prompt> "
-                    val rightPrompt: String? = null
+
+                    val autosuggestionWidgets = AutosuggestionWidgets(reader)
+                    autosuggestionWidgets.enable()
+
+                    val prompt = "domain-builder> "
+                    val rightPrompt = ""
 
                     // start the shell and process input until the user quits with Ctrl-D
                     while (true) {
