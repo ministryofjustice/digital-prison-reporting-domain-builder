@@ -8,11 +8,10 @@ import uk.gov.justice.digital.service.DomainService
 @Singleton
 @Command(
     name = "view",
+    mixinStandardHelpOptions = true,
     description = ["View details for a specific domain"]
 )
 class ViewDomain(private val service: DomainService) : CommandBase(), Runnable {
-
-    
 
     @Option(
         names = ["-n", "--name"],

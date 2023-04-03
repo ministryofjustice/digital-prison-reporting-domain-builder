@@ -34,7 +34,7 @@ class DomainService {
 // Temporary hardcoded data
 object StaticData {
 
-    val EMAIL = "someone@example.come"
+    val EMAIL = "someone@example.com"
 
     val tags = mapOf(
         Pair("department", "ABCDEFG"),

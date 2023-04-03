@@ -1,5 +1,6 @@
 package uk.gov.justice.digital
 
+import io.micronaut.configuration.picocli.MicronautFactory
 import io.micronaut.configuration.picocli.PicocliRunner
 import jakarta.inject.Singleton
 import org.fusesource.jansi.AnsiConsole
@@ -17,7 +18,6 @@ import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
 import picocli.shell.jline3.PicocliCommands
-import picocli.shell.jline3.PicocliCommands.PicocliCommandsFactory
 import uk.gov.justice.digital.command.ListDomains
 import uk.gov.justice.digital.command.ViewDomain
 import java.io.PrintWriter
@@ -73,18 +73,16 @@ class DomainBuilder : Runnable {
                 builtins.alias("bindkey", "keymap")
                 // set up picocli commands
                 val commands = this
-                val factory = PicocliCommandsFactory()
-                // Or, if you have your own factory, you can chain them like this:
-                // MyCustomFactory customFactory = createCustomFactory(); // your application custom factory
-                // PicocliCommandsFactory factory = new PicocliCommandsFactory(customFactory); // chain the factories
+                val factory = MicronautFactory()
                 val cmd = CommandLine(commands, factory)
                 val picocliCommands = PicocliCommands(cmd)
                 val parser: Parser = DefaultParser()
+
                 TerminalBuilder.builder().build().use { terminal ->
                     val systemRegistry: SystemRegistry = SystemRegistryImpl(parser, terminal, workDir, null)
                     systemRegistry.setCommandRegistries(builtins, picocliCommands)
                     systemRegistry.register("help", picocliCommands)
-                    val reader: org.jline.reader.LineReader = LineReaderBuilder.builder()
+                    val reader = LineReaderBuilder.builder()
                         .terminal(terminal)
                         .completer(systemRegistry.completer())
                         .parser(parser)
@@ -92,7 +90,7 @@ class DomainBuilder : Runnable {
                         .build()
                     builtins.setLineReader(reader)
                     commands.setReader(reader)
-                    factory.setTerminal(terminal)
+                    // TODO - what other widgets are there?
                     val widgets = TailTipWidgets(
                         reader,
                         { line: CmdLine? -> systemRegistry.commandDescription(line) },
@@ -106,13 +104,10 @@ class DomainBuilder : Runnable {
                     val rightPrompt: String? = null
 
                     // start the shell and process input until the user quits with Ctrl-D
-                    var line: String?
                     while (true) {
                         try {
                             systemRegistry.cleanUp()
-                            line = reader.readLine(prompt, rightPrompt, null as MaskingCallback?, null)
-                            println("executing line: $line")
-                            // TODO - can commands be launched in a different way here?
+                            val line = reader.readLine(prompt, rightPrompt, null as MaskingCallback?, null)
                             systemRegistry.execute(line)
                         } catch (e: UserInterruptException) {
                             // Ignore

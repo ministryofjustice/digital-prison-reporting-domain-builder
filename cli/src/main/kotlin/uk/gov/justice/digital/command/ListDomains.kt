@@ -7,6 +7,7 @@ import uk.gov.justice.digital.service.DomainService
 @Singleton
 @Command(
     name = "list",
+    mixinStandardHelpOptions = true,
     description = ["List all available domains"]
 )
 class ListDomains(private val service: DomainService) : CommandBase(), Runnable {
