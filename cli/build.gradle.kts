@@ -26,6 +26,7 @@ dependencies {
   implementation("io.micronaut:micronaut-validation")
   implementation("jakarta.annotation:jakarta.annotation-api")
   implementation("info.picocli:picocli-shell-jline3:4.7.1")
+  implementation("org.fusesource.jansi:jansi:2.4.0")
 
   runtimeOnly("ch.qos.logback:logback-classic")
   compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
@@ -45,4 +46,9 @@ tasks.named<Test>("test") {
 
 application {
   mainClass.set("uk.gov.justice.digital.DomainBuilder")
+}
+
+tasks.named<JavaExec>("run") {
+  // Ensure we attach STDIN so interactive mode works when using the run task
+  standardInput = System.`in`
 }

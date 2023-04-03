@@ -39,7 +39,7 @@ class ListDomains(private val service: DomainService) : CommandBase(), Runnable 
                 println(String.format("| %-20s | %-40s |", it.name, it.description))
             }
 
-            println(tableRowLine)
+            println("$tableRowLine\n")
         }
         else printlnAnsi("@|red,bold ERROR|@ No domains were found")
     }

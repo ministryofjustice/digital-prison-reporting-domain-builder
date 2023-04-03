@@ -12,6 +12,8 @@ import uk.gov.justice.digital.service.DomainService
 )
 class ViewDomain(private val service: DomainService) : CommandBase(), Runnable {
 
+    
+
     @Option(
         names = ["-n", "--name"],
         description = ["The name of the domain to view"],
