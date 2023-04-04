@@ -18,9 +18,6 @@ import uk.gov.justice.digital.command.CommandBase
 import uk.gov.justice.digital.command.ListDomains
 import uk.gov.justice.digital.command.ViewDomain
 import java.io.PrintWriter
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.util.function.Supplier
 
 @Command(
     name = "domain-builder",
@@ -49,7 +46,11 @@ class DomainBuilder : CommandBase(), Runnable {
     }
 
     private val launchText = """
-        @|bold,cyan Domain Builder|@
+        @|bold,cyan      _                       _             _             _     _             |@
+        @|bold,cyan   __| | ___  _ __ ___   __ _(_)_ __       | |__  _   _(_) | __| | ___ _ __   |@
+        @|bold,cyan  / _` |/ _ \| '_ ` _ \ / _` | | '_ \ _____| '_ \| | | | | |/ _` |/ _ \ '__|  |@
+        @|bold,cyan | (_| | (_) | | | | | | (_| | | | | |_____| |_) | |_| | | | (_| |  __/ |     |@
+        @|bold,cyan  \__,_|\___/|_| |_| |_|\__,_|_|_| |_|     |_.__/ \__,_|_|_|\__,_|\___|_|     |@
         
         Type @|bold help|@ to view available commands.
         
