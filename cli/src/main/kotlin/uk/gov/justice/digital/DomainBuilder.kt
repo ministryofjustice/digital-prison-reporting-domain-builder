@@ -21,8 +21,6 @@ import java.io.PrintWriter
 
 @Command(
     name = "domain-builder",
-    mixinStandardHelpOptions = true,
-    version = ["domain-builder 0.0.1"],
     subcommands = [
         HelpCommand::class,
         ListDomains::class,
@@ -38,6 +36,13 @@ class DomainBuilder : CommandBase(), Runnable {
         required = false
     )
     var interactive = false
+
+    @Option(
+        names = ["-h", "--help"],
+        usageHelp = true,
+        description = [ "display this help message" ]
+    )
+    var usageHelpRequested = false
 
     private var out: PrintWriter? = null
 
