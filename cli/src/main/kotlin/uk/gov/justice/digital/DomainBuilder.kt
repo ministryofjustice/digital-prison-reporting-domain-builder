@@ -8,6 +8,7 @@ import org.jline.console.SystemRegistry
 import org.jline.console.impl.SystemRegistryImpl
 import org.jline.reader.*
 import org.jline.reader.impl.DefaultParser
+import org.jline.terminal.Terminal
 import org.jline.terminal.TerminalBuilder
 import org.jline.widget.AutosuggestionWidgets
 import picocli.CommandLine
@@ -67,61 +68,54 @@ class DomainBuilder : CommandBase(), Runnable {
             AnsiConsole.systemInstall()
 
             try {
-                val workDir: Supplier<Path> = Supplier {
-                    Paths.get(
-                        System.getProperty(
-                            "user.dir"
-                        )
-                    )
-                }
-
-                // Set up picocli commands
-                val commands = this
-                val factory = MicronautFactory()
-                val cmd = CommandLine(commands, factory)
-                val picocliCommands = PicocliCommands(cmd)
-                val parser: Parser = DefaultParser()
-
-                TerminalBuilder.builder().build().use { terminal ->
-                    val systemRegistry: SystemRegistry = SystemRegistryImpl(parser, terminal, workDir, null)
-                    systemRegistry.setCommandRegistries(picocliCommands)
-                    systemRegistry.register("help", picocliCommands)
-
-                    val reader = LineReaderBuilder.builder()
-                        .terminal(terminal)
-                        .completer(systemRegistry.completer())
-                        .parser(parser)
-                        .variable(LineReader.LIST_MAX, 50) // max tab completion candidates
-                        .build()
-                    commands.setReader(reader)
-
-                    val autosuggestionWidgets = AutosuggestionWidgets(reader)
-                    autosuggestionWidgets.enable()
-
-                    val prompt = "domain-builder> "
-                    val rightPrompt = ""
-
-                    // start the shell and process input until the user quits with Ctrl-D
-                    while (true) {
-                        try {
-                            systemRegistry.cleanUp()
-                            val line = reader.readLine(prompt, rightPrompt, null as MaskingCallback?, null)
-                            systemRegistry.execute(line)
-                        } catch (e: UserInterruptException) {
-                            // Ignore
-                        } catch (e: EndOfFileException) {
-                            return
-                        } catch (e: Exception) {
-                            systemRegistry.trace(e)
-                        }
-                    }
-                }
+                TerminalBuilder.builder().build().use { terminal -> interactiveSession(terminal) }
             } catch (t: Throwable) {
                 t.printStackTrace()
             } finally {
                 AnsiConsole.systemUninstall()
             }
         }
+    }
+
+    // TODO - fix cli command args parsing
+    fun interactiveSession(terminal: Terminal) {
+        // Set up picocli commands
+        val commands = this
+        val factory = MicronautFactory()
+        val cmd = CommandLine(commands, factory)
+        val picocliCommands = PicocliCommands(cmd)
+        val parser: Parser = DefaultParser()
+        val systemRegistry: SystemRegistry = SystemRegistryImpl(parser, terminal, null, null)
+
+        systemRegistry.setCommandRegistries(picocliCommands)
+        systemRegistry.register("help", picocliCommands)
+
+        val reader = LineReaderBuilder.builder()
+            .terminal(terminal)
+            .completer(systemRegistry.completer())
+            .parser(parser)
+            .variable(LineReader.LIST_MAX, 50) // max tab completion candidates
+            .build()
+        commands.setReader(reader)
+
+        AutosuggestionWidgets(reader).enable()
+
+        val prompt = "domain-builder> "
+
+        // Start the shell and process input until the user quits with Ctrl-D
+        while (true) {
+            try {
+                systemRegistry.cleanUp()
+                systemRegistry.execute(reader.readLine(prompt, null, null))
+            } catch (e: UserInterruptException) {
+                // Ignore
+            } catch (e: EndOfFileException) {
+                return
+            } catch (e: Exception) {
+                systemRegistry.trace(e)
+            }
+        }
+
     }
 
     companion object {
