@@ -41,9 +41,9 @@ class DomainBuilder : CommandBase(), Runnable {
     )
     var interactive = false
 
-    private var out: PrintWriter? = null;
+    private var out: PrintWriter? = null
 
-    fun setReader(reader: LineReader) {
+    private fun setReader(reader: LineReader) {
         out = reader.terminal.writer()
     }
 
@@ -128,7 +128,7 @@ class DomainBuilder : CommandBase(), Runnable {
         @JvmStatic
         fun main(args: Array<String>) {
             System.setProperty("picocli.ansi", "true")
-            PicocliRunner.execute(DomainBuilder::class.java, *args);
+            PicocliRunner.execute(DomainBuilder::class.java, *args)
         }
     }
 
