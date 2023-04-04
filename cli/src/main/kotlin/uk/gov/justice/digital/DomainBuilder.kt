@@ -46,12 +46,13 @@ class DomainBuilder : CommandBase(), Runnable {
     }
 
     private val launchText = """
-        @|bold,cyan      _                       _             _             _     _             |@
-        @|bold,cyan   __| | ___  _ __ ___   __ _(_)_ __       | |__  _   _(_) | __| | ___ _ __   |@
-        @|bold,cyan  / _` |/ _ \| '_ ` _ \ / _` | | '_ \ _____| '_ \| | | | | |/ _` |/ _ \ '__|  |@
-        @|bold,cyan | (_| | (_) | | | | | | (_| | | | | |_____| |_) | |_| | | | (_| |  __/ |     |@
-        @|bold,cyan  \__,_|\___/|_| |_| |_|\__,_|_|_| |_|     |_.__/ \__,_|_|_|\__,_|\___|_|     |@
         
+        @|bold,cyan  ____                                  ____          _     _               |@
+        @|bold,cyan |  _ \  ___  _ __ ___   __ _(_)_ __   | __ ) _   _(_) | __| | ___ _ __     |@
+        @|bold,cyan | | | |/ _ \| '_ ` _ \ / _` | | '_ \  |  _ \| | | | | |/ _` |/ _ \ '__|    |@
+        @|bold,cyan | |_| | (_) | | | | | | (_| | | | | | | |_) | |_| | | | (_| |  __/ |       |@
+        @|bold,cyan |____/ \___/|_| |_| |_|\__,_|_|_| |_| |____/ \__,_|_|_|\__,_|\___|_|       |@
+
         Type @|bold help|@ to view available commands.
         
         Type @|bold <command> --help|@ to view help for a specific command.
