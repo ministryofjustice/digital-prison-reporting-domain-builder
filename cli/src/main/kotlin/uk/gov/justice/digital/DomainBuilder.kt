@@ -79,8 +79,7 @@ class DomainBuilder : CommandBase(), Runnable {
         }
     }
 
-    // TODO - fix cli command args parsing
-    fun interactiveSession(terminal: Terminal) {
+    private fun interactiveSession(terminal: Terminal) {
         // Set up picocli commands
         val commands = this
         val factory = MicronautFactory()

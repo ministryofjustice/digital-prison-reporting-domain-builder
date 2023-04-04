@@ -23,14 +23,14 @@ class ViewDomain(private val service: DomainService) : CommandBase(), Runnable {
         names = ["-n", "--name"],
         description = [
             "the name of the domain to view",
-            "use quotes around the name if it contains spaces",
-            "for example view --name='This name has spaces'"
         ],
+        arity = "1..*",
         required = true
     )
-    var domainName: String = ""
+    lateinit var domainNameElements: Array<String>
 
     override fun run() {
+        val domainName = domainNameElements.joinToString(" ")
         val domain = service.getDomainWithName(domainName)
         if (domain == null) {
             printlnAnsi("@|red,bold ERROR|@ - no domain with name '@|bold $domainName|@' was found")

@@ -13,7 +13,11 @@ import uk.gov.justice.digital.service.DomainService
 )
 class ListDomains(private val service: DomainService) : CommandBase(), Runnable {
 
-    @Option(names = ["-h", "--help"], usageHelp = true, description = [ "display this help message" ])
+    @Option(
+        names = ["-h", "--help"],
+        usageHelp = true,
+        description = [ "display this help message" ]
+    )
     var usageHelpRequested = false
 
     private val NAME_WIDTH = 20
@@ -24,6 +28,7 @@ class ListDomains(private val service: DomainService) : CommandBase(), Runnable 
         fetchAndDisplayDomains()
     }
 
+    // TODO - pagination
     private fun fetchAndDisplayDomains() {
 
         val result = service.getAllDomains()
