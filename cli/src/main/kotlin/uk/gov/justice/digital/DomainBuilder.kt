@@ -128,7 +128,12 @@ class DomainBuilder : CommandBase(), Runnable {
         @JvmStatic
         fun main(args: Array<String>) {
             System.setProperty("picocli.ansi", "true")
-            PicocliRunner.execute(DomainBuilder::class.java, *args)
+            // TODO - is there a better way to launch help?
+            if (args.isEmpty()) {
+                val fakeArgs = arrayOf("--help")
+                PicocliRunner.execute(DomainBuilder::class.java, *fakeArgs)
+            }
+            else PicocliRunner.execute(DomainBuilder::class.java, *args)
         }
     }
 
