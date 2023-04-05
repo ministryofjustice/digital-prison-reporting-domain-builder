@@ -10,6 +10,7 @@ import org.jline.reader.EndOfFileException
 import org.jline.reader.LineReader
 import org.jline.reader.LineReaderBuilder
 import org.jline.reader.Parser
+import org.jline.reader.UserInterruptException
 import org.jline.reader.impl.DefaultParser
 import org.jline.terminal.Terminal
 import org.jline.terminal.TerminalBuilder
@@ -92,12 +93,14 @@ class InteractiveSession: ConsoleSession {
                 systemRegistry.cleanUp()
                 systemRegistry.execute(reader.readLine(prompt))
             }
+            catch (e: UserInterruptException) {
+                // Ignore this exception to allow the session to continue.
+            }
             catch (e: EndOfFileException) {
                 break
             }
             catch (e: Exception) {
                 systemRegistry.trace(e)
-                break
             }
         }
 
@@ -124,7 +127,8 @@ class InteractiveSession: ConsoleSession {
             Type @|bold exit|@ to exit the domain builder.
             
             Press the @|bold TAB|@ key to view available commands or autocomplete commands as you type.
-        
+            
+            
         """.trimIndent()
     }
 

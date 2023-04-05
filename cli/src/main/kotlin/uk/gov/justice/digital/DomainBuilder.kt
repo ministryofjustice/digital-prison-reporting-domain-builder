@@ -31,7 +31,16 @@ class DomainBuilder(
     )
     private var isInteractive = false
 
+    @Option(
+        names = ["--enable-ansi"],
+        description = ["Enable ANSI formatting in interactive sessions"],
+        required = false
+    )
+    private var ansiEnabled = false
+
     override fun run() {
+        System.setProperty("picocli.ansi", "$ansiEnabled")
+
         if (isInteractive) {
             val commandLine = CommandLine(this, MicronautFactory())
             interactiveSession.start(commandLine)
@@ -47,7 +56,6 @@ class DomainBuilder(
 
         @JvmStatic
         fun main(args: Array<String>) {
-            System.setProperty("picocli.ansi", "true")
             // TODO - is there a better way to launch help?
             if (args.isEmpty()) {
                 val fakeArgs = arrayOf("--help")
