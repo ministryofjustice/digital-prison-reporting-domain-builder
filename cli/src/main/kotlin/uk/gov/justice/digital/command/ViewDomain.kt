@@ -13,7 +13,7 @@ import uk.gov.justice.digital.service.DomainService
     name = "view",
     description = ["View details for a specific domain"]
 )
-class ViewDomain(private val service: DomainService) : CommandBase(), Runnable {
+class ViewDomain(private val service: DomainService) : Runnable {
 
     @Option(
         names = ["-h", "--help"],
@@ -42,9 +42,8 @@ class ViewDomain(private val service: DomainService) : CommandBase(), Runnable {
     override fun run() {
         service.getDomainWithName(domainName())?.let {
             val output = generateOutput(it)
-            if (parent.interactive) pagedAnsi(parent.terminal, output)
-            else printAnsi(parent.terminal, output)
-        } ?: printAnsi(parent.terminal, "@|red,bold ERROR|@ - no domain with name '@|bold ${domainName()}|@' was found")
+            parent.print(output)
+        } ?: parent.print("@|red,bold ERROR|@ - no domain with name '@|bold ${domainName()}|@' was found")
     }
 
     private fun generateOutput(domain: Domain): String {

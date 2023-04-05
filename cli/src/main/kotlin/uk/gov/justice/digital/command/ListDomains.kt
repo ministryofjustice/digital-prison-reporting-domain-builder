@@ -12,7 +12,7 @@ import uk.gov.justice.digital.service.DomainService
     name = "list",
     description = ["List all available domains"],
 )
-class ListDomains(private val service: DomainService) : CommandBase(), Runnable {
+class ListDomains(private val service: DomainService) : Runnable {
 
     @Option(
         names = ["-h", "--help"],
@@ -37,9 +37,8 @@ class ListDomains(private val service: DomainService) : CommandBase(), Runnable 
 
         val output = generateOutput(result)
 
-        if (result.isEmpty()) printAnsi(parent.terminal, "@|red,bold ERROR|@ No domains were found")
-        else if (parent.interactive) pagedAnsi(parent.terminal, output)
-        else printAnsi(parent.terminal, output)
+        if (result.isEmpty()) parent.print("@|red,bold ERROR|@ No domains were found")
+        else parent.print(output)
     }
 
     private fun generateOutput(data: List<Domain>): String {
