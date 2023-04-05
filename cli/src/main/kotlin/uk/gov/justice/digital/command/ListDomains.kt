@@ -1,14 +1,10 @@
 package uk.gov.justice.digital.command
 
 import jakarta.inject.Singleton
-import org.jline.builtins.Less
-import org.jline.builtins.Source
 import picocli.CommandLine.*
 import uk.gov.justice.digital.DomainBuilder
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.service.DomainService
-import java.io.ByteArrayInputStream
-import java.io.PrintWriter
 
 
 @Singleton
@@ -28,56 +24,53 @@ class ListDomains(private val service: DomainService) : CommandBase(), Runnable 
     @ParentCommand
     lateinit var parent: DomainBuilder
 
-    override fun getPrintWriter(): PrintWriter {
-        return parent.out
-    }
-
-    private val NAME_WIDTH = 20
-    private val DESCRIPTION_WIDTH = 40
-    private val PADDING = 2
+    private val nameWidth = 20
+    private val descriptionWidth = 40
+    private val padding = 2
 
     override fun run() {
         fetchAndDisplayDomains()
     }
 
-    // TODO - pagination
     private fun fetchAndDisplayDomains() {
-
         val result = service.getAllDomains()
 
         val output = generateOutput(result)
 
-        if (parent.interactive && result.size + 4 > parent.terminalHeight) {
-            val ansiOutput = Help.Ansi.AUTO.string(output)
-            val src: Source = Source.InputStreamSource(ByteArrayInputStream(ansiOutput.toByteArray()), true, "pager")
-            val less = Less(parent.terminal, null)
-            less.run(src)
-        }
-        else if (result.isNotEmpty()) {
-            printAnsi(output)
-        }
-        else printAnsi("@|red,bold ERROR|@ No domains were found")
+        if (result.isEmpty()) printAnsi(parent.terminal, "@|red,bold ERROR|@ No domains were found")
+        else if (parent.interactive) pagedAnsi(parent.terminal, output)
+        else printAnsi(parent.terminal, output)
     }
 
     private fun generateOutput(data: List<Domain>): String {
-        // Table headings
-        val tableRowLine = tableRowDelimiter(NAME_WIDTH, DESCRIPTION_WIDTH)
+        val tableBorder = tableRowBorder(nameWidth, descriptionWidth, padding)
 
-        val lines = listOf(
+        val heading = listOf(
             "\n@|bold,green Found ${data.size} domains|@\n",
-            tableRowLine,
+            tableBorder,
             String.format("| @|bold %-20s|@ | @|bold %-40s|@ |", "Name", "Description"),
-            tableRowLine,
-        ) +
-            data.map { String.format("| %-20s | %-40s |", it.name, it.description) } +
-                listOf(tableRowLine, "\n")
+            tableBorder,
+        )
+        val dataRows = data.map { String.format("| %-20s | %-40s |", it.name, it.description) }
+        val footer = listOf("$tableBorder\n")
 
-        return lines.joinToString("\n")
+        return listOf(heading, dataRows, footer)
+            .flatten()
+            .joinToString("\n")
     }
 
-    private fun tableRowDelimiter(vararg columnWidth: Int): String {
-        return columnWidth
-            .joinToString(separator = "+", prefix = "+", postfix = "+") { "-".repeat(it + PADDING) }
+    /**
+     * Creates a horizontal table row line for the given number of column widths.
+     * For example tableRowDelimiter(2, 2, 2) will return
+     * +----+----+----+
+     * which can be used between table rows e.g.
+     * +----+----+----+
+     * | C1 | C2 | C3 |
+     * +----+----+----+
+     */
+    private fun tableRowBorder(vararg columnWidths: Int): String {
+        return columnWidths
+            .joinToString(separator = "+", prefix = "+", postfix = "+") { "-".repeat(it + padding) }
     }
 
 }

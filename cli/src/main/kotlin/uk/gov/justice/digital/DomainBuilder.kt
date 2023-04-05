@@ -5,7 +5,6 @@ import io.micronaut.configuration.picocli.PicocliRunner
 import jakarta.inject.Singleton
 import org.fusesource.jansi.AnsiConsole
 import org.jline.console.SystemRegistry
-import org.jline.console.impl.DefaultPrinter
 import org.jline.console.impl.SystemRegistryImpl
 import org.jline.reader.EndOfFileException
 import org.jline.reader.LineReader.*
@@ -22,7 +21,6 @@ import picocli.shell.jline3.PicocliCommands
 import uk.gov.justice.digital.command.CommandBase
 import uk.gov.justice.digital.command.ListDomains
 import uk.gov.justice.digital.command.ViewDomain
-import java.io.PrintWriter
 
 @Command(
     name = "domain-builder",
@@ -41,15 +39,7 @@ class DomainBuilder : CommandBase(), Runnable {
     )
     var interactive = false
 
-    lateinit var out: PrintWriter
     lateinit var terminal: Terminal
-
-    override fun getPrintWriter(): PrintWriter {
-        return out
-    }
-
-    var terminalWidth: Int = 0
-    var terminalHeight: Int = 0
 
     override fun run() {
         if (interactive) {
@@ -66,10 +56,9 @@ class DomainBuilder : CommandBase(), Runnable {
     }
 
     private fun interactiveSession(terminal: Terminal) {
-        out = terminal.writer()
         this.terminal = terminal
 
-        printAnsi(launchText)
+        printAnsi(terminal, launchText)
 
         val commandLine = CommandLine(this, MicronautFactory())
 
@@ -95,9 +84,6 @@ class DomainBuilder : CommandBase(), Runnable {
         // Start the interactive shell and process input until the user types exit or hits CTRL-D.
         while (true) {
             try {
-                terminalWidth = terminal.width
-                terminalHeight = terminal.height
-
                 systemRegistry.cleanUp()
                 systemRegistry.execute(reader.readLine(prompt))
             }
