@@ -19,7 +19,47 @@ import java.util.*
 @Singleton
 class DomainService {
 
-    private val domains = listOf(domain1, domain2, domain3)
+    private val domains = listOf(
+        domain1,
+        domain2,
+        domain3,
+        domain1,
+        domain2,
+        domain3,
+        domain1,
+        domain2,
+        domain3,
+        domain1,
+        domain2,
+        domain3,
+        domain1,
+        domain2,
+        domain3,
+        domain1,
+        domain2,
+        domain3,
+        domain1,
+        domain2,
+        domain3,
+        domain1,
+        domain2,
+        domain3,
+        domain1,
+        domain2,
+        domain3,
+        domain1,
+        domain2,
+        domain3,
+        domain1,
+        domain2,
+        domain3,
+        domain1,
+        domain2,
+        domain3,
+        domain1,
+        domain2,
+        domain3,
+    )
 
     fun getAllDomains(): List<Domain> {
         return domains

@@ -3,7 +3,10 @@ package uk.gov.justice.digital.command
 import jakarta.inject.Singleton
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
+import picocli.CommandLine.ParentCommand
+import uk.gov.justice.digital.DomainBuilder
 import uk.gov.justice.digital.service.DomainService
+import java.io.PrintWriter
 
 @Singleton
 @Command(
@@ -29,27 +32,34 @@ class ViewDomain(private val service: DomainService) : CommandBase(), Runnable {
     )
     lateinit var domainNameElements: Array<String>
 
+    @ParentCommand
+    lateinit var parent: DomainBuilder
+
+    override fun getPrintWriter(): PrintWriter {
+        return parent.out
+    }
+
     override fun run() {
         val domainName = domainNameElements.joinToString(" ")
         val domain = service.getDomainWithName(domainName)
         if (domain == null) {
-            printlnAnsi("@|red,bold ERROR|@ - no domain with name '@|bold $domainName|@' was found")
+            printAnsi("@|red,bold ERROR|@ - no domain with name '@|bold $domainName|@' was found")
         }
         else {
-            printlnAnsi("\n@|green,bold Found domain with name: '$domainName'|@\n")
+            printAnsi("\n@|green,bold Found domain with name: '$domainName'|@\n")
 
-            printlnAnsi("""
+            printAnsi("""
                @|bold Name        |@| ${domain.name} 
                @|bold Description |@| ${domain.description}
                @|bold Originator  |@| ${domain.originator}
             """.trimIndent())
 
-            printlnAnsi("\n@|yellow,bold Tables in this domain|@\n")
+            printAnsi("\n@|yellow,bold Tables in this domain|@\n")
 
             domain
                 .tables
                 .forEach {
-                    printlnAnsi("""
+                    printAnsi("""
                         @|bold Table       |@| ${it.name}
                         @|bold Description |@| ${it.description}
                         @|bold Sources     |@| ${it.transform.sources.joinToString()}

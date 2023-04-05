@@ -1,10 +1,15 @@
 package uk.gov.justice.digital.command
 
 import jakarta.inject.Singleton
-import picocli.CommandLine
-import picocli.CommandLine.Command
-import picocli.CommandLine.Option
+import org.jline.builtins.Less
+import org.jline.builtins.Source
+import picocli.CommandLine.*
+import uk.gov.justice.digital.DomainBuilder
+import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.service.DomainService
+import java.io.ByteArrayInputStream
+import java.io.PrintWriter
+
 
 @Singleton
 @Command(
@@ -20,6 +25,13 @@ class ListDomains(private val service: DomainService) : CommandBase(), Runnable 
     )
     var usageHelpRequested = false
 
+    @ParentCommand
+    lateinit var parent: DomainBuilder
+
+    override fun getPrintWriter(): PrintWriter {
+        return parent.out
+    }
+
     private val NAME_WIDTH = 20
     private val DESCRIPTION_WIDTH = 40
     private val PADDING = 2
@@ -33,25 +45,34 @@ class ListDomains(private val service: DomainService) : CommandBase(), Runnable 
 
         val result = service.getAllDomains()
 
-        if (result.isNotEmpty()) {
+        val output = generateOutput(result)
 
-            printlnAnsi("\n@|bold,green Found ${result.size} domains|@\n")
-
-            // Table headings
-            val tableRowLine = tableRowDelimiter(NAME_WIDTH, DESCRIPTION_WIDTH)
-
-            println(tableRowLine)
-            printlnAnsi(String.format("| @|bold %-20s|@ | @|bold %-40s|@ |", "Name", "Description"))
-            println(tableRowLine)
-
-            // Table rows
-            result.forEach {
-                println(String.format("| %-20s | %-40s |", it.name, it.description))
-            }
-
-            println("$tableRowLine\n")
+        if (parent.interactive && result.size + 4 > parent.terminalHeight) {
+            val ansiOutput = Help.Ansi.AUTO.string(output)
+            val src: Source = Source.InputStreamSource(ByteArrayInputStream(ansiOutput.toByteArray()), true, "pager")
+            val less = Less(parent.terminal, null)
+            less.run(src)
         }
-        else printlnAnsi("@|red,bold ERROR|@ No domains were found")
+        else if (result.isNotEmpty()) {
+            printAnsi(output)
+        }
+        else printAnsi("@|red,bold ERROR|@ No domains were found")
+    }
+
+    private fun generateOutput(data: List<Domain>): String {
+        // Table headings
+        val tableRowLine = tableRowDelimiter(NAME_WIDTH, DESCRIPTION_WIDTH)
+
+        val lines = listOf(
+            "\n@|bold,green Found ${data.size} domains|@\n",
+            tableRowLine,
+            String.format("| @|bold %-20s|@ | @|bold %-40s|@ |", "Name", "Description"),
+            tableRowLine,
+        ) +
+            data.map { String.format("| %-20s | %-40s |", it.name, it.description) } +
+                listOf(tableRowLine, "\n")
+
+        return lines.joinToString("\n")
     }
 
     private fun tableRowDelimiter(vararg columnWidth: Int): String {
