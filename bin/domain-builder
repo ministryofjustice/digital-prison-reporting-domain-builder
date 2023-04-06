@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# TODO - check if we are on aws or not
+#      - should be able to hit local service on ec2 instance
+
+set -e
+
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+cd $script_dir/..
+
+./gradlew :cli:shadowJar -q
+
+java -jar ./cli/build/libs/cli-all.jar $@
