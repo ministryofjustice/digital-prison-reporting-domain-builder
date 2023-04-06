@@ -23,42 +23,6 @@ class DomainService {
         domain1,
         domain2,
         domain3,
-        domain1,
-        domain2,
-        domain3,
-        domain1,
-        domain2,
-        domain3,
-        domain1,
-        domain2,
-        domain3,
-        domain1,
-        domain2,
-        domain3,
-        domain1,
-        domain2,
-        domain3,
-        domain1,
-        domain2,
-        domain3,
-        domain1,
-        domain2,
-        domain3,
-        domain1,
-        domain2,
-        domain3,
-        domain1,
-        domain2,
-        domain3,
-        domain1,
-        domain2,
-        domain3,
-        domain1,
-        domain2,
-        domain3,
-        domain1,
-        domain2,
-        domain3,
     )
 
     fun getAllDomains(): List<Domain> {
@@ -71,7 +35,7 @@ class DomainService {
 
 }
 
-// Temporary hardcoded data
+// Temporary hardcoded data - See DPR-363 for work to integrate with backend.
 object StaticData {
 
     val EMAIL = "someone@example.com"
