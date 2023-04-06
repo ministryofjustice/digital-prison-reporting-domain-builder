@@ -4,25 +4,21 @@ import io.micronaut.http.MediaType.APPLICATION_JSON
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import uk.gov.justice.digital.model.Domain
+import uk.gov.justice.digital.service.DomainService
 import java.util.*
 
 @Controller("/domain")
-class DomainController {
+class DomainController(private val service: DomainService) {
 
-    @Get(produces = [APPLICATION_JSON])
-    fun getDomains(): List<Domain> {
-        return listOf(Domain(
-            id = UUID.randomUUID(),
-            name = "Some domain",
-            description = "Static test domain",
-            version = "0.01",
-            location = "/some-domain",
-            tags = emptyMap(),
-            owner = "someone@example.come",
-            author = "someone@example.com",
-            originator = "someone@example.com",
-            tables = emptyList(),
-        ))
-   }
+    @Get("{?name}", produces = [APPLICATION_JSON])
+    fun getDomains(name: String?): List<Domain> {
+        return service.getDomains(name)
+    }
+
+    @Get("/{id}", produces = [APPLICATION_JSON])
+    // TODO - how do we raise a 404 if nothing is found?
+    fun getDomain(id: UUID): Domain? {
+        return service.getDomain(id)
+    }
 
 }

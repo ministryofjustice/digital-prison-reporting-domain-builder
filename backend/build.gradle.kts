@@ -26,13 +26,17 @@ dependencies {
   implementation("io.micronaut:micronaut-validation")
   implementation("jakarta.annotation:jakarta.annotation-api")
   implementation("io.micronaut:micronaut-http-server-netty")
+  implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
 
   runtimeOnly("ch.qos.logback:logback-classic")
   compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
   compileOnly("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
+
   kapt("io.micronaut:micronaut-inject-java")
+  kapt("io.micronaut:micronaut-http-validation")
 
   kaptTest("io.micronaut:micronaut-inject-java")
+  kaptTest("io.micronaut:micronaut-http-validation")
 
   testImplementation("io.micronaut.test:micronaut-test-junit5")
   testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.1")
