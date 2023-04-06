@@ -16,7 +16,6 @@ class DomainController(private val service: DomainService) {
     }
 
     @Get("/{id}", produces = [APPLICATION_JSON])
-    // TODO - how do we raise a 404 if nothing is found?
     fun getDomain(id: UUID): Domain? {
         return service.getDomain(id)
     }
