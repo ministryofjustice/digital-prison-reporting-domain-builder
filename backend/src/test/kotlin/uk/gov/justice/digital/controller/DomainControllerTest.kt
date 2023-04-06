@@ -15,13 +15,11 @@ import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.service.StaticData.domain1
 import uk.gov.justice.digital.service.StaticData.domain2
 import uk.gov.justice.digital.service.StaticData.domain3
-import java.lang.IllegalArgumentException
 import java.util.*
 
 @MicronautTest
 class DomainControllerTest {
 
-    // TODO - look into how micronaut handles de/ser
     private val mapper = jacksonObjectMapper()
 
     @Inject
@@ -45,17 +43,15 @@ class DomainControllerTest {
         assertEquals(domain1, parsed)
     }
 
-    // TODO - look into how to handle 4xx errors
     @Test
-    fun `GET of domain with non-existing ID should return not found`() {
+    fun `GET of domain with non-existing ID should throw a HttpClientResponseException`() {
         assertThrows(HttpClientResponseException::class.java) {
             client.toBlocking().retrieve(HttpRequest.GET<String>("/domain/${UUID.randomUUID()}"))
         }
     }
 
-    // TODO - look into how to handle 4xx errors
     @Test
-    fun `GET of domain with invalid ID should return bad request`() {
+    fun `GET of domain with invalid ID should throw an IllegalArgumentException`() {
         assertThrows(IllegalArgumentException::class.java) {
             client.toBlocking().retrieve(HttpRequest.GET<String>("/domain/this-is-not-a-UUID}"))
         }
@@ -69,7 +65,7 @@ class DomainControllerTest {
     }
 
     @Test
-    fun `GET of domain with non-existing name should return not found`() {
+    fun `GET of domain with non-existing name should return an empty list`() {
         val response: String = client.toBlocking().retrieve(HttpRequest.GET<String>("/domain?name=foo"))
         val parsed: List<Domain> = mapper.readValue(response)
         assertEquals(emptyList<Domain>(), parsed)
