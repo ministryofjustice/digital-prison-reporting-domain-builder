@@ -5,8 +5,19 @@
 # docker daemon if it's not running.
 #
 # Supports either Docker Destop (MAC) or colima, a cli only alterantive.
-
+#
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+database_name="domain_builder"
+
+function check_psql_installed {
+  if hash psql &> /dev/null
+  then
+    show_ok "psql installed"
+  else
+    show_fail_and_exit "psql not installed" "Please ensure psql command is installed and on your path."
+  fi
+}
 
 function check_docker_installed {
   if hash docker &> /dev/null
@@ -68,21 +79,49 @@ function start_postgres {
 }
 
 function check_postgres_running {
-  if lsof -nP -i4TCP | grep ":5432 (LISTEN)" &> /dev/null
+  container_id=$(docker ps | grep -E "postgres.*Up.*5432" | cut -d ' ' -f1)
+
+  if [ -n "$container_id" ]
   then
-    show_ok "Postgres running on local port 5432"
+    show_ok "Postgres container $container_id running on local port 5432"
   else
-    show_fail "Postgres container not started" "Run docker-compose manually to determine the cause of this failure."
+    show_info "Postgres container not started. Starting again..."
+    container_id=$(docker ps -a | grep postgres | head -n1 | cut -d ' ' -f1)
+    docker start $container_id &> /dev/null
+    wait_for_postgres_to_start
   fi
 }
 
 function wait_for_docker_to_start {
   while ! docker ps &> /dev/null
   do
-    echo "Waiting for docker"
     sleep 1
   done
   show_ok "Docker daemon started"
+}
+
+function wait_for_postgres_to_start {
+  while ! docker ps | grep -E "postgres.*Up.*5432" &> /dev/null
+  do
+    sleep 1
+  done
+  show_ok "Postgres container $container_id running on local port 5432"
+}
+
+function check_or_create_database {
+  if docker exec -it -u postgres $container_id  psql -c "\l" | grep "$database_name" &> /dev/null
+  then
+    show_ok "Database '$database_name' exists"
+  else
+    show_info "Database '$database_name' does not exist. Creating..."
+    docker exec -it -u postgres $container_id psql -c "create database $database_name;" &> /dev/null
+    if docker exec -it -u postgres $container_id  psql -c "\l" | grep "$database_name" &> /dev/null
+    then
+      show_ok "Database '$database_name' created"
+    else
+      show_fail_and_exit "Failed to create database '$database_name'" "Try creating the database '$database_name' manually."
+    fi
+  fi
 }
 
 function show_ok() {
@@ -97,6 +136,7 @@ function show_fail_and_exit() {
   echo -e "[\033[1;31mFAIL\033[0m] $1"
   echo
   echo "$2"
+  echo
   exit 1
 }
 
@@ -107,6 +147,7 @@ function show_heading() {
 echo
 show_heading "Checking prerequisites"
 echo
+check_psql_installed
 check_docker_installed
 check_docker_compose_installed
 check_docker_daemon_available
@@ -116,4 +157,8 @@ echo
 check_docker_running
 start_postgres
 check_postgres_running
+echo
+show_heading "Checking database"
+echo
+check_or_create_database
 echo
