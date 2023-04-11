@@ -20,17 +20,23 @@ val kotlinVersion = "1.8.10"
 dependencies {
   implementation(project(":common"))
 
+  implementation("io.micronaut.flyway:micronaut-flyway")
+  implementation("io.micronaut.picocli:micronaut-picocli")
   implementation("io.micronaut:micronaut-http-client")
+  implementation("io.micronaut:micronaut-http-server-netty")
   implementation("io.micronaut:micronaut-jackson-databind")
   implementation("io.micronaut:micronaut-runtime")
   implementation("io.micronaut:micronaut-validation")
+
   implementation("jakarta.annotation:jakarta.annotation-api")
-  implementation("io.micronaut:micronaut-http-server-netty")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
 
-  runtimeOnly("ch.qos.logback:logback-classic")
-  compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
   compileOnly("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
+  compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
+  runtimeOnly("ch.qos.logback:logback-classic")
+  runtimeOnly("io.micronaut.sql:micronaut-jdbc-dbcp")
+
+  runtimeOnly("org.postgresql:postgresql:42.6.0")
 
   kapt("io.micronaut:micronaut-inject-java")
   kapt("io.micronaut:micronaut-http-validation")
