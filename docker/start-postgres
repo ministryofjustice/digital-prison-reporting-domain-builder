@@ -1,0 +1,119 @@
+#!/bin/bash
+
+# Helper script that takes care of starting a local postgres DB using docker.
+# Checks that the required commands are installed and will attempt to start the
+# docker daemon if it's not running.
+#
+# Supports either Docker Destop (MAC) or colima, a cli only alterantive.
+
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+function check_docker_installed {
+  if hash docker &> /dev/null
+  then
+    show_ok "Docker installed"
+  else
+    show_fail_and_exit "Docker not installed" "Please ensure docker is installed and available on your path."
+  fi
+}
+
+function check_docker_compose_installed {
+  if hash docker-compose &> /dev/null
+  then
+    show_ok "Docker compose installed"
+  else
+    show_fail_and_exit "Docker compose not installed" "Please ensure docker-compose is installed and available on your path."
+  fi
+}
+
+function check_docker_daemon_available {
+  if [ -e "/Applications/Docker.app" ]
+  then
+    show_ok "Docker desktop installed"
+  else
+    show_info "Docker desktop not installed"
+    # Check for colima - a cli only docker desktop alternative
+    if hash colima &> /dev/null
+    then
+      show_ok "Colima installed"
+    else
+      show_fail "Neither docker desktop nor colima are installed" "Please ensure that either Docker Desktop or colima is installed."
+    fi
+  fi
+}
+
+function check_docker_running {
+  if docker ps &> /dev/null
+  then
+    show_ok "Docker running"
+  else
+    show_info "Docker not running. Starting..."
+    if [ -e "/Applications/Docker.app" ]
+    then
+      open -a Docker
+      wait_for_docker_to_start
+    elif hash colima &> /dev/null
+    then
+      colima start &> /dev/null
+      wait_for_docker_to_start
+    else
+      show_fail "Unable to start docker daemon" "Please ensure that either Docker Desktop or colima is installed."
+    fi
+  fi
+}
+
+function start_postgres {
+  docker_compose_file="$script_dir/postgres/docker-compose.yml"
+  docker-compose -f "$script_dir/postgres/docker-compose.yml" up --detach --wait -t 60 &> /dev/null
+}
+
+function check_postgres_running {
+  if lsof -nP -i4TCP | grep ":5432 (LISTEN)" &> /dev/null
+  then
+    show_ok "Postgres running on local port 5432"
+  else
+    show_fail "Postgres container not started" "Run docker-compose manually to determine the cause of this failure."
+  fi
+}
+
+function wait_for_docker_to_start {
+  while ! docker ps &> /dev/null
+  do
+    echo "Waiting for docker"
+    sleep 1
+  done
+  show_ok "Docker daemon started"
+}
+
+function show_ok() {
+  echo -e "[\033[1;32m OK \033[0m] $1"
+}
+
+function show_info() {
+  echo -e "[\033[1;33mINFO\033[0m] $1"
+}
+
+function show_fail_and_exit() {
+  echo -e "[\033[1;31mFAIL\033[0m] $1"
+  echo
+  echo "$2"
+  exit 1
+}
+
+function show_heading() {
+  echo -e "\033[1m$1\033[0m"
+}
+
+echo
+show_heading "Checking prerequisites"
+echo
+check_docker_installed
+check_docker_compose_installed
+check_docker_daemon_available
+echo
+show_heading "Starting postgres"
+echo
+check_docker_running
+start_postgres
+check_postgres_running
+echo
