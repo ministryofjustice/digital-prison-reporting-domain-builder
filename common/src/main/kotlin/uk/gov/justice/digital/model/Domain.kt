@@ -8,9 +8,9 @@ data class Domain(
     val description: String,
     val version: String,
     val location: String,
-    val tags: Map<String, String>,
+    val tags: Map<String, String> = emptyMap(),
     val owner: String,
     val author: String,
     val originator: String,
-    val tables: List<Table>,
+    val tables: List<Table> = emptyList(),
 )

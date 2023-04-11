@@ -42,7 +42,7 @@ class ListDomains(private val service: DomainService) : Runnable {
     }
 
     private fun generateOutput(data: List<Domain>): String {
-        val tableBorder = tableRowBorder(nameWidth, descriptionWidth, padding)
+        val tableBorder = tableRowBorder(nameWidth, descriptionWidth)
 
         val heading = listOf(
             "\n@|bold,green Found ${data.size} domains|@\n",
