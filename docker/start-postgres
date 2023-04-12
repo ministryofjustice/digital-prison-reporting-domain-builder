@@ -8,12 +8,14 @@
 #
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+source "$script_dir/../bin/lib/script-helpers"
+
 database_name="domain_builder"
 
 function check_psql_installed {
   if hash psql &> /dev/null
   then
-    show_ok "psql installed"
+    show_ok "psql command installed"
   else
     show_fail_and_exit "psql not installed" "Please ensure psql command is installed and on your path."
   fi
@@ -42,7 +44,7 @@ function check_docker_daemon_available {
   then
     show_ok "Docker desktop installed"
   else
-    show_info "Docker desktop not installed"
+    show_warn "Docker desktop not installed"
     # Check for colima - a cli only docker desktop alternative
     if hash colima &> /dev/null
     then
@@ -58,7 +60,7 @@ function check_docker_running {
   then
     show_ok "Docker running"
   else
-    show_info "Docker not running. Starting..."
+    show_warn "Docker not running. Starting..."
     if [ -e "/Applications/Docker.app" ]
     then
       open -a Docker
@@ -85,7 +87,7 @@ function check_postgres_running {
   then
     show_ok "Postgres container $container_id running on local port 5432"
   else
-    show_info "Postgres container not started. Starting again..."
+    show_warn "Postgres container not started. Starting again..."
     container_id=$(docker ps -a | grep postgres | head -n1 | cut -d ' ' -f1)
     docker start $container_id &> /dev/null
     wait_for_postgres_to_start
@@ -113,7 +115,7 @@ function check_or_create_database {
   then
     show_ok "Database '$database_name' exists"
   else
-    show_info "Database '$database_name' does not exist. Creating..."
+    show_warn "Database '$database_name' does not exist. Creating..."
     docker exec -it -u postgres $container_id psql -c "create database $database_name;" &> /dev/null
     if docker exec -it -u postgres $container_id  psql -c "\l" | grep "$database_name" &> /dev/null
     then
@@ -122,26 +124,6 @@ function check_or_create_database {
       show_fail_and_exit "Failed to create database '$database_name'" "Try creating the database '$database_name' manually."
     fi
   fi
-}
-
-function show_ok() {
-  echo -e "[\033[1;32m OK \033[0m] $1"
-}
-
-function show_info() {
-  echo -e "[\033[1;33mINFO\033[0m] $1"
-}
-
-function show_fail_and_exit() {
-  echo -e "[\033[1;31mFAIL\033[0m] $1"
-  echo
-  echo "$2"
-  echo
-  exit 1
-}
-
-function show_heading() {
-  echo -e "\033[1m$1\033[0m"
 }
 
 echo
