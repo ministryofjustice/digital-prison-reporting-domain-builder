@@ -15,7 +15,10 @@ micronaut {
   version.set("3.8.7")
 }
 
+// TODO - review this - better way to set versions?
 val kotlinVersion = "1.8.10"
+val ktormVersion = "3.6.0"
+val testContainersVersion = "1.18.0"
 
 dependencies {
   implementation(project(":common"))
@@ -33,10 +36,13 @@ dependencies {
 
   compileOnly("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
   compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
+  implementation("org.ktorm:ktorm-core:$ktormVersion")
+  implementation("org.ktorm:ktorm-jackson:$ktormVersion")
+
   runtimeOnly("ch.qos.logback:logback-classic")
   runtimeOnly("io.micronaut.sql:micronaut-jdbc-dbcp")
 
-  runtimeOnly("org.postgresql:postgresql:42.6.0")
+  testImplementation("org.postgresql:postgresql:42.6.0")
 
   kapt("io.micronaut:micronaut-inject-java")
   kapt("io.micronaut:micronaut-http-validation")
@@ -47,6 +53,11 @@ dependencies {
   testImplementation("io.micronaut.test:micronaut-test-junit5")
   testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.1")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.1")
+
+  testImplementation("org.testcontainers:testcontainers-bom:$testContainersVersion")
+  testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
+  testImplementation("org.testcontainers:junit-jupiter:$testContainersVersion")
+  testImplementation("org.testcontainers:postgresql")
 }
 
 tasks.named<Test>("test") {
