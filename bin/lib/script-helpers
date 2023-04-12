@@ -11,7 +11,7 @@ function show_warn() {
 function show_fail_and_exit() {
   echo -e "[\033[1;31mFAIL\033[0m] $1"
   echo
-  echo "$2"
+  echo -e "$2"
   echo
   exit 1
 }

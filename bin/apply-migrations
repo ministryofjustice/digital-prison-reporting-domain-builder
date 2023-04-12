@@ -1,3 +1,61 @@
 #!/bin/bash
 
+# Script that invokes flyway migrations.
+# Can be run locally or during a build.
+# In the latter case the jar path *must* be specified.
+# Locally the script will default to building the jar locally and executing it
+# from there.
 
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source "$script_dir/../bin/lib/script-helpers"
+
+jar_path=$1
+
+function determine_jar_path {
+  if [ -z $jar_path ]
+  then
+    show_warn "No jar path specified, Falling back to local build."
+  else
+    if [ -e $jar_path ]
+    then
+      show_ok "Found jar file: $jar_path"
+    else
+      show_fail_and_exit "Jar file: $jar_path not found" "Check that the path to the jar file is valid."
+    fi
+  fi
+}
+
+function run_build_and_check_jar_exists {
+  if [ -z $jar_path ]
+  then
+    # Build backend using shadowJar ensuring all dependencies are included.
+    $script_dir/.././gradlew :backend:shadowJar &> /dev/null
+    jar_path=$(find backend/build/libs -name '*-all.jar')
+    if [ -e $jar_path ]
+    then
+      show_ok "Build successful - using local jar file: $jar_path"
+    else
+      show_fail_and_exit "Build failed" "Run backend shadowJar task manually and review output."
+    fi
+  fi
+}
+
+function apply_migrations {
+  log_file="/tmp/migration-log-$(date +'%Y-%m-%dT%H:%M:%S').log"
+  if java -cp $jar_path uk.gov.justice.digital.MigrationRunner &> $log_file
+  then
+    show_ok "Migrations applied successfully"
+  else
+    log=$(cat $log_file)
+    show_fail_and_exit "Migrations failed to apply" "Command output\n\n$log"
+  fi
+}
+
+echo
+show_heading "Applying migrations"
+echo
+determine_jar_path
+run_build_and_check_jar_exists
+apply_migrations
+echo
