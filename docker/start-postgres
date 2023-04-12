@@ -126,6 +126,24 @@ function check_or_create_database {
   fi
 }
 
+function apply_migrations {
+  if $script_dir/../bin/apply-migrations &> /dev/null
+  then
+    show_ok "Migrations applied successfully"
+  else
+    show_fail_and_exit "Migrations failed to apply" "Run ./bin/apply-migrations and review error output."
+  fi
+}
+
+function run_sanity_checks {
+  if docker exec -it -u postgres $container_id  psql  -d $database_name -c "select * from domain;" &> /dev/null
+  then
+    show_ok "Sanity checks passed"
+  else
+    show_fail_and_exit "Sanity checks failed" "Connect to the database and review the $database_name schemas."
+  fi
+}
+
 echo
 show_heading "Checking prerequisites"
 echo
@@ -140,7 +158,9 @@ check_docker_running
 start_postgres
 check_postgres_running
 echo
-show_heading "Checking database"
+show_heading "Configuring database"
 echo
 check_or_create_database
+apply_migrations
+run_sanity_checks
 echo

@@ -1,8 +1,6 @@
 package uk.gov.justice.digital
 
 import io.micronaut.configuration.picocli.PicocliRunner
-import io.micronaut.flyway.FlywayConfigurationProperties
-import io.micronaut.flyway.FlywayMigrator
 import jakarta.inject.Singleton
 import org.flywaydb.core.Flyway
 import picocli.CommandLine.Command
