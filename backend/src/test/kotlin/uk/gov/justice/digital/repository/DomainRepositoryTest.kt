@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.postgresql.ds.PGSimpleDataSource
-import org.postgresql.util.PSQLException
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.junit.jupiter.Container
@@ -48,28 +47,28 @@ class DomainRepositoryTest {
     }
 
     @Test
-    fun `createDomain should return 1 for a successful insert`() {
-        assertEquals(1, underTest.createDomain(domain1))
+    fun `createDomain should succeed for a successful insert`() {
+        assertDoesNotThrow { underTest.createDomain(domain1) }
     }
 
     @Test
-    fun `createDomain should throw an exception a failed insert`() {
-        assertEquals(1, underTest.createDomain(domain1))
-        assertThrows(PSQLException::class.java) {
+    fun `createDomain should throw an exception for a failed insert`() {
+        underTest.createDomain(domain1)
+        assertThrows(CreateFailedException::class.java) {
             // This second insert attempt should fail since we're trying to insert a duplicate
-            assertEquals(0, underTest.createDomain(domain1))
+            underTest.createDomain(domain1)
         }
     }
 
     @Test
     fun `getDomain should return a Domain where a domain for the UUID exists`() {
-        assertEquals(1, underTest.createDomain(domain1))
+        underTest.createDomain(domain1)
         assertEquals(domain1, underTest.getDomain(domain1.id))
     }
 
     @Test
     fun `getDomain should return null where no matching Domains exist`() {
-        assertEquals(1, underTest.createDomain(domain1))
+        underTest.createDomain(domain1)
         assertNull(underTest.getDomain(UUID.randomUUID()))
     }
 
@@ -95,48 +94,41 @@ class DomainRepositoryTest {
     }
 
     @Test
-    fun `deleteDomain should delete the specified domain and return 1 where it exists`() {
-        underTest.createDomain(domain1)
-        val result = underTest.deleteDomain(domain1.id)
-        assertEquals(1, result)
+    fun `deleteDomain should delete the specified domain where it exists`() {
+        val domains = listOf(domain1, domain2, domain3)
+        domains.forEach { underTest.createDomain(it) }
+        assertDoesNotThrow { underTest.deleteDomain(domain1.id) }
         assertNull(underTest.getDomain(domain1.id))
     }
 
     @Test
-    fun `deleteDomain should return 0 if the specified id does not exist`() {
-        val result = underTest.deleteDomain(UUID.randomUUID())
-        assertEquals(0, result)
-    }
-
-    @Test
-    fun `updateDomain should update an existing Domain and return 1`() {
-        underTest.createDomain(domain1)
-        val updatedDomain = domain1.copy(
-            description = "This is an updated description for the domain"
-        )
-        val result = underTest.updateDomain(updatedDomain)
-        assertEquals(1, result)
-        assertEquals(updatedDomain, underTest.getDomain(domain1.id))
+    fun `deleteDomain should throw a DeleteFailedException if the specified id does not exist`() {
+        assertThrows(DeleteFailedException::class.java) { underTest.deleteDomain(UUID.randomUUID()) }
     }
 
     @Test
     fun `updateDomain should update an existing Domain`() {
-        underTest.createDomain(domain1)
+        val domains = listOf(domain1, domain2, domain3)
+        domains.forEach { underTest.createDomain(it) }
+
         val updatedDomain = domain1.copy(
             description = "This is an updated description for the domain"
         )
-        val result = underTest.updateDomain(updatedDomain)
-        assertEquals(1, result)
+
+        assertDoesNotThrow { underTest.updateDomain(updatedDomain) }
         assertEquals(updatedDomain, underTest.getDomain(domain1.id))
+        // Verify that the other domains are unaffected by the update.
+        listOf(domain2, domain3).forEach {
+            assertEquals(it, underTest.getDomain(it.id))
+        }
     }
 
     @Test
-    fun `updateDomain should return zero if there is no matching domain record to update`() {
+    fun `updateDomain should throw an UpdateFailedException if there is no domain record to update`() {
         val updatedDomain = domain1.copy(
             description = "This is an updated description for the domain"
         )
-        val result = underTest.updateDomain(updatedDomain)
-        assertEquals(0, result)
+        assertThrows(UpdateFailedException::class.java) { underTest.updateDomain(updatedDomain) }
         assertNull( underTest.getDomain(domain1.id))
     }
 
