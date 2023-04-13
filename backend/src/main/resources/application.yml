@@ -1,0 +1,16 @@
+datasources:
+  default:
+    url: "jdbc:postgresql:domain_builder"
+    username: "postgres"
+    password: "postgres"
+    driverClassName: "org.postgresql.Driver"
+
+flyway:
+  datasources:
+    default:
+      enabled: false
+
+endpoints:
+  flyway:
+    enabled: false
+    sensitive: false
