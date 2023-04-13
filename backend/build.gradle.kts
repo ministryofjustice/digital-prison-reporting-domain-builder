@@ -42,7 +42,7 @@ dependencies {
   runtimeOnly("ch.qos.logback:logback-classic")
   runtimeOnly("io.micronaut.sql:micronaut-jdbc-dbcp")
 
-  testImplementation("org.postgresql:postgresql:42.6.0")
+  implementation("org.postgresql:postgresql:42.6.0")
 
   kapt("io.micronaut:micronaut-inject-java")
   kapt("io.micronaut:micronaut-http-validation")

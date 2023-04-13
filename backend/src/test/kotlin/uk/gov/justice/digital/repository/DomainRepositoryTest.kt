@@ -2,6 +2,7 @@ package uk.gov.justice.digital.repository
 
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.postgresql.ds.PGSimpleDataSource
@@ -18,33 +19,43 @@ import java.util.*
 @Testcontainers
 class DomainRepositoryTest {
 
-    @Container
-    val postgresContainer: PostgreSQLContainer<*> = PostgreSQLContainer("postgres:15.2")
-        .withDatabaseName("test_domain_registry")
-        .withUsername("postgres")
-        .withPassword("postgres")
-        .waitingFor(Wait.forListeningPort())
+    companion object {
+        @Container
+        val postgresContainer: PostgreSQLContainer<*> = PostgreSQLContainer("postgres:15.2")
+            .withDatabaseName("test_domain_registry")
+            .withUsername("postgres")
+            .withPassword("postgres")
+            .waitingFor(Wait.forListeningPort())
+            .withReuse(true)
 
-    private val dataSource by lazy {
-        val d = PGSimpleDataSource()
-        d.setUrl(postgresContainer.jdbcUrl)
-        d.user = "postgres"
-        d.password = "postgres"
-        d
-    }
+        val dataSource by lazy {
+            val d = PGSimpleDataSource()
+            d.setUrl(postgresContainer.jdbcUrl)
+            d.user = "postgres"
+            d.password = "postgres"
+            d
+        }
 
-    private val underTest by lazy {
-        DomainRepository(dataSource)
+        @JvmStatic
+        @BeforeAll
+        fun applyMigrations() {
+            Flyway
+                .configure()
+                .dataSource(dataSource)
+                .load()
+                .migrate()
+        }
     }
 
     @BeforeEach
-    fun applyMigrations() {
-        Flyway
-            .configure()
-            .dataSource(dataSource)
-            .load()
-            .migrate()
+    fun truncateDomainTable() {
+        dataSource
+            .connection
+            .createStatement()
+            .executeUpdate("truncate table domain")
     }
+
+    private val underTest by lazy { DomainRepository(dataSource) }
 
     @Test
     fun `createDomain should succeed for a successful insert`() {
