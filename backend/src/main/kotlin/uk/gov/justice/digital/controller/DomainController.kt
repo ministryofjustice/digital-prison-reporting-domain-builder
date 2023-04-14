@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.controller
 
 import io.micronaut.http.MediaType.APPLICATION_JSON
+import io.micronaut.http.MediaType.TEXT_PLAIN
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import uk.gov.justice.digital.model.Domain
@@ -18,6 +19,12 @@ class DomainController(private val service: DomainService) {
     @Get("/{id}", produces = [APPLICATION_JSON])
     fun getDomain(id: UUID): Domain? {
         return service.getDomain(id)
+    }
+
+    // TODO - temporary testing endpoint -remove
+    @Get("/ping", produces = [TEXT_PLAIN])
+    fun ping(): String {
+        return "pong"
     }
 
 }

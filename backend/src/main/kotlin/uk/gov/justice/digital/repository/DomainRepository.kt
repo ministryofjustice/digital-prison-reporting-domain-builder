@@ -12,7 +12,8 @@ import javax.sql.DataSource
 @Singleton
 class DomainRepository(dataSource: DataSource) {
 
-    private val database = Database.connect(dataSource)
+    // Only connect to the database if we need to
+    private val database by lazy { Database.connect(dataSource) }
 
     fun getDomain(id: UUID): Domain?  {
         return database
