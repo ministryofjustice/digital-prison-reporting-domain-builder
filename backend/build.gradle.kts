@@ -1,8 +1,10 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
   id("org.jetbrains.kotlin.jvm") version "1.8.10"
   id("io.micronaut.minimal.application") version "3.7.7"
   id("kotlin-kapt")
-  id("com.github.johnrengelman.shadow") version "7.1.2"
+  id("com.github.johnrengelman.shadow") version "8.1.1"
   // TODO - review global setup and ensure reports are on global coverage
   id("jacoco")
 }
@@ -12,7 +14,7 @@ repositories {
 }
 
 micronaut {
-  version.set("3.8.7")
+  version.set("3.8.8")
 }
 
 // TODO - review this - better way to set versions?
@@ -23,6 +25,7 @@ val testContainersVersion = "1.18.0"
 dependencies {
   implementation(project(":common"))
 
+  implementation("io.micronaut.aws:micronaut-function-aws-api-proxy")
   implementation("io.micronaut.flyway:micronaut-flyway")
   implementation("io.micronaut.picocli:micronaut-picocli")
   implementation("io.micronaut:micronaut-http-client")
@@ -60,10 +63,20 @@ dependencies {
   testImplementation("org.testcontainers:postgresql")
 }
 
-tasks.named<Test>("test") {
-  useJUnitPlatform()
+application {
+  // For local testing only.
+  mainClass.set("uk.gov.justice.digital.DomainBuilderBackend")
 }
 
-application {
-  mainClass.set("uk.gov.justice.digital.DomainBuilderBackend")
+// Task specific configuration.
+tasks {
+
+  named<Test>("test") {
+    useJUnitPlatform()
+  }
+
+  named<ShadowJar>("shadowJar") {
+    archiveBaseName.set("domain-builder-backend-api")
+  }
+
 }
