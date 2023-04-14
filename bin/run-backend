@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Script that builds the backend jar and then runs it.
+#
+# This is intended to support local development and testing only.
+
+set -e
+
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source "$script_dir/../bin/lib/script-helpers"
+
+echo
+show_heading "Building backend jar"
+echo
+cd $script_dir/..
+$script_dir/../gradlew :backend:shadowJar
+echo
+show_heading "Launching backend on localhost 8080"
+echo
+java -jar $script_dir/../backend/build/libs/backend*-all.jar
