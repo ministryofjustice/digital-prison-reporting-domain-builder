@@ -51,7 +51,7 @@ function check_docker_running {
   then
     show_ok "Docker running"
   else
-    show_info "Docker not running. Starting..."
+    show_wait "Docker not running. Starting..."
     if [ -e "/Applications/Docker.app" ]
     then
       open -a Docker
@@ -67,6 +67,7 @@ function check_docker_running {
 }
 
 function start_postgres {
+  show_wait "Running docker-compose..."
   docker_compose_file="$script_dir/postgres/docker-compose.yml"
   docker-compose -f "$script_dir/postgres/docker-compose.yml" up --detach --wait -t 60 &> /dev/null
 }
@@ -78,7 +79,7 @@ function check_postgres_running {
   then
     show_ok "Postgres container $container_id running on local port 5432"
   else
-    show_warn "Postgres container did not start. Attempting to start..."
+    show_wait "Postgres container not running. Attempting to start..."
     container_id=$(docker ps -a | grep postgres | head -n1 | cut -d ' ' -f1)
     docker start $container_id &> /dev/null
     wait_for_postgres_to_start
@@ -118,6 +119,7 @@ function check_or_create_database {
 }
 
 function apply_migrations {
+  show_wait "Applying migrations to database..."
   if $script_dir/../bin/apply-migrations &> /dev/null
   then
     show_ok "Migrations applied successfully"
