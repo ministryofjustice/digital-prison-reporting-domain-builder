@@ -12,15 +12,6 @@ source "$script_dir/../bin/lib/script-helpers"
 
 database_name="domain_builder"
 
-function check_psql_installed {
-  if hash psql &> /dev/null
-  then
-    show_ok "psql command installed"
-  else
-    show_fail_and_exit "psql not installed" "Please ensure psql command is installed and on your path."
-  fi
-}
-
 function check_docker_installed {
   if hash docker &> /dev/null
   then
@@ -147,7 +138,6 @@ function run_sanity_checks {
 echo
 show_heading "Checking prerequisites"
 echo
-check_psql_installed
 check_docker_installed
 check_docker_compose_installed
 check_docker_daemon_available
