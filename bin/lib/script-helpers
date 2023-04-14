@@ -1,19 +1,19 @@
 # Common functions used by scripts in this project.
 
 function show_ok() {
-  echo -e "[\033[1;32m OK \033[0m] $1"
+  echo -e "\r[\033[1;32m OK \033[0m] $1"
 }
 
 function show_info() {
-  echo -e "[\033[1;34mINFO\033[0m] $1"
+  echo -e "\r[\033[1;34mINFO\033[0m] $1"
 }
 
 function show_warn() {
-  echo -e "[\033[1;33mWARN\033[0m] $1"
+  echo -e "\r[\033[1;33mWARN\033[0m] $1"
 }
 
 function show_fail_and_exit() {
-  echo -e "[\033[1;31mFAIL\033[0m] $1"
+  echo -e "\r[\033[1;31mFAIL\033[0m] $1"
   echo
   echo -e "$2"
   echo
@@ -21,5 +21,9 @@ function show_fail_and_exit() {
 }
 
 function show_heading() {
-  echo -e "\033[1m$1\033[0m"
+  echo -e "\r\033[1m$1\033[0m"
+}
+
+function show_wait() {
+  echo -n "[WAIT] $1"
 }
