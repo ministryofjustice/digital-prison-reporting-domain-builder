@@ -4,6 +4,10 @@ function show_ok() {
   echo -e "[\033[1;32m OK \033[0m] $1"
 }
 
+function show_info() {
+  echo -e "[\033[1;34mINFO\033[0m] $1"
+}
+
 function show_warn() {
   echo -e "[\033[1;33mWARN\033[0m] $1"
 }
