@@ -6,6 +6,11 @@ repositories {
   mavenCentral()
 }
 
-kotlin {
-    jvmToolchain(8)
+subprojects {
+  group 'uk.gov.justice'
+  version '1.0-SNAPSHOT'
+
+  kotlin {
+      jvmToolchain(8)
+  }
 }
