@@ -35,7 +35,6 @@ function check_docker_daemon_available {
   then
     show_ok "Docker desktop installed"
   else
-    show_info "Docker desktop not installed"
     # Check for colima - a cli only docker desktop alternative
     if hash colima &> /dev/null
     then
@@ -61,23 +60,31 @@ function check_docker_running {
       colima start &> /dev/null
       wait_for_docker_to_start
     else
-      show_fail "Unable to start docker daemon" "Please ensure that either Docker Desktop or colima is installed."
+      show_wait "Docker not running. Starting..."
     fi
   fi
 }
 
 function start_postgres {
-  show_wait "Running docker-compose..."
+  show_wait "Running Docker Compose..."
   docker_compose_file="$script_dir/postgres/docker-compose.yml"
   docker-compose -f "$script_dir/postgres/docker-compose.yml" up --detach --wait -t 60 &> /dev/null
+  show_ok "Docker Compose completed   "
 }
 
 function check_postgres_running {
   container_id=$(docker ps | grep -E "postgres.*Up.*5432" | cut -d ' ' -f1)
 
+  show_wait "Waiting for postgres to start..."
+
+  while ! docker exec -it -u postgres $container_id psql -c "\q" &> /dev/null
+  do
+    sleep 2
+  done
+
   if [ -n "$container_id" ]
   then
-    show_ok "Postgres container $container_id running on local port 5432"
+    show_ok "Postgres container \033[1;94m$container_id\033[0m is up on local port \033[1;94m5432\033[0m"
   else
     show_wait "Postgres container not running. Attempting to start..."
     container_id=$(docker ps -a | grep postgres | head -n1 | cut -d ' ' -f1)
@@ -89,13 +96,13 @@ function check_postgres_running {
 function wait_for_docker_to_start {
   while ! docker ps &> /dev/null
   do
-    sleep 1
+    sleep 0.1
   done
-  show_ok "Docker daemon started"
+  show_ok "Docker daemon started            "
 }
 
 function wait_for_postgres_to_start {
-  while ! docker ps | grep -E "postgres.*Up.*5432" &> /dev/null
+  while ! docker exec -it -u postgres a05d62ce7178 psql -c "\q" &> /dev/null
   do
     sleep 1
   done
@@ -122,7 +129,7 @@ function apply_migrations {
   show_wait "Applying migrations to database..."
   if $script_dir/../bin/apply-migrations &> /dev/null
   then
-    show_ok "Migrations applied successfully"
+    show_ok "Migrations applied successfully   "
   else
     show_fail_and_exit "Migrations failed to apply" "Run ./bin/apply-migrations and review error output."
   fi

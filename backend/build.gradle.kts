@@ -61,6 +61,10 @@ dependencies {
   testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
   testImplementation("org.testcontainers:junit-jupiter:$testContainersVersion")
   testImplementation("org.testcontainers:postgresql")
+
+  testImplementation("io.mockk:mockk:1.13.5")
+//  testImplementation("org.mockito:mockito-core:5.3.0")
+//  testImplementation("org.mockito:mockito-junit-jupiter:5.3.0")
 }
 
 application {

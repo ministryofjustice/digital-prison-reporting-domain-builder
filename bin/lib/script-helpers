@@ -25,5 +25,5 @@ function show_heading() {
 }
 
 function show_wait() {
-  echo -n "[WAIT] $1"
+  echo -ne "\033[1;90m[BUSY\033[0m] $1"
 }
