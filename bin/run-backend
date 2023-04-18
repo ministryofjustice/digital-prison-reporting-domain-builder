@@ -61,4 +61,10 @@ show_heading "Starting backend API on http://localhost:8080"
 echo
 echo "[Press CTRL-C to exit]"
 echo
-java -jar $jar_path
+
+POSTGRES_HOST="localhost" \
+  POSTGRES_PORT="5432" \
+  POSTGRES_DB_NAME="domain_builder" \
+  POSTGRES_USERNAME="postgres" \
+  POSTGRES_PASSWORD="postgres" \
+  java -jar $jar_path
