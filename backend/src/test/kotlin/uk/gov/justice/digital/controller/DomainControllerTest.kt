@@ -5,9 +5,10 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
-import io.micronaut.http.HttpStatus.OK
+import io.micronaut.http.HttpStatus.*
 import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.annotation.Client
+import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.runtime.server.EmbeddedServer
 import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
@@ -21,6 +22,7 @@ import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.service.DomainService
 import uk.gov.justice.digital.test.Fixtures.domain1
 import uk.gov.justice.digital.test.Fixtures.domains
+import java.lang.RuntimeException
 import java.util.*
 
 @MicronautTest
@@ -48,6 +50,7 @@ class DomainControllerTest {
 
         assertEquals(OK, response.status)
         assertEquals(emptyList<Domain>(), mapper.readValue<List<Domain>>(response.body().orEmpty()))
+
         verify { mockDomainService.getDomains() }
     }
 
@@ -59,6 +62,18 @@ class DomainControllerTest {
 
         assertEquals(OK, response.status)
         assertEquals(domains, mapper.readValue<List<Domain>>(response.body().orEmpty()))
+
+        verify { mockDomainService.getDomains() }
+    }
+
+    @Test
+    fun `GET of domain resource should return INTERNAL_SERVER_ERROR if an unexpected error occurs`() {
+        every { mockDomainService.getDomains(any()) } throws RuntimeException("Something unexpected...")
+
+        val responseException = getAndCatchResponseException("/domain")
+
+        assertEquals(INTERNAL_SERVER_ERROR, responseException.status)
+
         verify { mockDomainService.getDomains() }
     }
 
@@ -70,22 +85,39 @@ class DomainControllerTest {
 
         assertEquals(OK, response.status)
         assertEquals(domain1, mapper.readValue<Domain>(response.body().orEmpty()))
+
         verify { mockDomainService.getDomain(domain1.id) }
     }
 
-    // TODO - this should return a 404 - currently throws a HttpClientResponseException
     @Test
     fun `GET of domain with non-existing ID should return NOT_FOUND`() {
         every { mockDomainService.getDomain(any()) } returns null
-        val response = get("/domain/${UUID.randomUUID()}")
-        assertEquals(HttpStatus.NOT_FOUND, response.status())
+
+        val responseException = getAndCatchResponseException("/domain/${UUID.randomUUID()}")
+
+        assertEquals(NOT_FOUND, responseException.status)
+
+        verify { mockDomainService.getDomain(any()) }
     }
 
-    // TODO - this should return a 400 - currently throws a HttpClientResponseException
     @Test
     fun `GET of domain with invalid ID should return BAD_REQUEST`() {
-        val response = get("/domain/this-is-not-a-UUID")
-        assertEquals(HttpStatus.BAD_REQUEST, response.status)
+        val responseException = getAndCatchResponseException("/domain/this-is-not-a-UUID")
+
+        assertEquals(BAD_REQUEST, responseException.status)
+        // UUID validation is handled in the routing later so the bad UUID should never be passed to the service.
+        verify(inverse = true) { mockDomainService.getDomain(any()) }
+    }
+
+    @Test
+    fun `GET of domain should return INTERNAL_SERVER_ERROR if an unexpected exception occurs`() {
+        every { mockDomainService.getDomain(any()) } throws RuntimeException("Something unexpected...")
+
+        val responseException = getAndCatchResponseException("/domain/${UUID.randomUUID()}")
+
+        assertEquals(INTERNAL_SERVER_ERROR, responseException.status)
+
+        verify { mockDomainService.getDomain(any()) }
     }
 
     @Test
@@ -96,18 +128,21 @@ class DomainControllerTest {
 
         assertEquals(OK, response.status)
         assertEquals(listOf(domain1), mapper.readValue<List<Domain>>(response.body().orEmpty()))
+
         verify { mockDomainService.getDomains(domain1.name) }
     }
 
     @Test
     fun `GET of domain with non-existing name should return an empty list`() {
         val nonExistingName = "foo"
+
         every { mockDomainService.getDomains(eq(nonExistingName)) } returns emptyList()
 
         val response = get("/domain?name=$nonExistingName")
 
         assertEquals(OK, response.status)
         assertEquals(emptyList<Domain>(), mapper.readValue<List<Domain>>(response.body().orEmpty()))
+
         verify { mockDomainService.getDomains(nonExistingName) }
     }
 
@@ -115,5 +150,8 @@ class DomainControllerTest {
         client
             .toBlocking()
             .exchange(HttpRequest.GET<String>(location), String::class.java)
+
+    private fun getAndCatchResponseException(location: String) =
+        assertThrows(HttpClientResponseException::class.java) { get(location) }
 
 }
