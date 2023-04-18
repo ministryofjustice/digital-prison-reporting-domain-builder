@@ -4,7 +4,6 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
-import io.micronaut.http.HttpStatus
 import io.micronaut.http.HttpStatus.*
 import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.annotation.Client
@@ -22,7 +21,6 @@ import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.service.DomainService
 import uk.gov.justice.digital.test.Fixtures.domain1
 import uk.gov.justice.digital.test.Fixtures.domains
-import java.lang.RuntimeException
 import java.util.*
 
 @MicronautTest
@@ -49,7 +47,7 @@ class DomainControllerTest {
         val response = get("/domain")
 
         assertEquals(OK, response.status)
-        assertEquals(emptyList<Domain>(), mapper.readValue<List<Domain>>(response.body().orEmpty()))
+        assertEquals(emptyList<Domain>(), response.parsedBody())
 
         verify { mockDomainService.getDomains() }
     }
@@ -61,7 +59,7 @@ class DomainControllerTest {
         val response = get("/domain")
 
         assertEquals(OK, response.status)
-        assertEquals(domains, mapper.readValue<List<Domain>>(response.body().orEmpty()))
+        assertEquals(domains, response.parsedBody<List<Domain>>())
 
         verify { mockDomainService.getDomains() }
     }
@@ -84,7 +82,7 @@ class DomainControllerTest {
         val response = get("/domain/${domain1.id}")
 
         assertEquals(OK, response.status)
-        assertEquals(domain1, mapper.readValue<Domain>(response.body().orEmpty()))
+        assertEquals(domain1, response.parsedBody<Domain>())
 
         verify { mockDomainService.getDomain(domain1.id) }
     }
@@ -127,7 +125,7 @@ class DomainControllerTest {
         val response = get("/domain?name=Domain%201")
 
         assertEquals(OK, response.status)
-        assertEquals(listOf(domain1), mapper.readValue<List<Domain>>(response.body().orEmpty()))
+        assertEquals(listOf(domain1), response.parsedBody<List<Domain>>())
 
         verify { mockDomainService.getDomains(domain1.name) }
     }
@@ -141,7 +139,7 @@ class DomainControllerTest {
         val response = get("/domain?name=$nonExistingName")
 
         assertEquals(OK, response.status)
-        assertEquals(emptyList<Domain>(), mapper.readValue<List<Domain>>(response.body().orEmpty()))
+        assertEquals(emptyList<Domain>(), response.parsedBody())
 
         verify { mockDomainService.getDomains(nonExistingName) }
     }
@@ -153,5 +151,9 @@ class DomainControllerTest {
 
     private fun getAndCatchResponseException(location: String) =
         assertThrows(HttpClientResponseException::class.java) { get(location) }
+
+    private inline fun <reified T> HttpResponse<String>.parsedBody(): T {
+        return mapper.readValue<T>(this.body().orEmpty())
+    }
 
 }
