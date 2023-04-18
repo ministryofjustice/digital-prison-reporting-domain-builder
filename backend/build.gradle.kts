@@ -33,6 +33,7 @@ dependencies {
   implementation("io.micronaut:micronaut-jackson-databind")
   implementation("io.micronaut:micronaut-runtime")
   implementation("io.micronaut:micronaut-validation")
+  implementation("io.micronaut.aws:micronaut-aws-cloudwatch-logging")
 
   implementation("jakarta.annotation:jakarta.annotation-api")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
@@ -63,8 +64,6 @@ dependencies {
   testImplementation("org.testcontainers:postgresql")
 
   testImplementation("io.mockk:mockk:1.13.5")
-//  testImplementation("org.mockito:mockito-core:5.3.0")
-//  testImplementation("org.mockito:mockito-junit-jupiter:5.3.0")
 }
 
 application {
