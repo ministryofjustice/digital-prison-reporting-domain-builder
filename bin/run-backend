@@ -62,9 +62,9 @@ echo
 echo "[Press CTRL-C to exit]"
 echo
 
-POSTGRES_HOST="localhost" \
-  POSTGRES_PORT="5432" \
-  POSTGRES_DB_NAME="domain_builder" \
-  POSTGRES_USERNAME="postgres" \
-  POSTGRES_PASSWORD="postgres" \
-  java -jar $jar_path
+#POSTGRES_HOST="localhost" \
+#  POSTGRES_PORT="5432" \
+#  POSTGRES_DB_NAME="domain_builder" \
+#  POSTGRES_USERNAME="postgres" \
+#  POSTGRES_PASSWORD="postgres" \
+run_with_local_postgres_config  "java -jar $jar_path"

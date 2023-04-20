@@ -27,3 +27,12 @@ function show_heading() {
 function show_wait() {
   echo -ne "\033[1;90m[BUSY\033[0m] $1"
 }
+
+run_with_local_postgres_config() {
+  POSTGRES_HOST="localhost" \
+    POSTGRES_PORT="5432" \
+    POSTGRES_DB_NAME="domain_builder" \
+    POSTGRES_USERNAME="postgres" \
+    POSTGRES_PASSWORD="postgres" \
+    $1
+}

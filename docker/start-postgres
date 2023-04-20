@@ -131,7 +131,7 @@ function apply_migrations {
   then
     show_ok "Migrations applied successfully   "
   else
-    show_fail_and_exit "Migrations failed to apply" "Run ./bin/apply-migrations and review error output."
+    show_fail_and_exit "Migrations failed to apply        " "Run ./bin/apply-migrations and review error output."
   fi
 }
 
