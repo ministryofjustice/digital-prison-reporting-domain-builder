@@ -17,4 +17,9 @@ subprojects {
       kotlinOptions.jvmTarget = "11"
     }
   }
+
+  tasks.withType<Test>().configureEach {
+    maxParallelForks = (Runtime.getRuntime().availableProcessors() - 1).takeIf { it > 0 } ?: 1
+  }
+
 }

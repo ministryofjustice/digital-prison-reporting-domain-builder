@@ -33,6 +33,7 @@ dependencies {
   implementation("io.micronaut:micronaut-jackson-databind")
   implementation("io.micronaut:micronaut-runtime")
   implementation("io.micronaut:micronaut-validation")
+
   implementation("io.micronaut.aws:micronaut-aws-cloudwatch-logging")
 
   implementation("jakarta.annotation:jakarta.annotation-api")
@@ -50,6 +51,10 @@ dependencies {
 
   kapt("io.micronaut:micronaut-inject-java")
   kapt("io.micronaut:micronaut-http-validation")
+
+  kapt("io.micronaut.serde:micronaut-serde-processor:1.5.2")
+  runtimeOnly("io.micronaut.serde:micronaut-serde-jackson:1.5.2")
+  implementation("io.micronaut.serde:micronaut-serde-api:1.5.2")
 
   kaptTest("io.micronaut:micronaut-inject-java")
   kaptTest("io.micronaut:micronaut-http-validation")

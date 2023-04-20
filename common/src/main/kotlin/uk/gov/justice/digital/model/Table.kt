@@ -1,5 +1,8 @@
 package uk.gov.justice.digital.model
 
+import com.fasterxml.jackson.annotation.JsonClassDescription
+
+@JsonClassDescription
 data class Table(
     val name: String,
     val description: String,

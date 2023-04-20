@@ -1,0 +1,16 @@
+datasources:
+  default:
+    url: "jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5436}/${POSTGRES_DB_NAME:domain_builder}"
+    username: "${POSTGRES_USERNAME:postgres}"
+    password: "${POSTGRES_PASSWORD:postgres}"
+    driverClassName: "org.postgresql.Driver"
+
+flyway:
+  datasources:
+    default:
+      enabled: false
+
+endpoints:
+  flyway:
+    enabled: false
+    sensitive: false

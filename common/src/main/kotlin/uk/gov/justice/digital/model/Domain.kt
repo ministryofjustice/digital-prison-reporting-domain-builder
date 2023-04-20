@@ -1,7 +1,9 @@
 package uk.gov.justice.digital.model
 
+import com.fasterxml.jackson.annotation.JsonClassDescription
 import java.util.*
 
+@JsonClassDescription
 data class Domain(
     val id: UUID,
     val name: String,
