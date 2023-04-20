@@ -24,6 +24,7 @@ val testContainersVersion = "1.18.0"
 
 dependencies {
   implementation(project(":common"))
+  testImplementation(testFixtures(project(":common")))
 
   implementation("io.micronaut.aws:micronaut-function-aws-api-proxy")
   implementation("io.micronaut.flyway:micronaut-flyway")

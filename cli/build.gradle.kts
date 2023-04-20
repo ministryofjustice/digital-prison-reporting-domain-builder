@@ -19,6 +19,7 @@ val kotlinVersion = "1.8.10"
 
 dependencies {
   implementation(project(":common"))
+  testImplementation(testFixtures(project(":common")))
 
   implementation("info.picocli:picocli")
   implementation("io.micronaut.picocli:micronaut-picocli")
@@ -33,6 +34,10 @@ dependencies {
   compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
   compileOnly("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
   kapt("io.micronaut:micronaut-inject-java")
+
+  kapt("io.micronaut.serde:micronaut-serde-processor:1.5.2")
+  runtimeOnly("io.micronaut.serde:micronaut-serde-jackson:1.5.2")
+  implementation("io.micronaut.serde:micronaut-serde-api:1.5.2")
 
   kaptTest("io.micronaut:micronaut-inject-java")
 
