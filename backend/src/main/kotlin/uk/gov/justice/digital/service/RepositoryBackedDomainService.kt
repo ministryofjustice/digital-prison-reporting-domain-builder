@@ -5,6 +5,11 @@ import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.repository.DomainRepository
 import java.util.*
 
+interface DomainService {
+    fun getDomains(name: String? = null): List<Domain>
+    fun getDomain(id: UUID): Domain?
+}
+
 /**
  * Service that will handle calls to the backend database.
  *
@@ -12,10 +17,7 @@ import java.util.*
  * updating and deletion.
  */
 @Singleton
-class DomainService(private val repository: DomainRepository) {
-
-    fun getDomains(name: String? = null): List<Domain> = repository.getDomains(name)
-
-    fun getDomain(id: UUID): Domain? = repository.getDomain(id)
-
+class RepositoryBackedDomainService(private val repository: DomainRepository): DomainService {
+    override fun getDomains(name: String?): List<Domain> = repository.getDomains(name)
+    override fun getDomain(id: UUID): Domain? = repository.getDomain(id)
 }

@@ -1,8 +1,8 @@
 datasources:
   default:
-    url: "jdbc:postgresql:domain_builder"
-    username: "postgres"
-    password: "postgres"
+    url: "jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB_NAME}"
+    username: "${POSTGRES_USERNAME}"
+    password: "${POSTGRES_PASSWORD}"
     driverClassName: "org.postgresql.Driver"
 
 flyway:

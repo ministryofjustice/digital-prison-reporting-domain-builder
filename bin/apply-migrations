@@ -43,7 +43,7 @@ function run_build_and_check_jar_exists {
 
 function apply_migrations {
   log_file="/tmp/migration-log-$(date +'%Y-%m-%dT%H:%M:%S').log"
-  if java -cp $jar_path uk.gov.justice.digital.MigrationRunner &> $log_file
+  if run_with_local_postgres_config "java -cp $jar_path uk.gov.justice.digital.MigrationRunner &> $log_file"
   then
     show_ok "Migrations applied successfully"
   else

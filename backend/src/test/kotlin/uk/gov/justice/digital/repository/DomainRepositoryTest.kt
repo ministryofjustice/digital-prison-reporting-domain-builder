@@ -16,6 +16,9 @@ import uk.gov.justice.digital.test.Fixtures.domain2
 import uk.gov.justice.digital.test.Fixtures.domain3
 import java.util.*
 
+// This test needs a local docker daemon to be running.
+// Set disabledWithoutDocker = true on the `@TestContainers` annotation to skip
+// these tests if there is no daemon running locally.
 @Testcontainers
 class DomainRepositoryTest {
 
