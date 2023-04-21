@@ -22,7 +22,7 @@ class BlockingDomainClient {
     fun getDomains(): Array<Domain> = client.get<Array<Domain>>("/domain")
 
     // TODO - use url to build urls
-    fun getDomainWithName(name: String): Domain? = client.get("/domain?$name")
+    fun getDomainWithName(name: String): Domain? = client.get<Array<Domain>>("/domain?$name").firstOrNull()
 
     private inline fun <reified T> HttpClient.get(url: String): T =
         client.toBlocking().retrieve(
