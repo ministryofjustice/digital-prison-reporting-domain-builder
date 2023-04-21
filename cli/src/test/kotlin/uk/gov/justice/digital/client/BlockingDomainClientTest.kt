@@ -58,7 +58,7 @@ class BlockingDomainClientTest {
         @Get("/domain")
         fun getAllDomains(): List<Domain> = domains
         @Get("/domain?name")
-        fun getDomainWithName(name: String): Domain = domain1
+        fun getDomainWithName(@Suppress("UNUSED_PARAMETER") name: String): Domain = domain1
     }
 
     @Requires(property = TEST_SCENARIO, value = Scenarios.NO_DATA)
@@ -67,7 +67,7 @@ class BlockingDomainClientTest {
         @Get("/domain")
         fun getAllDomains(): List<Domain> = emptyList()
         @Get("/domain?name")
-        fun getDomainWithName(name: String): Domain? = null
+        fun getDomainWithName(@Suppress("UNUSED_PARAMETER") name: String): Domain? = null
     }
 
     private fun createServerForScenario(scenario: String): EmbeddedServer {
@@ -78,7 +78,6 @@ class BlockingDomainClientTest {
         serverInstance.applicationContext.environment.refresh()
         return serverInstance
     }
-
 
     companion object {
         const val TEST_SCENARIO = "test.scenario"
