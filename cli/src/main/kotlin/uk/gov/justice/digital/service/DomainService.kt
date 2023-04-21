@@ -1,27 +1,20 @@
 package uk.gov.justice.digital.service
 
 import jakarta.inject.Singleton
+import uk.gov.justice.digital.client.DomainClient
 import uk.gov.justice.digital.model.Domain
 
 /**
- * Initial service that will handle calls to the backend API and processing the results.
+ * Service that wraps calls to the BlockingDomainClient which is responsible for interacting with the backend REST API.
  *
- * For now this just provides hardcoded data to support the development of the CLI.
- *
- * See DPR-363 which covers the work to integrate the CLI with the backend API.
+ * Applies any business logic to the client responses where relevant.
  */
 @Singleton
-class DomainService {
+class DomainService(private val client: DomainClient) {
 
-    // TODO - introduce client dependency
-    private val domains = emptyList<Domain>()
+    // TODO - can we do away with the conversion to list?
+    fun getAllDomains(): List<Domain> = client.getDomains().toList()
 
-    fun getAllDomains(): List<Domain> {
-        return domains
-    }
-
-    fun getDomainWithName(name: String): Domain? {
-        return domains.firstOrNull { it.name == name }
-    }
+    fun getDomainWithName(name: String): Domain? = client.getDomainWithName(name)
 
 }

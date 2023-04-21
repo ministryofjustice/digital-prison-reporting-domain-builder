@@ -7,7 +7,9 @@ import io.micronaut.http.annotation.Get
 import io.micronaut.runtime.server.EmbeddedServer
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.test.Fixtures.domain1
 import uk.gov.justice.digital.test.Fixtures.domains
@@ -23,10 +25,17 @@ class BlockingDomainClientTest {
     }
 
     @Test
+    fun `getDomainWithName should URL encode the name parameter ensuring a valid URL is constructed`() {
+        val server = createServerForScenario(Scenarios.NO_DATA)
+        val underTest = server.applicationContext.createBean(BlockingDomainClient::class.java)
+        assertDoesNotThrow { underTest.getDomainWithName("This name has spaces which should be encoded") }
+    }
+
+    @Test
     fun `getDomainWithName should return null if no matching domain exists`() {
         val server = createServerForScenario(Scenarios.NO_DATA)
         val underTest = server.applicationContext.createBean(BlockingDomainClient::class.java)
-        assertEquals(domain1, underTest.getDomainWithName("some-name"))
+        assertNull(underTest.getDomainWithName("some-name"))
     }
 
     @Test
