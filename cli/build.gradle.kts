@@ -46,6 +46,8 @@ dependencies {
   testImplementation("io.micronaut.test:micronaut-test-junit5")
   testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.1")
   testImplementation(testFixtures(project(":common")))
+  testImplementation("io.micronaut:micronaut-http-server-netty")
+
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.1")
 }
 
