@@ -3,6 +3,7 @@ plugins {
   id("io.micronaut.minimal.library") version "3.7.7"
   id("kotlin-kapt")
   id("java-test-fixtures")
+  jacoco
 }
 
 repositories {

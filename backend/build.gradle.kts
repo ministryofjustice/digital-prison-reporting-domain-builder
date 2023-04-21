@@ -5,8 +5,6 @@ plugins {
   id("io.micronaut.minimal.application") version "3.7.7"
   id("kotlin-kapt")
   id("com.github.johnrengelman.shadow") version "8.1.1"
-  // TODO - review global setup and ensure reports are on global coverage
-  id("jacoco")
 }
 
 repositories {
