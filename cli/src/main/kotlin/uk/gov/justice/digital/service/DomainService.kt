@@ -12,7 +12,6 @@ import uk.gov.justice.digital.model.Domain
 @Singleton
 class DomainService(private val client: DomainClient) {
 
-    // TODO - can we do away with the conversion to list?
     fun getAllDomains(): List<Domain> = client.getDomains().toList()
 
     fun getDomainWithName(name: String): Domain? = client.getDomainWithName(name)
