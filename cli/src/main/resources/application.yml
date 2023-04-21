@@ -5,5 +5,4 @@ micronaut:
       connect-timeout: 30s
     services:
       domain:
-        urls:
-          ${DOMAIN_API_PROTOCOL}://${DOMAIN_API_HOST}:${DOMAIN_API_PORT}
+        url: ${DOMAIN_API_URL}
