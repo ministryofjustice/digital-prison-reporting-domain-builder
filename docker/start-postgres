@@ -10,7 +10,9 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "$script_dir/../bin/lib/script-helpers"
 
-database_name="domain_builder"
+database_name="domain_builder"  # name of database to create/connect to
+test_records=1000               # maximum number of test records to create
+                                # when domain table is empty
 
 function check_docker_installed {
   if hash docker &> /dev/null
@@ -77,7 +79,7 @@ function check_postgres_running {
 
   show_wait "Waiting for postgres to start..."
 
-  while ! docker exec -it -u postgres $container_id psql -c "\q" &> /dev/null
+  while ! run_psql_command "\q" &> /dev/null
   do
     sleep 2
   done
@@ -96,13 +98,13 @@ function check_postgres_running {
 function wait_for_docker_to_start {
   while ! docker ps &> /dev/null
   do
-    sleep 0.1
+    sleep 1
   done
   show_ok "Docker daemon started            "
 }
 
 function wait_for_postgres_to_start {
-  while ! docker exec -it -u postgres a05d62ce7178 psql -c "\q" &> /dev/null
+  while ! run_psql_command "\q" &> /dev/null
   do
     sleep 1
   done
@@ -110,13 +112,12 @@ function wait_for_postgres_to_start {
 }
 
 function check_or_create_database {
-  if docker exec -it -u postgres $container_id  psql -c "\l" | grep "$database_name" &> /dev/null
+  if run_psql_command "\l" | grep "$database_name" &> /dev/null
   then
     show_ok "Database '$database_name' exists"
   else
-    show_info "Database '$database_name' does not exist. Creating..."
-    docker exec -it -u postgres $container_id psql -c "create database $database_name;" &> /dev/null
-    if docker exec -it -u postgres $container_id  psql -c "\l" | grep "$database_name" &> /dev/null
+    show_wait "Database '$database_name' does not exist. Creating..."
+    if run_psql_command "create database $database_name;" &> /dev/null
     then
       show_ok "Database '$database_name' created"
     else
@@ -136,12 +137,49 @@ function apply_migrations {
 }
 
 function run_sanity_checks {
-  if docker exec -it -u postgres $container_id  psql  -d $database_name -c "select * from domain;" &> /dev/null
+  if run_psql_query "select * from domain limit 1;" &> /dev/null
   then
     show_ok "Sanity checks passed"
   else
     show_fail_and_exit "Sanity checks failed" "Connect to the database and review the $database_name schemas."
   fi
+}
+
+function load_testdata {
+  if run_psql_query "select * from domain limit 1;" | grep "0 rows" &> /dev/null
+  then
+    show_info "Domain table empty. Will load test data."
+    generate_and_insert_data
+  else
+    show_ok "Skipping test data load. Domain table contains data."
+  fi
+}
+
+function generate_and_insert_data() {
+    spinner=('|' '/' '–' '\')
+    template=$(cat $script_dir/templates/domain-template.json)
+    for i in $(eval echo "{1..$test_records}")
+    do
+      spinner_state=${spinner[$i % 4]}
+      formatted_message=$(printf "Loading test record % 4d of % 4d %s " $i $test_records $spinner_state)
+      show_wait "$formatted_message"
+      uuid=$(uuidgen)
+      updated_template=$(echo $template | sed s/DOMAIN_ID/$uuid/ | sed s/DOMAIN_NAME/Domain\ $i/)
+      statement="insert into domain(id, name, data, created, lastupdated) values('$uuid', 'Domain $i', '$updated_template', now(), now());"
+      if ! run_psql_query "$statement" &> /dev/null
+      then
+        show_fail_and_exit "Error inserting test record $i of $limit" "Review the contents of the domain table"
+      fi
+    done
+    show_ok "Created $test_records test records successfully"
+}
+
+function run_psql_command {
+  docker exec -u postgres $container_id psql -c "$1"
+}
+
+function run_psql_query {
+  docker exec -u postgres $container_id psql -d "$database_name" -c "$1"
 }
 
 echo
@@ -162,4 +200,8 @@ echo
 check_or_create_database
 apply_migrations
 run_sanity_checks
+echo
+show_heading "Loading test data"
+echo
+load_testdata
 echo
