@@ -34,5 +34,5 @@ run_with_local_postgres_config() {
     POSTGRES_DB_NAME="domain_builder" \
     POSTGRES_USERNAME="postgres" \
     POSTGRES_PASSWORD="postgres" \
-    $1
+    $@
 }
