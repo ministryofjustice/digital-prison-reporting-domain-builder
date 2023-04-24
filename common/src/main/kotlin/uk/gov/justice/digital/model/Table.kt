@@ -1,8 +1,10 @@
 package uk.gov.justice.digital.model
 
-import com.fasterxml.jackson.annotation.JsonClassDescription
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import io.micronaut.serde.annotation.Serdeable
 
-@JsonClassDescription
+@Serdeable
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class Table(
     val name: String,
     val description: String,

@@ -6,6 +6,7 @@
   "location": "/incident",
   "name": "DOMAIN_NAME",
   "owner": "michael.w.clarke@justice.gov.uk",
+  "originator": "michael.w.clarke@justice.gov.uk",
   "tables": [
     {
       "_comment": "DPR-128 Incident Table",

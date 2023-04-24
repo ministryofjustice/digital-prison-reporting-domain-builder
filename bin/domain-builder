@@ -7,8 +7,12 @@ set -e
 
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+source $script_dir/lib/script-helpers
+
 cd $script_dir/..
 
-./gradlew :cli:shadowJar -q
+show_wait "Building domain-builder..."
+./gradlew :cli:shadowJar -q &> /dev/null
+show_ok "Launching domain-builder  "
 
-java -jar ./cli/build/libs/cli-all.jar $@
+java -jar ./cli/build/libs/cli-*-all.jar $@
