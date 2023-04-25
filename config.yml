@@ -13,7 +13,7 @@ workflows:
             - hmpps-reporting-orb
           filters:
             branches:
-              only: main           
+              only: main
       - reporting/gradle_build_publish:
           tag: "11.0"
           app: digital-prison-reporting-domain-builder
@@ -35,7 +35,7 @@ workflows:
   owasp-security:
     triggers:
       - schedule:
-          cron: "30 6 * * *" ## Runs everyday at 7.30 AM UK TIME 
+          cron: "30 6 * * *" ## Runs everyday at 7.30 AM UK TIME
           filters:
             branches:
               only:

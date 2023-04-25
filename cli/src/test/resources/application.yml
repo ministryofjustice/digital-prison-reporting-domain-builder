@@ -5,4 +5,4 @@ micronaut:
       connect-timeout: 30s
     services:
       domain:
-        url: 'http://localhost:8080'
+        url: "http://localhost:8080"
