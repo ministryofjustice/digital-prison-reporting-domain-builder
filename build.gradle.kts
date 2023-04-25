@@ -23,7 +23,7 @@ allprojects {
 
 subprojects {
   group = "uk.gov.justice"
-  version = "1.0-SNAPSHOT"
+  version = if (version != "unspecified") version else "0.0.1-SNAPSHOT"
 
   tasks {
     // Force Java 11 for this project
