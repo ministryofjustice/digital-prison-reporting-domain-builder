@@ -38,7 +38,7 @@ class DomainControllerTest {
     private val mockDomainService: DomainService = mockk()
 
     @MockBean(DomainService::class)
-    fun createMockDomainService() = mockDomainService
+    fun getMockDomainService() = mockDomainService
 
     @Test
     fun `GET of domain resource should return empty list if no domains exist`() {

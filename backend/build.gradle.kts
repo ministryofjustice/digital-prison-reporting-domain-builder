@@ -5,8 +5,6 @@ plugins {
   id("io.micronaut.minimal.application") version "3.7.7"
   id("kotlin-kapt")
   id("com.github.johnrengelman.shadow") version "8.1.1"
-  // TODO - review global setup and ensure reports are on global coverage
-  id("jacoco")
 }
 
 repositories {
@@ -24,6 +22,7 @@ val testContainersVersion = "1.18.0"
 
 dependencies {
   implementation(project(":common"))
+  testImplementation(testFixtures(project(":common")))
 
   implementation("io.micronaut.aws:micronaut-function-aws-api-proxy")
   implementation("io.micronaut.flyway:micronaut-flyway")
@@ -33,6 +32,7 @@ dependencies {
   implementation("io.micronaut:micronaut-jackson-databind")
   implementation("io.micronaut:micronaut-runtime")
   implementation("io.micronaut:micronaut-validation")
+
   implementation("io.micronaut.aws:micronaut-aws-cloudwatch-logging")
 
   implementation("jakarta.annotation:jakarta.annotation-api")
@@ -50,6 +50,10 @@ dependencies {
 
   kapt("io.micronaut:micronaut-inject-java")
   kapt("io.micronaut:micronaut-http-validation")
+
+  kapt("io.micronaut.serde:micronaut-serde-processor:1.5.2")
+  runtimeOnly("io.micronaut.serde:micronaut-serde-jackson:1.5.2")
+  implementation("io.micronaut.serde:micronaut-serde-api:1.5.2")
 
   kaptTest("io.micronaut:micronaut-inject-java")
   kaptTest("io.micronaut:micronaut-http-validation")
