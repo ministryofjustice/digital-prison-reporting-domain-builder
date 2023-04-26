@@ -129,7 +129,7 @@ Usage
 
 #### [apply-migrations](bin/apply-migrations)
 
-Applies migrations to the locally running database by default by invoking the 
+Applies migrations to the locally running database by default by invoking the
 [MigrationRunner](backend/src/main/kotlin/uk/gov/justice/digital/MigrationRunner.kt) class which uses Flyway to apply any
 outstanding migrations.
 
@@ -230,7 +230,7 @@ The backend and frontend code can be configured using environment as follows.
 
 The following environment variables are referenced in the backend
 [application.yml](backend/src/main/resources/application.yml). No default values are provided in the main
-configuration so the backend will fail if any of these variables are *not* set on the environment.
+configuration so the backend will fail if any of these variables are _not_ set on the environment.
 
 - `POSTGRES_HOST`
 - `POSTGRES_PORT`
