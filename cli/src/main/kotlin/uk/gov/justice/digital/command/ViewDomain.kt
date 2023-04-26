@@ -5,6 +5,7 @@ import picocli.CommandLine.Command
 import picocli.CommandLine.Option
 import picocli.CommandLine.ParentCommand
 import uk.gov.justice.digital.DomainBuilder
+import uk.gov.justice.digital.command.ExceptionHandler.runAndHandleExceptions
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.service.DomainService
 
@@ -39,12 +40,18 @@ class ViewDomain(private val service: DomainService) : Runnable {
     @ParentCommand
     lateinit var parent: DomainBuilder
 
-    override fun run() {
-        service.getDomainWithName(domainName())?.let {
-            val output = generateOutput(it)
-            parent.print(output)
-        } ?: parent.print("@|red,bold ERROR|@ - no domain with name '@|bold ${domainName()}|@' was found")
-    }
+    override fun run() =
+        runAndHandleExceptions(parent) {
+            service.getDomainWithName(domainName())?.let {
+                val output = generateOutput(it)
+                parent.print("$output\n")
+            } ?: parent.print("""
+                
+            @|red,bold ERROR|@ - no domain with name '@|bold ${domainName()}|@' was found
+            
+            
+            """.trimIndent())
+        }
 
     private fun generateOutput(domain: Domain): String {
         val heading = listOf(
