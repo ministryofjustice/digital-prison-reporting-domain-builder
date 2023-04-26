@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.client
 
 import io.micronaut.context.annotation.Factory
-import io.micronaut.context.annotation.Property
 import io.micronaut.context.annotation.Value
 import io.micronaut.http.HttpHeaders.ACCEPT
 import io.micronaut.http.HttpHeaders.USER_AGENT
@@ -36,9 +35,11 @@ class BlockingDomainClient : DomainClient {
     private lateinit var client: HttpClient
 
     @Value("\${http.client.url}")
-    private val baseUrl = "http://localhost:8080"
+    private lateinit var baseUrl: String
 
-    private val DOMAIN_RESOURCE = UriBuilder.of("$baseUrl/domain").build()
+    private val DOMAIN_RESOURCE by lazy {
+        UriBuilder.of("$baseUrl/domain").build()
+    }
 
     override fun getDomains(): Array<Domain> = client.get<Array<Domain>>(DOMAIN_RESOURCE)
 
