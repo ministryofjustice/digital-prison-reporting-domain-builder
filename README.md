@@ -13,9 +13,10 @@ Provides frontend and backend services to support creation and management of dat
 digital prison reporting project.
 
 The project is split into the following modules
-* [common](common) - code that can be used by other modules
-* [backend](backend) - backend REST API used by frontend code to manage domains
-* [cli](cli) - cli frontend providing batch and interactive modes
+
+- [common](common) - code that can be used by other modules
+- [backend](backend) - backend REST API used by frontend code to manage domains
+- [cli](cli) - cli frontend providing batch and interactive modes
 
 This project uses gradle which is bundled with the repository and also makes use of
 
@@ -36,12 +37,13 @@ The following scripts have been provided to support local development.
 #### [start-postgres](docker/start-postgres)
 
 This script takes care of
-* ensuring docker and docker-compose are installed
-* starting docker if it's not running already
-* configuring and starting a local postgres container
-* creating the local `domain_builder` database if it doesn't exist already
-* applying migrations 
-* inserting test data if the `domain` table is empty
+
+- ensuring docker and docker-compose are installed
+- starting docker if it's not running already
+- configuring and starting a local postgres container
+- creating the local `domain_builder` database if it doesn't exist already
+- applying migrations
+- inserting test data if the `domain` table is empty
 
 > _Note_ [colima](https://github.com/abiosoft/colima) is also supported as an alternative to docker desktop
 
@@ -66,13 +68,14 @@ Usage
 ```shell
     ./bin/run-backend
 ```
+
 By default the backend will run on `localhost:8080`.
 
 While the API is running it will log to `stdout`.
 
 #### [domain-builder-interactive](bin/domain-builder-interactive)
 
-Launches the domain-builder CLI frontend in interactive mode. 
+Launches the domain-builder CLI frontend in interactive mode.
 
 Usage
 
@@ -83,7 +86,7 @@ Usage
 By default the CLI frontend will attempt to connect to `http://localhost:8080`
 
 When in interactive mode, use the `help` command to see what commands are available. These will mirror the commands
-available in the batch mode domain-builder command (see below). 
+available in the batch mode domain-builder command (see below).
 
 The interactive also provides a built in `less` implementation which is enabled when the output exceeds the size of
 the terminal.
@@ -97,18 +100,18 @@ Usage
 ```shell
     # See available options and commands
     ./bin/domain-builder --help
-    
+
     # Get help for a specific command
     ./bin/domain-builder list --help
-    
+
     # List all domains
     ./bin/domain-builder list
-    
+
     # View a specific domain by name
     ./bin/domain-builder view -n Some Domain
 ```
 
-Additional options are provided to enable ANSI color output and interactive mode, which are enabled by the 
+Additional options are provided to enable ANSI color output and interactive mode, which are enabled by the
 `domain-builder-interactive` script.
 
 #### [push-backend-jar](bin/push-backend-jar)
@@ -126,8 +129,8 @@ Usage
 
 #### [apply-migrations](bin/apply-migrations)
 
-Applies migrations to the locally running database by default by invoking the 
-[MigrationRunner](src/main/kotlin/uk/gov/justice/digital/MigrationRunner.kt) class which uses Flyway to apply any 
+Applies migrations to the locally running database by default by invoking the
+[MigrationRunner](src/main/kotlin/uk/gov/justice/digital/MigrationRunner.kt) class which uses Flyway to apply any
 outstanding migrations.
 
 Usage
@@ -148,18 +151,19 @@ which takes care of creating a jar containing all dependencies.
 
     # Build all artefacts
     ./gradlew build
-    
+
     # Build backend only
     ./gradlew :backend:build
-    
+
     # Build cli only
     ./gradlew :cli:build
 ```
 
-Executable jars are written to the following locations for each module that represents an executable service or 
+Executable jars are written to the following locations for each module that represents an executable service or
 command
-* `backend` backend/build/libs/domain-builder-backend-api-<VERSION>-all.jar
-* `cli` cli/build/libs/cli-<VERSION>-all.jar
+
+- `backend` backend/build/libs/domain-builder-backend-api-<VERSION>-all.jar
+- `cli` cli/build/libs/cli-<VERSION>-all.jar
 
 ### Running locally
 
@@ -169,7 +173,8 @@ Use the following commands to bring up the backend services
     docker/start-postgres # optional if you wish to observe the output of this command
     bin/run-backend
 ```
-> _Note_ The `run-backend` script will run `start-postgres` automatically so you can avoid having to run this 
+
+> _Note_ The `run-backend` script will run `start-postgres` automatically so you can avoid having to run this
 > command manually.
 
 You can then launch the cli in interactive or batch mode e.g.
@@ -206,7 +211,7 @@ Tests for a specific module can be run by specifying the module name. For exampl
 Integration tests are run as part of the overall `test` command.
 
 The backend module makes use of [testcontainers](https://www.testcontainers.org/) to bring up a test specific instance
-of postgresql used by the tests e.g. 
+of postgresql used by the tests e.g.
 [DomainRepositoryTest](backend/src/test/kotlin/uk/gov/justice/digital/repository/DomainRepositoryTest.kt).
 
 Any tests using the `@TestContainers` annotation expect docker to be running or they will fail.
@@ -223,15 +228,15 @@ The backend and frontend code can be configured using environment as follows.
 
 ### Backend
 
-The following environment variables are referenced in the 
-[backend application.yml](backend/src/main/resources/application.yml). No default values are provided in the main 
-configuration so the backend will fail if any of these variables are *not* set on the environment.
+The following environment variables are referenced in the
+[backend application.yml](backend/src/main/resources/application.yml). No default values are provided in the main
+configuration so the backend will fail if any of these variables are _not_ set on the environment.
 
-* `POSTGRES_HOST` 
-* `POSTGRES_PORT`
-* `POSTGRES_DB_NAME`
-* `POSTGRES_USERNAME`
-* `POSTGRES_PASSWORD`
+- `POSTGRES_HOST`
+- `POSTGRES_PORT`
+- `POSTGRES_DB_NAME`
+- `POSTGRES_USERNAME`
+- `POSTGRES_PASSWORD`
 
 > _Note_ The scripts set these variables with suitable values for local development.
 
@@ -239,7 +244,7 @@ configuration so the backend will fail if any of these variables are *not* set o
 
 The following environment variable is reference in the cli [application.yml](cli/src/main/resources/application.yml).
 
-* `DOMAIN_API_URL`
+- `DOMAIN_API_URL`
 
 For local usage this is set to `http://localhost:8080`
 
