@@ -73,8 +73,9 @@ class BlockingDomainClientTest {
     private fun createServerForScenario(scenario: String): EmbeddedServer {
         // Create an embedded server configured with the controller for the specified test scenario.
         val serverInstance = ApplicationContext.run(EmbeddedServer::class.java, mapOf(TEST_SCENARIO to scenario))
+        // Ensure the client is correctly configured
+        System.setProperty("http.client.url", "http://localhost:${serverInstance.port}")
         // Update configuration with embedded server port
-        System.setProperty("micronaut.http.services.domain.url", "http://localhost:${serverInstance.port}")
         serverInstance.applicationContext.environment.refresh()
         return serverInstance
     }

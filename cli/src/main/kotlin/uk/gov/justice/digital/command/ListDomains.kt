@@ -3,9 +3,9 @@ package uk.gov.justice.digital.command
 import jakarta.inject.Singleton
 import picocli.CommandLine.*
 import uk.gov.justice.digital.DomainBuilder
+import uk.gov.justice.digital.command.ExceptionHandler.runAndHandleExceptions
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.service.DomainService
-
 
 @Singleton
 @Command(
@@ -28,9 +28,10 @@ class ListDomains(private val service: DomainService) : Runnable {
     private val defaultNameWidth = 20
     private val defaultDescriptionWidth = 60
 
-    override fun run() {
-        fetchAndDisplayDomains()
-    }
+    override fun run() =
+        runAndHandleExceptions(parent) {
+            fetchAndDisplayDomains()
+        }
 
     private fun fetchAndDisplayDomains() {
         val result = service.getAllDomains()

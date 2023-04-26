@@ -119,7 +119,7 @@ function check_or_create_database {
     show_wait "Database '$database_name' does not exist. Creating..."
     if run_psql_command "create database $database_name;" &> /dev/null
     then
-      show_ok "Database '$database_name' created"
+      show_ok "Database '$database_name' created                    "
     else
       show_fail_and_exit "Failed to create database '$database_name'" "Try creating the database '$database_name' manually."
     fi

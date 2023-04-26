@@ -1,8 +1,3 @@
-micronaut:
-  http:
-    client:
-      read-timeout: 30s
-      connect-timeout: 30s
-    services:
-      domain:
-        url: ${DOMAIN_API_URL}
+http:
+  client:
+    url: ${DOMAIN_API_URL}

@@ -23,7 +23,6 @@ dependencies {
   implementation("info.picocli:picocli-shell-jline3:4.7.1")
   implementation("io.micronaut.picocli:micronaut-picocli")
   implementation("io.micronaut.serde:micronaut-serde-api:1.5.2")
-  implementation("io.micronaut:micronaut-http-client")
   implementation("io.micronaut:micronaut-jackson-databind")
   implementation("io.micronaut:micronaut-runtime")
   implementation("io.micronaut:micronaut-validation")
@@ -31,7 +30,6 @@ dependencies {
   implementation("org.fusesource.jansi:jansi:2.4.0")
   implementation(project(":common"))
   implementation("io.micronaut.reactor:micronaut-reactor")
-  implementation("io.micronaut.reactor:micronaut-reactor-http-client")
 
   kapt("io.micronaut.serde:micronaut-serde-processor:1.5.2")
   kapt("io.micronaut:micronaut-inject-java")
