@@ -12,35 +12,184 @@
 Provides frontend and backend services to support creation and management of data domains for the
 digital prison reporting project.
 
-## Local Development
+The project is split into the following modules
 
-This project uses gradle which is bundled with the repository and also makes use
-of
+- [common](common) - code that can be used by other modules
+- [backend](backend) - backend REST API used by frontend code to manage domains
+- [cli](cli) - cli frontend providing batch and interactive modes
+
+This project uses gradle which is bundled with the repository and also makes use of
 
 - [micronaut](https://micronaut.io/) - for compile time dependency injection
 - [jacoco](https://docs.gradle.org/current/userguide/jacoco_plugin.html) - for test coverage reports
+- [postgresql](https://www.postgresql.org/) - for data storage in the backend service
+- [docker](https://www.docker.com/) - to run postgres locally
+- [flyway](https://flywaydb.org/) - to manage database migrations
 
-The project is written in Kotlin and targets Java 17.
+The project is written in Kotlin and targets Java 11.
+
+## Local Development
+
+### Scripts supporting local development
+
+The following scripts have been provided to support local development.
+
+#### [start-postgres](docker/start-postgres)
+
+This script takes care of
+
+- ensuring docker and docker-compose are installed
+- starting docker if it's not running already
+- configuring and starting a local postgres container
+- creating the local `domain_builder` database if it doesn't exist already
+- applying migrations
+- inserting test data if the `domain` table is empty
+
+> _Note_ [colima](https://github.com/abiosoft/colima) is also supported as an alternative to docker desktop
+
+Usage
+
+```shell
+    ./docker/start-postgres
+```
+
+The script will run a number of checks and commands. If any of these failed you will be prompted to either install a
+missing command or check the output of a failed step.
+
+It's safe to run the script multiple times since action will only be taken where necessary, e.g. if docker is stopped
+or there is a new migration to apply.
+
+#### [run-backend](bin/run-backend)
+
+This script checks docker is up, runs a build and then launches the backend API locally.
+
+Usage
+
+```shell
+    ./bin/run-backend
+```
+
+By default the backend will run on `localhost:8080`.
+
+While the API is running it will log to `stdout`.
+
+#### [domain-builder-interactive](bin/domain-builder-interactive)
+
+Launches the domain-builder CLI frontend in interactive mode.
+
+Usage
+
+```shell
+    ./bin/domain-builder-interactive
+```
+
+By default the CLI frontend will attempt to connect to `http://localhost:8080`
+
+When in interactive mode, use the `help` command to see what commands are available. These will mirror the commands
+available in the batch mode domain-builder command (see below).
+
+The interactive also provides a built in `less` implementation which is enabled when the output exceeds the size of
+the terminal.
+
+#### [domain-builder](bin/domain-builder)
+
+Launches the domain-builder CLI in 'batch' mode.
+
+Usage
+
+```shell
+    # See available options and commands
+    ./bin/domain-builder --help
+
+    # Get help for a specific command
+    ./bin/domain-builder list --help
+
+    # List all domains
+    ./bin/domain-builder list
+
+    # View a specific domain by name
+    ./bin/domain-builder view -n Some Domain
+```
+
+Additional options are provided to enable ANSI color output and interactive mode, which are enabled by the
+`domain-builder-interactive` script.
+
+#### [push-backend-jar](bin/push-backend-jar)
+
+Builds and pushes the backend jar to a given s3 bucket to support local development and testing of the API when run as
+an AWS Lambda.
+
+Assumes that the `aws` command is installed locally with valid credentials.
+
+Usage
+
+```shell
+    ./bin/push-backend-jar s3://bucket/path
+```
+
+#### [apply-migrations](bin/apply-migrations)
+
+Applies migrations to the locally running database by default by invoking the
+[MigrationRunner](backend/src/main/kotlin/uk/gov/justice/digital/MigrationRunner.kt) class which uses Flyway to apply any
+outstanding migrations.
+
+Usage
+
+```shell
+    ./bin/apply-migrations
+```
+
+This script can also be used as part of the deployment pipeline to apply migrations before pushing a new version of
+the code.
 
 ### Packaging
 
 This project makes use of the [shadow jar plugin](https://github.com/johnrengelman/shadow)
 which takes care of creating a jar containing all dependencies.
 
+```shell
+
+    # Build all artefacts
+    ./gradlew build
+
+    # Build backend only
+    ./gradlew :backend:build
+
+    # Build cli only
+    ./gradlew :cli:build
 ```
-    TODO
-```
+
+Executable jars are written to the following locations for each module that represents an executable service or
+command
+
+- `backend` backend/build/libs/domain-builder-backend-api-<VERSION>-all.jar
+- `cli` cli/build/libs/cli-<VERSION>-all.jar
 
 ### Running locally
 
+Use the following commands to bring up the backend services
+
+```shell
+    docker/start-postgres # optional if you wish to observe the output of this command
+    bin/run-backend
 ```
-    TODO
+
+> _Note_ The `run-backend` script will run `start-postgres` automatically so you can avoid having to run this
+> command manually.
+
+You can then launch the cli in interactive or batch mode e.g.
+
+```shell
+    bin/domain-builder-interactive
+    # or
+    bin/domain-builder view -n domain-name
 ```
 
 ## Testing
 
 > **Note** - test coverage reports are enabled by default and after running the
-> tests the report will be written to build/reports/jacoco/test/html
+> tests the report will be written to <module>/build/reports/jacoco/test/html
+> Coverage is written separately for each module due to the project structure.
 
 ### Unit Tests
 
@@ -51,17 +200,62 @@ run the tests.
     ./gradlew clean test
 ```
 
-### Integration Tests
+Tests for a specific module can be run by specifying the module name. For example to run the backend tests only run
 
 ```
-    TBD
+    ./gradlew :backend:test
 ```
+
+### Integration Tests
+
+Integration tests are run as part of the overall `test` command.
+
+The backend module makes use of [testcontainers](https://www.testcontainers.org/) to bring up a test specific instance
+of postgresql used by the tests e.g.
+[DomainRepositoryTest](backend/src/test/kotlin/uk/gov/justice/digital/repository/DomainRepositoryTest.kt).
+
+Any tests using the `@TestContainers` annotation expect docker to be running or they will fail.
+
+These can be configured to skip instead if docker is down.
 
 ### Acceptance Tests
 
-```
-    TBD
-```
+There are no acceptance tests at the time of writing.
+
+## Configuration
+
+The backend and frontend code can be configured using environment as follows.
+
+### Backend
+
+The following environment variables are referenced in the backend
+[application.yml](backend/src/main/resources/application.yml). No default values are provided in the main
+configuration so the backend will fail if any of these variables are _not_ set on the environment.
+
+- `POSTGRES_HOST`
+- `POSTGRES_PORT`
+- `POSTGRES_DB_NAME`
+- `POSTGRES_USERNAME`
+- `POSTGRES_PASSWORD`
+
+> _Note_ The scripts set these variables with suitable values for local development.
+
+### Cli
+
+The following environment variable is reference in the cli [application.yml](cli/src/main/resources/application.yml).
+
+- `DOMAIN_API_URL`
+
+For local usage this is set to `http://localhost:8080`
+
+## Deployment
+
+The deployment process is TBD.
+
+Part of this process will need to trigger the `apply-migrations` script with appropriate configuration in order to run
+the migrations as part of the deployment process.
+
+> _Note_ At the time of writing some modifications to this script will be needed to support this.
 
 ## Contributing
 

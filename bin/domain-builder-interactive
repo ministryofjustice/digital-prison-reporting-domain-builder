@@ -4,16 +4,6 @@ set -e
 
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-source $script_dir/lib/script-helpers
-
 clear
-
-if [ -z "$DOMAIN_API_URL" ]
-then
-  show_info "DOMAIN_API_URL not set on environment. Falling back to localhost:8080"
-  export DOMAIN_API_URL="http://localhost:8080"
-fi
-
-show_ok "domain-builder will use api: $DOMAIN_API_URL"
 
 $script_dir/domain-builder -i --enable-ansi

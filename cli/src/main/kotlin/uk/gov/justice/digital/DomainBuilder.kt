@@ -25,6 +25,13 @@ class DomainBuilder(
 ) : Runnable {
 
     @Option(
+        names = ["-h", "--help"],
+        usageHelp = true,
+        description = [ "display this help message" ]
+    )
+    var usageHelpRequested = false
+
+    @Option(
         names = ["-i", "--interactive"],
         description = ["Run domain-builder in interactive mode"],
         required = false
