@@ -1,12 +1,12 @@
 version: 2.1
 
 orbs:
-  reporting: ministryofjustice/hmpps-reporting@1.0.12
+  hmpps-reporting: ministryofjustice/hmpps-reporting@dev:1ec03a28edf7d8a6387a2e24a3929276931911c9
 
 workflows:
   checkout-build-publish:
     jobs:
-      - reporting/gradle_owasp_check:
+      - hmpps-reporting/gradle_owasp_check:
           notify_slack: false
           context:
             - hmpps-reporting-common
@@ -14,7 +14,7 @@ workflows:
           filters:
             branches:
               only: main
-      - reporting/gradle_build_publish:
+      - hmpps-reporting/gradle_build_publish:
           app: digital-prison-reporting-domain-builder
           app_artifacts_directory: build/libs/
           bucket_prefix: dpr-artifact-store
@@ -40,7 +40,7 @@ workflows:
               only:
                 - main
     jobs:
-      - reporting/gradle_owasp_check:
+      - hmpps-reporting/gradle_owasp_check:
           notify_slack: false
           channel: dpr_cicd_alerts
           context:
