@@ -19,7 +19,7 @@ import java.util.*
 // This test needs a local docker daemon to be running.
 // Set disabledWithoutDocker = true on the `@TestContainers` annotation to skip
 // these tests if there is no daemon running locally.
-@Testcontainers
+@Testcontainers(disabledWithoutDocker = false)
 class DomainRepositoryTest {
 
     companion object {
