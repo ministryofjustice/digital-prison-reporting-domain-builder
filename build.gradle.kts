@@ -1,3 +1,4 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.gradle.testing.jacoco.tasks.JacocoReport
 import org.gradle.api.tasks.testing.logging.TestLogEvent
@@ -33,9 +34,10 @@ subprojects {
     withType<KotlinCompile> {
       kotlinOptions.jvmTarget = "11"
     }
-    // Allow tests to run in parallel in each module
     withType<Test>().configureEach {
+      // Allow tests to run in parallel in each module
       maxParallelForks = (Runtime.getRuntime().availableProcessors() - 1).takeIf { it > 0 } ?: 1
+      // Temporarily force verbose test output to diagnose issues on circle ci
       testLogging {
         events = setOf(
           TestLogEvent.FAILED,
@@ -44,6 +46,10 @@ subprojects {
           TestLogEvent.STANDARD_ERROR,
           TestLogEvent.STANDARD_OUT,
         )
+        exceptionFormat = TestExceptionFormat.FULL
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
       }
     }
   }
