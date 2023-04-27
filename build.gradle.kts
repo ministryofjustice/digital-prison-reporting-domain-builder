@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.gradle.testing.jacoco.tasks.JacocoReport
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
   id("org.jetbrains.kotlin.jvm") version "1.8.10"
@@ -35,6 +36,15 @@ subprojects {
     // Allow tests to run in parallel in each module
     withType<Test>().configureEach {
       maxParallelForks = (Runtime.getRuntime().availableProcessors() - 1).takeIf { it > 0 } ?: 1
+      testLogging {
+        events = setOf(
+          TestLogEvent.FAILED,
+          TestLogEvent.PASSED,
+          TestLogEvent.SKIPPED,
+          TestLogEvent.STANDARD_ERROR,
+          TestLogEvent.STANDARD_OUT,
+        )
+      }
     }
   }
 }
