@@ -16,7 +16,6 @@ terraform.tfstate
 *.jar
 
 # Gradle
-.gradle
 build
 target
 
