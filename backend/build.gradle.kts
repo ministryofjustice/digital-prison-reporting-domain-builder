@@ -24,7 +24,6 @@ dependencies {
   implementation(project(":common"))
   testImplementation(testFixtures(project(":common")))
 
-  implementation("io.micronaut.aws:micronaut-function-aws-api-proxy")
   implementation("io.micronaut.flyway:micronaut-flyway")
   implementation("io.micronaut.picocli:micronaut-picocli")
   implementation("io.micronaut:micronaut-http-client")
@@ -32,8 +31,6 @@ dependencies {
   implementation("io.micronaut:micronaut-jackson-databind")
   implementation("io.micronaut:micronaut-runtime")
   implementation("io.micronaut:micronaut-validation")
-
-  runtimeOnly("io.micronaut.aws:micronaut-aws-cloudwatch-logging")
 
   implementation("jakarta.annotation:jakarta.annotation-api")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
@@ -45,6 +42,9 @@ dependencies {
 
   runtimeOnly("ch.qos.logback:logback-classic")
   runtimeOnly("io.micronaut.sql:micronaut-jdbc-dbcp")
+  runtimeOnly("io.micronaut.aws:micronaut-aws-cloudwatch-logging")
+  runtimeOnly("io.micronaut.aws:micronaut-function-aws-api-proxy")
+  runtimeOnly("io.micronaut.serde:micronaut-serde-jackson:1.5.2")
 
   implementation("org.postgresql:postgresql:42.6.0")
 
@@ -52,7 +52,6 @@ dependencies {
   kapt("io.micronaut:micronaut-http-validation")
 
   kapt("io.micronaut.serde:micronaut-serde-processor:1.5.2")
-  runtimeOnly("io.micronaut.serde:micronaut-serde-jackson:1.5.2")
   implementation("io.micronaut.serde:micronaut-serde-api:1.5.2")
 
   kaptTest("io.micronaut:micronaut-inject-java")
