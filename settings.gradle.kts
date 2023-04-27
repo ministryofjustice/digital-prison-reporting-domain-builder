@@ -1,2 +1,2 @@
-rootProject.name = "digital-prison-reporting-domain-builder"
+rootProject.name = "domainBuilder"
 include("common", "backend", "cli")

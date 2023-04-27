@@ -3,9 +3,9 @@ package uk.gov.justice.digital.command
 import jakarta.inject.Singleton
 import picocli.CommandLine.*
 import uk.gov.justice.digital.DomainBuilder
+import uk.gov.justice.digital.command.ExceptionHandler.runAndHandleExceptions
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.service.DomainService
-
 
 @Singleton
 @Command(
@@ -24,13 +24,14 @@ class ListDomains(private val service: DomainService) : Runnable {
     @ParentCommand
     lateinit var parent: DomainBuilder
 
-    private val nameWidth = 20
-    private val descriptionWidth = 40
     private val padding = 2
+    private val defaultNameWidth = 20
+    private val defaultDescriptionWidth = 60
 
-    override fun run() {
-        fetchAndDisplayDomains()
-    }
+    override fun run() =
+        runAndHandleExceptions(parent) {
+            fetchAndDisplayDomains()
+        }
 
     private fun fetchAndDisplayDomains() {
         val result = service.getAllDomains()
@@ -42,15 +43,19 @@ class ListDomains(private val service: DomainService) : Runnable {
     }
 
     private fun generateOutput(data: List<Domain>): String {
+        // Format name and description widths dynamically
+        val nameWidth = data.maxOfOrNull { it.name.length } ?: defaultNameWidth
+        val descriptionWidth = data.maxOfOrNull { it.description.length } ?: defaultDescriptionWidth
+
         val tableBorder = tableRowBorder(nameWidth, descriptionWidth)
 
         val heading = listOf(
             "\n@|bold,green Found ${data.size} domains|@\n",
             tableBorder,
-            String.format("| @|bold %-20s|@ | @|bold %-40s|@ |", "Name", "Description"),
+            String.format("| @|bold %-${nameWidth}s|@ | @|bold %-${descriptionWidth}s|@ |", "Name", "Description"),
             tableBorder,
         )
-        val dataRows = data.map { String.format("| %-20s | %-40s |", it.name, it.description) }
+        val dataRows = data.map { String.format("| %-${nameWidth}s | %-${descriptionWidth}s |", it.name, it.description) }
         val footer = listOf("$tableBorder\n")
 
         return listOf(heading, dataRows, footer)

@@ -74,4 +74,6 @@ object Fixtures {
         tables = listOf(table1, table2, table3)
     )
 
+    val domains = listOf(domain1, domain2, domain3)
+
 }

@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# Script to build the backend api jar and push it to a specified s3 bucket.
+#
+# Usage:
+#
+#   scripts/push-backend-jar <s3-folder-uri>
+#
+#   e.g.
+#
+#   scripts/push-backend-jar s3://dpr-jars/dev
+
+set -e
+
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source "$script_dir/../bin/lib/script-helpers"
+
+s3_uri="$@"
+
+echo
+
+if [ -z "$s3_uri" ]
+then
+  echo "A destination s3 uri must be specified"
+  exit 1;
+fi
+
+show_heading "Building Backend API jar"
+echo
+
+cd $script_dir/../
+
+./gradlew clean :backend:shadowJar
+
+echo
+show_heading "Uploading to $s3_uri"
+echo
+aws s3 cp ./backend/build/libs/domain-builder-backend-api-*-all.jar $s3_uri/
+echo

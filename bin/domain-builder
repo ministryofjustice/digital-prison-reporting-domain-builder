@@ -7,8 +7,27 @@ set -e
 
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+source $script_dir/lib/script-helpers
+
 cd $script_dir/..
 
-./gradlew :cli:shadowJar -q
+show_wait "Building domain-builder..."
+if ./gradlew :cli:shadowJar -q &> /dev/null
+then
+  show_ok "Launching domain-builder  "
+else
+  show_fail_and_exit "Build failed              " "Run gradle build manually and review output"
+fi
 
-java -jar ./cli/build/libs/cli-all.jar $@
+# Check that the DOMAIN_API_URL is set on the environment.
+# See also backend/src/main/resources/application.yml which references this
+# variable for the configuration property http.client.url
+if [ -z "$DOMAIN_API_URL" ]
+then
+  show_info "DOMAIN_API_URL not set on environment. Falling back to localhost:8080"
+  export DOMAIN_API_URL="http://localhost:8080"
+fi
+
+show_ok "domain-builder will use api: $DOMAIN_API_URL"
+
+java -jar ./cli/build/libs/cli-*-all.jar $@

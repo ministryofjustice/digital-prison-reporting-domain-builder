@@ -15,7 +15,7 @@ jar_path=$1
 function determine_jar_path {
   if [ -z $jar_path ]
   then
-    show_warn "No jar path specified, Falling back to local build."
+    show_info "No jar path specified. Falling back to local build."
   else
     if [ -e $jar_path ]
     then
@@ -29,21 +29,29 @@ function determine_jar_path {
 function run_build_and_check_jar_exists {
   if [ -z $jar_path ]
   then
+    show_wait "Running backend build..."
     # Build backend using shadowJar ensuring all dependencies are included.
-    $script_dir/.././gradlew :backend:shadowJar &> /dev/null
+    if $script_dir/.././gradlew :backend:shadowJar &> /dev/null
+    then
+      show_ok "Build successful        "
+    else
+      show_fail_and_exit "Build failed            " "Run ./gradlew :backend:shadowJar and review output."
+    fi
+
     jar_path=$(find backend/build/libs -name '*-all.jar')
     if [ -e $jar_path ]
     then
-      show_ok "Build successful - using local jar file: $jar_path"
+      show_ok "Located local jar file: $jar_path"
     else
-      show_fail_and_exit "Build failed" "Run backend shadowJar task manually and review output."
+      show_fail_and_exit "Build failed            " "Run ./gradlew :backend:shadowJar and review output."
     fi
   fi
 }
 
 function apply_migrations {
   log_file="/tmp/migration-log-$(date +'%Y-%m-%dT%H:%M:%S').log"
-  if java -cp $jar_path uk.gov.justice.digital.MigrationRunner &> $log_file
+  show_wait "Applying migrations..."
+  if run_with_local_postgres_config java -cp $jar_path uk.gov.justice.digital.MigrationRunner &> $log_file
   then
     show_ok "Migrations applied successfully"
   else

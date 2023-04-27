@@ -10,16 +10,9 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "$script_dir/../bin/lib/script-helpers"
 
-database_name="domain_builder"
-
-function check_psql_installed {
-  if hash psql &> /dev/null
-  then
-    show_ok "psql command installed"
-  else
-    show_fail_and_exit "psql not installed" "Please ensure psql command is installed and on your path."
-  fi
-}
+database_name="domain_builder"  # name of database to create/connect to
+test_records=1000               # maximum number of test records to create
+                                # when domain table is empty
 
 function check_docker_installed {
   if hash docker &> /dev/null
@@ -44,7 +37,6 @@ function check_docker_daemon_available {
   then
     show_ok "Docker desktop installed"
   else
-    show_warn "Docker desktop not installed"
     # Check for colima - a cli only docker desktop alternative
     if hash colima &> /dev/null
     then
@@ -60,7 +52,7 @@ function check_docker_running {
   then
     show_ok "Docker running"
   else
-    show_warn "Docker not running. Starting..."
+    show_wait "Docker not running. Starting..."
     if [ -e "/Applications/Docker.app" ]
     then
       open -a Docker
@@ -70,24 +62,33 @@ function check_docker_running {
       colima start &> /dev/null
       wait_for_docker_to_start
     else
-      show_fail "Unable to start docker daemon" "Please ensure that either Docker Desktop or colima is installed."
+      show_wait "Docker not running. Starting..."
     fi
   fi
 }
 
 function start_postgres {
+  show_wait "Running Docker Compose..."
   docker_compose_file="$script_dir/postgres/docker-compose.yml"
   docker-compose -f "$script_dir/postgres/docker-compose.yml" up --detach --wait -t 60 &> /dev/null
+  show_ok "Docker Compose completed   "
 }
 
 function check_postgres_running {
   container_id=$(docker ps | grep -E "postgres.*Up.*5432" | cut -d ' ' -f1)
 
+  show_wait "Waiting for postgres to start..."
+
+  while ! run_psql_command "\q" &> /dev/null
+  do
+    sleep 2
+  done
+
   if [ -n "$container_id" ]
   then
-    show_ok "Postgres container $container_id running on local port 5432"
+    show_ok "Postgres container \033[1;94m$container_id\033[0m is up on local port \033[1;94m5432\033[0m"
   else
-    show_warn "Postgres container not started. Starting again..."
+    show_wait "Postgres container not running. Attempting to start..."
     container_id=$(docker ps -a | grep postgres | head -n1 | cut -d ' ' -f1)
     docker start $container_id &> /dev/null
     wait_for_postgres_to_start
@@ -99,11 +100,11 @@ function wait_for_docker_to_start {
   do
     sleep 1
   done
-  show_ok "Docker daemon started"
+  show_ok "Docker daemon started            "
 }
 
 function wait_for_postgres_to_start {
-  while ! docker ps | grep -E "postgres.*Up.*5432" &> /dev/null
+  while ! run_psql_command "\q" &> /dev/null
   do
     sleep 1
   done
@@ -111,15 +112,14 @@ function wait_for_postgres_to_start {
 }
 
 function check_or_create_database {
-  if docker exec -it -u postgres $container_id  psql -c "\l" | grep "$database_name" &> /dev/null
+  if run_psql_command "\l" | grep "$database_name" &> /dev/null
   then
     show_ok "Database '$database_name' exists"
   else
-    show_warn "Database '$database_name' does not exist. Creating..."
-    docker exec -it -u postgres $container_id psql -c "create database $database_name;" &> /dev/null
-    if docker exec -it -u postgres $container_id  psql -c "\l" | grep "$database_name" &> /dev/null
+    show_wait "Database '$database_name' does not exist. Creating..."
+    if run_psql_command "create database $database_name;" &> /dev/null
     then
-      show_ok "Database '$database_name' created"
+      show_ok "Database '$database_name' created                    "
     else
       show_fail_and_exit "Failed to create database '$database_name'" "Try creating the database '$database_name' manually."
     fi
@@ -127,16 +127,17 @@ function check_or_create_database {
 }
 
 function apply_migrations {
+  show_wait "Applying migrations to database..."
   if $script_dir/../bin/apply-migrations &> /dev/null
   then
-    show_ok "Migrations applied successfully"
+    show_ok "Migrations applied successfully   "
   else
-    show_fail_and_exit "Migrations failed to apply" "Run ./bin/apply-migrations and review error output."
+    show_fail_and_exit "Migrations failed to apply        " "Run ./bin/apply-migrations and review error output."
   fi
 }
 
 function run_sanity_checks {
-  if docker exec -it -u postgres $container_id  psql  -d $database_name -c "select * from domain;" &> /dev/null
+  if run_psql_query "select * from domain limit 1;" &> /dev/null
   then
     show_ok "Sanity checks passed"
   else
@@ -144,10 +145,46 @@ function run_sanity_checks {
   fi
 }
 
+function load_testdata {
+  if run_psql_query "select * from domain limit 1;" | grep "0 rows" &> /dev/null
+  then
+    show_info "Domain table empty. Will load test data."
+    generate_and_insert_data
+  else
+    show_ok "Skipping test data load. Domain table contains data."
+  fi
+}
+
+function generate_and_insert_data() {
+    spinner=('|' '/' '–' '\')
+    template=$(cat $script_dir/templates/domain-template.json)
+    for i in $(eval echo "{1..$test_records}")
+    do
+      spinner_state=${spinner[$i % 4]}
+      formatted_message=$(printf "Loading test record % 4d of % 4d %s " $i $test_records $spinner_state)
+      show_wait "$formatted_message"
+      uuid=$(uuidgen)
+      updated_template=$(echo $template | sed s/DOMAIN_ID/$uuid/ | sed s/DOMAIN_NAME/Domain\ $i/)
+      statement="insert into domain(id, name, data, created, lastupdated) values('$uuid', 'Domain $i', '$updated_template', now(), now());"
+      if ! run_psql_query "$statement" &> /dev/null
+      then
+        show_fail_and_exit "Error inserting test record $i of $limit" "Review the contents of the domain table"
+      fi
+    done
+    show_ok "Created $test_records test records successfully"
+}
+
+function run_psql_command {
+  docker exec -u postgres $container_id psql -c "$1"
+}
+
+function run_psql_query {
+  docker exec -u postgres $container_id psql -d "$database_name" -c "$1"
+}
+
 echo
 show_heading "Checking prerequisites"
 echo
-check_psql_installed
 check_docker_installed
 check_docker_compose_installed
 check_docker_daemon_available
@@ -163,4 +200,8 @@ echo
 check_or_create_database
 apply_migrations
 run_sanity_checks
+echo
+show_heading "Loading test data"
+echo
+load_testdata
 echo
