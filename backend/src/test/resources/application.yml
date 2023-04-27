@@ -14,3 +14,6 @@ endpoints:
   flyway:
     enabled: false
     sensitive: false
+
+aws:
+  region: eu-west-2
