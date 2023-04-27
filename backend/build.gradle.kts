@@ -33,7 +33,7 @@ dependencies {
   implementation("io.micronaut:micronaut-runtime")
   implementation("io.micronaut:micronaut-validation")
 
-  implementation("io.micronaut.aws:micronaut-aws-cloudwatch-logging")
+  runtimeOnly("io.micronaut.aws:micronaut-aws-cloudwatch-logging")
 
   implementation("jakarta.annotation:jakarta.annotation-api")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
