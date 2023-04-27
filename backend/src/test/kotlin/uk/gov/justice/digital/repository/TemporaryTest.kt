@@ -15,4 +15,15 @@ class TemporaryTest {
             .waitFor()
         assertEquals(0, result)
     }
+
+    @Test
+    fun `docker ps returns successfully`() {
+        println("Running docker ps to determine if it is up or not")
+        val result = ProcessBuilder("docker", "ps")
+            .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+            .redirectError(ProcessBuilder.Redirect.INHERIT)
+            .start()
+            .waitFor()
+        assertEquals(0, result)
+    }
 }
