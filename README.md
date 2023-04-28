@@ -206,6 +206,14 @@ Tests for a specific module can be run by specifying the module name. For exampl
     ./gradlew :backend:test
 ```
 
+> _Note_ Some of the backend tests need a running docker daemon. If you're using
+> [colima](https://github.com/abiosoft/colima) you will need to run the following
+> ```sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock``` in order
+> for the tests to run.
+>
+> Refer to the [colima FAQ](https://github.com/abiosoft/colima/blob/main/docs/FAQ.md#cannot-connect-to-the-docker-daemon-at-unixvarrundockersock-is-the-docker-daemon-running)
+> for further information.
+
 ### Integration Tests
 
 Integration tests are run as part of the overall `test` command.
