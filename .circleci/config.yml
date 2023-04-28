@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  hmpps-reporting: ministryofjustice/hmpps-reporting@dev:231d2fe1b8a7e7a6cc3415ee97634b24087d6924
+  hmpps-reporting: ministryofjustice/hmpps-reporting@dev:431db393b4e0c8689053024d1a9219fdda1de384
 
 workflows:
   checkout-build-publish:
