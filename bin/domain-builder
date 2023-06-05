@@ -11,6 +11,7 @@ source $script_dir/lib/script-helpers
 
 cd $script_dir/..
 
+check_java_version
 show_wait "Building domain-builder..."
 if ./gradlew :cli:shadowJar -q &> /dev/null
 then

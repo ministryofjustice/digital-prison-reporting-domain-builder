@@ -198,6 +198,7 @@ function run_psql_query {
 echo
 show_heading "Checking prerequisites"
 echo
+check_java_version
 check_no_other_instances_running
 check_docker_installed
 check_docker_compose_installed

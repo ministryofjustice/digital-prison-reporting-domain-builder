@@ -53,6 +53,7 @@ function check_jar_exists {
 echo
 show_heading "Launching backend api"
 echo
+check_java_version
 check_postgres_running
 build_backend
 check_jar_exists
@@ -62,9 +63,4 @@ echo
 echo "[Press CTRL-C to exit]"
 echo
 
-#POSTGRES_HOST="localhost" \
-#  POSTGRES_PORT="5432" \
-#  POSTGRES_DB_NAME="domain_builder" \
-#  POSTGRES_USERNAME="postgres" \
-#  POSTGRES_PASSWORD="postgres" \
-run_with_local_postgres_config  "java -jar $jar_path"
+run_with_local_postgres_config "java -jar $jar_path"
