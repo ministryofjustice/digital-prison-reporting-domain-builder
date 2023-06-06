@@ -36,3 +36,27 @@ run_with_local_postgres_config() {
     POSTGRES_PASSWORD="postgres" \
     $@
 }
+
+function check_java_version {
+  show_wait "Checking java version..."
+  major_version=$(java -version 2> >(grep version) | cut -f2 -d '"' | cut -f1 -d '.')
+  if [ "$major_version" -eq "11" ]
+  then
+    show_ok "JAVA_HOME is pointing to a valid Java 11 installation"
+  else
+    if [ $(uname) == "Darwin" ]
+    then
+      show_warn "Got Java $major_version when Java 11 needed, attempting to fix"
+      export JAVA_HOME=$(/usr/libexec/java_home -v "11")
+      version=$(java -version 2> >(grep version) | cut -f2 -d '"' | cut -f1 -d '.')
+      if [ "$version" -eq "11" ]
+      then
+        show_ok "JAVA_HOME is now pointing to a valid Java 11 installation"
+      else
+        show_fail_and_exit "Got Java $major_version when Java 11 needed" "Please ensure your JAVA_HOME is set and pointing to a valid Java 11 installation"
+      fi
+    else
+      show_fail_and_exit "Got Java $major_version when Java 11 needed" "Please ensure your JAVA_HOME is set and pointing to a valid Java 11 installation"
+    fi
+  fi
+}

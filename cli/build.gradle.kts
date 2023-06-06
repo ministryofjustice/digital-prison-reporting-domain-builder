@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
   id("org.jetbrains.kotlin.jvm") version "1.8.10"
   id("io.micronaut.minimal.application") version "3.7.7"
@@ -48,15 +50,30 @@ dependencies {
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.1")
 }
 
-tasks.named<Test>("test") {
-  useJUnitPlatform()
-}
 
 application {
   mainClass.set("uk.gov.justice.digital.DomainBuilder")
 }
 
-tasks.named<JavaExec>("run") {
-  // Ensure we attach STDIN so interactive mode works when using the run task
-  standardInput = System.`in`
+tasks {
+  named<Test>("test") {
+    useJUnitPlatform()
+  }
+
+  named<JavaExec>("run") {
+    // Ensure we attach STDIN so interactive mode works when using the run task
+    standardInput = System.`in`
+  }
+
+  // TODO - temporary fudge for the sync script which expects both jars to be present
+  named<Jar>("jar") {
+    archiveBaseName.set("domain-builder-cli-frontend")
+    destinationDirectory.set(File("${project.rootDir}/build/libs"))
+  }
+
+  named<ShadowJar>("shadowJar") {
+    archiveBaseName.set("domain-builder-cli-frontend")
+    destinationDirectory.set(File("${project.rootDir}/build/libs"))
+  }
+
 }

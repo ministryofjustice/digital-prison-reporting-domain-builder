@@ -11,6 +11,7 @@ source $script_dir/lib/script-helpers
 
 cd $script_dir/..
 
+check_java_version
 show_wait "Building domain-builder..."
 if ./gradlew :cli:shadowJar -q &> /dev/null
 then
@@ -30,4 +31,4 @@ fi
 
 show_ok "domain-builder will use api: $DOMAIN_API_URL"
 
-java -jar ./cli/build/libs/cli-*-all.jar $@
+java -jar ./build/libs/domain-builder-cli-frontend-*-all.jar $@

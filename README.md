@@ -26,7 +26,8 @@ This project uses gradle which is bundled with the repository and also makes use
 - [docker](https://www.docker.com/) - to run postgres locally
 - [flyway](https://flywaydb.org/) - to manage database migrations
 
-The project is written in Kotlin and targets Java 11.
+The project is written in Kotlin and targets Java 11 since this is the latest
+supported runtime available for AWS Lambdas. See [Building Lambda functions with Java](https://docs.aws.amazon.com/lambda/latest/dg/lambda-java.html).
 
 ## Local Development
 
@@ -205,6 +206,14 @@ Tests for a specific module can be run by specifying the module name. For exampl
 ```
     ./gradlew :backend:test
 ```
+
+> _Note_ Some of the backend tests need a running docker daemon. If you're using
+> [colima](https://github.com/abiosoft/colima) you will need to run the following
+> `sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock` in order
+> for the tests to run.
+>
+> Refer to the [colima FAQ](https://github.com/abiosoft/colima/blob/main/docs/FAQ.md#cannot-connect-to-the-docker-daemon-at-unixvarrundockersock-is-the-docker-daemon-running)
+> for further information.
 
 ### Integration Tests
 
