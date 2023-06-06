@@ -15,7 +15,9 @@ workflows:
             branches:
               only: main
       - reporting/gradle_build_publish:
-          app: domain-builder-*
+          # TODO - fix this - setting to cli-frontend for now
+          #        sync script needs to handle multiple artifacts
+          app: domain-builder-cli-frontend
           app_artifacts_directory: build/libs/
           bucket_prefix: dpr-artifact-store
           cache_key: "v5"

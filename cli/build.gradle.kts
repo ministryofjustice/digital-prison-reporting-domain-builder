@@ -65,6 +65,12 @@ tasks {
     standardInput = System.`in`
   }
 
+  // TODO - temporary fudge for the sync script which expects both jars to be present
+  named<Jar>("jar") {
+    archiveBaseName.set("domain-builder-cli-frontend")
+    destinationDirectory.set(File("${project.rootDir}/build/libs"))
+  }
+
   named<ShadowJar>("shadowJar") {
     archiveBaseName.set("domain-builder-cli-frontend")
     destinationDirectory.set(File("${project.rootDir}/build/libs"))
