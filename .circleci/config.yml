@@ -18,6 +18,7 @@ workflows:
           app: digital-prison-reporting-domain-builder
           app_artifacts_directory: build/libs/
           bucket_prefix: dpr-artifact-store
+          cache_key: "v5"
           notify_jira: false
           notify_slack: false
           channel: dpr_cicd_alerts
