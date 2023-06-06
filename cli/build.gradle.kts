@@ -67,8 +67,7 @@ tasks {
 
   named<ShadowJar>("shadowJar") {
     archiveBaseName.set("domain-builder-cli-frontend")
-    val target = project.rootDir.toPath().resolve("build/libs")
-    destinationDirectory.set(File(target.toString()))
+    destinationDirectory.set(File("${project.rootDir}/build/libs"))
   }
 
 }
