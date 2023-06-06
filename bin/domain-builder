@@ -31,4 +31,4 @@ fi
 
 show_ok "domain-builder will use api: $DOMAIN_API_URL"
 
-java -jar ./cli/build/libs/cli-*-all.jar $@
+java -jar ./build/libs/domain-builder-cli-frontend-*-all.jar $@
