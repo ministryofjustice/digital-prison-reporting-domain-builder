@@ -15,7 +15,7 @@ workflows:
             branches:
               only: main
       - reporting/gradle_build_publish:
-          app: digital-prison-reporting-domain-builder
+          app: domain-builder-*
           app_artifacts_directory: build/libs/
           bucket_prefix: dpr-artifact-store
           cache_key: "v5"
