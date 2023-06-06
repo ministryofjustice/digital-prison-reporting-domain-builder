@@ -68,6 +68,12 @@ tasks {
   named<ShadowJar>("shadowJar") {
     archiveBaseName.set("domain-builder-cli-frontend")
     destinationDirectory.set(File("${project.rootDir}/build/libs"))
+    doLast {
+      println("cli: build/libs contents")
+      File("${project.rootDir}/build/libs")
+              .list()
+              ?.forEach { s -> println(s) }
+    }
   }
 
 }
