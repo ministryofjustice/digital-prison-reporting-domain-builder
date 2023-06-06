@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  reporting: ministryofjustice/hmpps-reporting@1.0.18
+  reporting: ministryofjustice/hmpps-reporting@dev:1ad3e7a801c5698c3654896e5383a023eb7b4e37
 
 workflows:
   checkout-build-publish:
@@ -15,9 +15,7 @@ workflows:
             branches:
               only: main
       - reporting/gradle_build_publish:
-          # TODO - fix this - setting to cli-frontend for now
-          #        sync script needs to handle multiple artifacts
-          app: domain-builder-cli-frontend
+          app: domain-builder
           app_artifacts_directory: build/libs/
           bucket_prefix: dpr-artifact-store
           cache_key: "v5"
