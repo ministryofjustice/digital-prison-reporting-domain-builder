@@ -11,6 +11,7 @@ import uk.gov.justice.digital.cli.command.ListDomains
 import uk.gov.justice.digital.cli.command.ViewDomain
 import uk.gov.justice.digital.cli.session.BatchSession
 import uk.gov.justice.digital.cli.session.InteractiveSession
+import uk.gov.justice.digital.cli.command.CreateDomainInteractive
 
 @Command(
     name = "domain-builder",
@@ -18,6 +19,7 @@ import uk.gov.justice.digital.cli.session.InteractiveSession
         ListDomains::class,
         ViewDomain::class,
         CreateDomain::class,
+        CreateDomainInteractive::class,
     ],
 )
 @Singleton
@@ -59,6 +61,11 @@ class DomainBuilder(
     fun print(s: String) {
         if (isInteractive) interactiveSession.print(s)
         else batchSession.print(s)
+    }
+
+    fun getInteractiveSession(): InteractiveSession {
+        if (isInteractive) return interactiveSession
+        else throw IllegalStateException("Cannot get interactive session. Current session is not interactive")
     }
 
     companion object {
