@@ -6,16 +6,19 @@ import jakarta.inject.Singleton
 import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
+import uk.gov.justice.digital.command.CreateDomain
 import uk.gov.justice.digital.command.ListDomains
 import uk.gov.justice.digital.command.ViewDomain
 import uk.gov.justice.digital.session.BatchSession
 import uk.gov.justice.digital.session.InteractiveSession
+import java.lang.IllegalStateException
 
 @Command(
     name = "domain-builder",
     subcommands = [
         ListDomains::class,
         ViewDomain::class,
+        CreateDomain::class,
     ],
 )
 @Singleton
@@ -57,6 +60,11 @@ class DomainBuilder(
     fun print(s: String) {
         if (isInteractive) interactiveSession.print(s)
         else batchSession.print(s)
+    }
+
+    fun getInteractiveSession(): InteractiveSession {
+        if (isInteractive) return interactiveSession
+        else throw IllegalStateException("Cannot get interactive session. Current session is not interactive")
     }
 
     companion object {

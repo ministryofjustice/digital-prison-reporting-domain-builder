@@ -50,9 +50,14 @@ class InteractiveSession: ConsoleSession {
         l
     }
 
+    // We pass all output to less to determine if paging is required or not. If the size of the output exceeds the
+    // current terminal size less will be shown, allowing the user to scroll through the output. Otherwise the output
+    // will just be printed directly to the screen.
     override fun print(s: String) {
         less.run(Source.InputStreamSource(ByteArrayInputStream(toAnsi(s).toByteArray()), true, pagerText))
     }
+
+    fun terminal() = terminal
 
     fun start(commandLine: CommandLine) {
         AnsiConsole.systemInstall()
