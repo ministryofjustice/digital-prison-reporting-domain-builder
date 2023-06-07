@@ -92,6 +92,9 @@ class DomainEditor(private val terminal: Terminal,
             InputField("Description", ""),
             InputField("Sources", ""),
             InputField("Query", ""),
+            Blank(),
+            Heading("j: Down k: Up q: Quit", "white"),
+            Blank(),
     )
 
     private val inputFieldMargin = pageElements
@@ -124,6 +127,7 @@ class DomainEditor(private val terminal: Terminal,
                         is Blank -> element
                         is Heading -> element
                         // TODO - fix this - ideally the margin isn't nullable
+                        // TODO - cursor position should be updated too
                         is InputField -> element.copy(selected = selected, margin = inputFieldMargin ?: 20)
                     }
                 }
@@ -134,8 +138,6 @@ class DomainEditor(private val terminal: Terminal,
             else println()
         }
 
-        // TODO - cursor position should move too
-        println()
     }
 
     private fun clearDisplay() {
