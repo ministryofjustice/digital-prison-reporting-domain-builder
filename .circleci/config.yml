@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  reporting: ministryofjustice/hmpps-reporting@1.0.19
+  reporting: ministryofjustice/hmpps-reporting@1.0.22
 
 workflows:
   checkout-build-publish:
@@ -18,6 +18,8 @@ workflows:
           app: domain-builder
           app_artifacts_directory: build/libs/
           bucket_prefix: dpr-artifact-store
+          deploy_to_test: true # Deploy to Test Environment
+          deploy_to_preprod: true # Deploy to PreProd Environment          
           cache_key: "v5"
           notify_jira: false
           notify_slack: false
