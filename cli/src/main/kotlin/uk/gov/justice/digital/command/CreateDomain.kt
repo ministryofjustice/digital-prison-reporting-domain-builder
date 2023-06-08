@@ -3,10 +3,13 @@ package uk.gov.justice.digital.command
 import jakarta.inject.Singleton
 import org.jline.keymap.BindingReader
 import org.jline.keymap.KeyMap
+import org.jline.reader.LineReaderBuilder
+import org.jline.terminal.Attributes
 import org.jline.terminal.Size
 import org.jline.terminal.Terminal
 import org.jline.terminal.Terminal.Signal
 import org.jline.utils.Curses
+import org.jline.utils.Display
 import org.jline.utils.InfoCmp.Capability
 import org.jline.utils.Status
 import picocli.CommandLine.Command
@@ -71,9 +74,9 @@ data class Heading(val heading: String, val color: String): Element {
 // directly.
 class DomainEditor(private val terminal: Terminal,
                    private val session: ConsoleSession) {
-
     private val bindingReader: BindingReader = BindingReader(terminal.reader())
     private val terminalSize: Size = Size()
+    private val display = Display(terminal, true)
 
     // Initial position when editing - defaults to first field
     private var position = 0
@@ -110,7 +113,7 @@ class DomainEditor(private val terminal: Terminal,
     private val minPosition = 0
     private val maxPosition = selectableElementIndexes.size - 1
 
-    private fun updateDisplay() {
+    private fun updateDisplay(input: String = "") {
         val width = terminalSize.columns
         // TODO - handle case where there's too much output to display.
         val height = terminalSize.rows
@@ -128,7 +131,11 @@ class DomainEditor(private val terminal: Terminal,
                         is Heading -> element
                         // TODO - fix this - ideally the margin isn't nullable
                         // TODO - cursor position should be updated too
-                        is InputField -> element.copy(selected = selected, margin = inputFieldMargin ?: 20)
+                        is InputField -> element.copy(
+                                selected = selected,
+                                margin = inputFieldMargin ?: 20,
+                                value = if (selected && input.isNotBlank()) input else element.value
+                        )
                     }
                 }
 
@@ -138,6 +145,19 @@ class DomainEditor(private val terminal: Terminal,
             else println()
         }
 
+        // Reset cursor position and move to the currently selected element
+        terminal.puts(Capability.cursor_home)
+
+        for (i in 1..selectedElementIndex) {
+            terminal.puts(Capability.cursor_down)
+        }
+
+        // TODO - don't use hardcoded margin value
+        for (i in 1..14) {
+            terminal.puts(Capability.cursor_right)
+        }
+
+        terminal.flush()
     }
 
     private fun clearDisplay() {
@@ -160,18 +180,19 @@ class DomainEditor(private val terminal: Terminal,
 
     fun run() {
         val status = Status.getStatus(terminal);
-
         status?.suspend()
 
         terminalSize.copy(terminal.size)
 
         terminal.handle(Signal.WINCH, this::handleSignal)
-        terminal.enterRawMode()
+
+        display.reset()
 
         val keys = KeyMap<Operation>()
 
         bindKeys(keys)
 
+        val originalAttributes = terminal.enterRawMode()
         terminal.writer().flush()
 
         updateDisplay()
@@ -183,16 +204,33 @@ class DomainEditor(private val terminal: Terminal,
             checkInterrupted()
 
             when (bindingReader.readBinding(keys, null, false)) {
-                Operation.EXIT -> continueRunning = false
-                Operation.UP -> updatePosition(-1)
-                Operation.DOWN -> updatePosition(1)
-                // For now the following operations are no-ops
-                Operation.LEFT -> {}
-                Operation.RIGHT -> {}
-                null -> {}
+                Operation.EXIT -> {
+                    continueRunning = false
+                    clearDisplay()
+                    terminal.setAttributes(originalAttributes)
+                }
+                Operation.UP -> {
+                    updatePosition(-1)
+                    updateDisplay()
+                }
+                Operation.DOWN -> {
+                    updatePosition(1)
+                    updateDisplay()
+                }
+                Operation.EDIT -> {
+                    // For dumb terminals, we need to make sure that CR are ignored
+                    val attr = Attributes(originalAttributes)
+                    attr.setInputFlag(Attributes.InputFlag.ICRNL, true)
+                    terminal.setAttributes(attr)
+                    val lineReader = LineReaderBuilder.builder().build()
+                    val input = lineReader.readLine()
+                    terminal.setAttributes(originalAttributes)
+                    terminal.enterRawMode()
+                    updateDisplay(input)
+                }
+                else -> { /** NO-OP **/ }
             }
 
-            updateDisplay()
         } while (continueRunning)
     }
 
@@ -203,15 +241,17 @@ class DomainEditor(private val terminal: Terminal,
             else newPosition
     }
 
+    // TODO - Up/Down arrow keys were working - investigate
     private fun bindKeys(map: KeyMap<Operation>) {
         map.bind(Operation.EXIT, "q")
-        map.bind(Operation.UP, "k", key(terminal, Capability.key_up))
-        map.bind(Operation.DOWN, "j", key(terminal, Capability.key_down))
-        map.bind(Operation.LEFT, key(terminal, Capability.key_left))
-        map.bind(Operation.RIGHT, key(terminal, Capability.key_right))
+        map.bind(Operation.UP, "k", "\\e[A", key(Capability.back_tab), key(Capability.key_up))
+        map.bind(Operation.DOWN, "j", "\\e[B", key(Capability.tab), key(Capability.key_down))
+        map.bind(Operation.LEFT, key(Capability.key_left))
+        map.bind(Operation.RIGHT, key(Capability.key_right))
+        map.bind(Operation.EDIT, "\r")
     }
 
-    private fun key(terminal: Terminal, capability: Capability): String {
+    private fun key(capability: Capability): String {
         return Curses.tputs(terminal.getStringCapability(capability))
     }
 
@@ -223,6 +263,8 @@ class DomainEditor(private val terminal: Terminal,
         DOWN,
         LEFT,
         RIGHT,
+        // Editing
+        EDIT
     }
 
 }
