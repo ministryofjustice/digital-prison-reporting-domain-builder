@@ -19,7 +19,7 @@ workflows:
           app_artifacts_directory: build/libs/
           bucket_prefix: dpr-artifact-store
           deploy_to_test: true # Deploy to Test Environment
-          deploy_to_preprod: true # Deploy to PreProd Environment          
+          deploy_to_preprod: true # Deploy to PreProd Environment
           cache_key: "v5"
           notify_jira: false
           notify_slack: false
