@@ -46,7 +46,7 @@ function check_java_version {
   else
     if [ $(uname) == "Darwin" ]
     then
-      show_warn "Got Java $major_version when Java 11 needed, attempting to fix"
+      show_warn "Found Java $major_version when Java 11 required, trying fix"
       export JAVA_HOME=$(/usr/libexec/java_home -v "11")
       version=$(java -version 2> >(grep version) | cut -f2 -d '"' | cut -f1 -d '.')
       if [ "$version" -eq "11" ]

@@ -31,4 +31,6 @@ fi
 
 show_ok "domain-builder will use api: $DOMAIN_API_URL"
 
+# TODO - check backend API is up
+
 java -jar ./build/libs/domain-builder-cli-frontend-*-all.jar $@
