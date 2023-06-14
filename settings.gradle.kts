@@ -1,2 +1,2 @@
-rootProject.name = "domainBuilder"
+rootProject.name = "domain-builder"
 include("common", "backend", "cli")

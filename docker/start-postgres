@@ -14,6 +14,18 @@ database_name="domain_builder"  # name of database to create/connect to
 test_records=1000               # maximum number of test records to create
                                 # when domain table is empty
 
+function check_no_other_instances_running {
+  # Host on port check
+  process_count=$(lsof -nP -i4TCP | grep "5432 (LISTEN)" | tr -s ' ' | cut -d ' ' -f2 | xargs ps | grep -v "docker\|colima\|PID" | wc -l | tr -d ' ')
+  if [ "$process_count" -eq "0" ]
+  then
+    show_ok "No other postgres instances running"
+  else
+    process_list=$(lsof -nP -i4TCP | grep "5432 (LISTEN)" | tr -s ' ' | cut -d ' ' -f2 | xargs ps)
+    show_fail_and_exit "Other instances of postgres appear to be running" "Review the list of running instances below and ensure all other instances of\npostgres are stopped before continuing.\n\n$process_list"
+  fi
+}
+
 function check_docker_installed {
   if hash docker &> /dev/null
   then
@@ -111,6 +123,7 @@ function wait_for_postgres_to_start {
   show_ok "Postgres container $container_id running on local port 5432"
 }
 
+
 function check_or_create_database {
   if run_psql_command "\l" | grep "$database_name" &> /dev/null
   then
@@ -185,6 +198,8 @@ function run_psql_query {
 echo
 show_heading "Checking prerequisites"
 echo
+check_java_version
+check_no_other_instances_running
 check_docker_installed
 check_docker_compose_installed
 check_docker_daemon_available

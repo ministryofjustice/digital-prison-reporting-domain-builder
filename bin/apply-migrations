@@ -63,6 +63,7 @@ function apply_migrations {
 echo
 show_heading "Applying migrations"
 echo
+check_java_version
 determine_jar_path
 run_build_and_check_jar_exists
 apply_migrations
