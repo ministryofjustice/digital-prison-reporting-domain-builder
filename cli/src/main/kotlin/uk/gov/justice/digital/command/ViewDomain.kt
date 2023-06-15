@@ -8,6 +8,7 @@ import uk.gov.justice.digital.DomainBuilder
 import uk.gov.justice.digital.command.ExceptionHandler.runAndHandleExceptions
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.service.DomainService
+import java.util.*
 
 @Singleton
 @Command(
@@ -23,6 +24,7 @@ class ViewDomain(private val service: DomainService) : Runnable {
     )
     var usageHelpRequested = false
 
+    // TODO - we need a status too
     @Option(
         names = ["-n", "--name"],
         description = [
@@ -58,9 +60,10 @@ class ViewDomain(private val service: DomainService) : Runnable {
             "\n@|green,bold Found domain with name: '${domainName()}'|@\n",
             """
                @|bold Name        |@| ${domain.name} 
+               @|bold Status      |@| ${domain.status.name.lowercase()}
                @|bold Description |@| ${domain.description}
                @|bold Owner       |@| ${domain.owner}
-               @|bold Author  |@| ${domain.author}
+               @|bold Author      |@| ${domain.author}
             """.trimIndent(),
             "\n@|yellow,bold Tables in this domain|@\n"
         )

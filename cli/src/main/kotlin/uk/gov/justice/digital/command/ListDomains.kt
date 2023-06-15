@@ -25,8 +25,9 @@ class ListDomains(private val service: DomainService) : Runnable {
     lateinit var parent: DomainBuilder
 
     private val padding = 2
-    private val defaultNameWidth = 20
-    private val defaultDescriptionWidth = 60
+    private val defaultNameWidth = 4
+    private val defaultStatusWidth = 6
+    private val defaultDescriptionWidth = 10
 
     override fun run() =
         runAndHandleExceptions(parent) {
@@ -44,18 +45,21 @@ class ListDomains(private val service: DomainService) : Runnable {
 
     private fun generateOutput(data: List<Domain>): String {
         // Format name and description widths dynamically
-        val nameWidth = data.maxOfOrNull { it.name.length } ?: defaultNameWidth
-        val descriptionWidth = data.maxOfOrNull { it.description.length } ?: defaultDescriptionWidth
+        val nameWidth = data.maxOf { it.name.length }.let { if (it > defaultNameWidth) it else defaultNameWidth }
+        val statusWidth = data.maxOf { it.status.name.length }.let { if (it > defaultStatusWidth) it else defaultStatusWidth }
+        val descriptionWidth = data.maxOf { it.description.length }.let { if (it > defaultDescriptionWidth) it else defaultDescriptionWidth }
 
-        val tableBorder = tableRowBorder(nameWidth, descriptionWidth)
+        val tableBorder = tableRowBorder(nameWidth, statusWidth, descriptionWidth)
 
         val heading = listOf(
             "\n@|bold,green Found ${data.size} domains|@\n",
             tableBorder,
-            String.format("| @|bold %-${nameWidth}s|@ | @|bold %-${descriptionWidth}s|@ |", "Name", "Description"),
+            String.format("| @|bold %-${nameWidth}s|@ | @|bold %-${statusWidth}s|@ | @|bold %-${descriptionWidth}s|@ |", "Name", "Status", "Description"),
             tableBorder,
         )
-        val dataRows = data.map { String.format("| %-${nameWidth}s | %-${descriptionWidth}s |", it.name, it.description) }
+        val dataRows = data.map {
+            String.format(
+                "| %-${nameWidth}s | %-${statusWidth}s | %-${descriptionWidth}s |", it.name, it.status, it.description) }
         val footer = listOf("$tableBorder\n")
 
         return listOf(heading, dataRows, footer)

@@ -4,7 +4,7 @@
 # Checks that the required commands are installed and will attempt to start the
 # docker daemon if it's not running.
 #
-# Supports either Docker Destop (MAC) or colima, a cli only alterantive.
+# Supports either Docker Destop (MAC) or colima, a cli only alternative.
 #
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
