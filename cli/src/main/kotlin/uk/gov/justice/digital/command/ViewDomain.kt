@@ -59,7 +59,8 @@ class ViewDomain(private val service: DomainService) : Runnable {
             """
                @|bold Name        |@| ${domain.name} 
                @|bold Description |@| ${domain.description}
-               @|bold Originator  |@| ${domain.originator}
+               @|bold Owner       |@| ${domain.owner}
+               @|bold Author  |@| ${domain.author}
             """.trimIndent(),
             "\n@|yellow,bold Tables in this domain|@\n"
         )
