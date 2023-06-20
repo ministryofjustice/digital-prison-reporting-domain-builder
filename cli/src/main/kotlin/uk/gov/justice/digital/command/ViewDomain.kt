@@ -5,6 +5,7 @@ import picocli.CommandLine.*
 import uk.gov.justice.digital.DomainBuilder
 import uk.gov.justice.digital.command.ExceptionHandler.runAndHandleExceptions
 import uk.gov.justice.digital.model.Domain
+import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.service.DomainService
 
 @Singleton
@@ -21,16 +22,27 @@ class ViewDomain(private val service: DomainService) : Runnable {
     )
     var usageHelpRequested = false
 
-    // TODO - we need a status too
     @Option(
         names = ["-n", "--name"],
         description = [
             "the name of the domain to view",
         ],
         arity = "1..*",
-        required = true
+        required = true,
+        paramLabel = "DOMAIN_NAME",
     )
     lateinit var domainNameElements: Array<String>
+
+    @Option(
+        names = ["-s", "--status"],
+        description = [
+            "the status of the domain to view"
+        ],
+        arity = "1",
+        required = false,
+        paramLabel = "STATUS",
+    )
+    var domainStatus: Status? = null
 
     private fun domainName(): String {
         return domainNameElements.joinToString(" ")
@@ -41,20 +53,31 @@ class ViewDomain(private val service: DomainService) : Runnable {
 
     override fun run() =
         runAndHandleExceptions(parent) {
-            service.getDomainWithName(domainName())?.let {
-                val output = generateOutput(it)
-                parent.print("$output\n")
-            } ?: parent.print("""
-            
-            @|red,bold ERROR|@ - no domain with name '@|bold ${domainName()}|@' was found
-            
-            
-            """.trimIndent())
+            service.getDomains(domainName(), domainStatus).let { domains ->
+                if (domains.isNotEmpty()) {
+                    val domainCount = domains.count()
+                    val countText = if (domainCount == 1) "1 domain" else "$domainCount domains"
+                    val statusText = domainStatus?.let { " and status $it" } ?: ""
+                    parent.print("\n@|green,bold Found $countText with name: '${domainName()}'$statusText|@\n\n")
+                    domains.map {
+                        parent.print(generateOutput(it))
+                    }
+                }
+                else {
+                    val statusText = domainStatus?.let { " and status @|bold $it |@" } ?: ""
+                    parent.print("""
+                        
+                        @|red,bold ERROR|@ - no domain with name '@|bold ${domainName()}|@'$statusText was found
+                        
+                        
+                    """.trimIndent())
+                }
+            }
         }
 
     private fun generateOutput(domain: Domain): String {
         val heading = listOf(
-            "\n@|green,bold Found domain with name: '${domainName()}'|@\n",
+            "@|cyan,bold Domain '${domain.name}' with status ${domain.status}|@\n",
             """
                @|bold Name        |@| ${domain.name} 
                @|bold Status      |@| ${domain.status.name.lowercase()}
@@ -80,6 +103,7 @@ class ViewDomain(private val service: DomainService) : Runnable {
         return listOf(heading, tableData)
             .flatten()
             .joinToString("\n")
+            .let { "$it\n" }
     }
 
 }

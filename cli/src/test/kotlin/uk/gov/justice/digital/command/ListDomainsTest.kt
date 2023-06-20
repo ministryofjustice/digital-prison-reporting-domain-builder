@@ -25,7 +25,7 @@ class ListDomainsTest {
         underTest.parent = mockDomainBuilder
 
         every { mockDomainBuilder.print(capture(capturedOutput)) } answers {  }
-        every { mockDomainService.getAllDomains() } answers { listOf(domain1, domain2, domain3) }
+        every { mockDomainService.getAllDomains() } answers { arrayOf(domain1, domain2, domain3) }
 
         underTest.run()
 

@@ -43,7 +43,7 @@ class ListDomains(private val service: DomainService) : Runnable {
         else parent.print(output)
     }
 
-    private fun generateOutput(data: List<Domain>): String {
+    private fun generateOutput(data: Array<Domain>): String {
         // Format name and description widths dynamically
         val nameWidth = data.maxOf { it.name.length }.let { if (it > defaultNameWidth) it else defaultNameWidth }
         val statusWidth = data.maxOf { it.status.name.length }.let { if (it > defaultStatusWidth) it else defaultStatusWidth }

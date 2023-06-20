@@ -3,6 +3,7 @@ package uk.gov.justice.digital.service
 import jakarta.inject.Singleton
 import uk.gov.justice.digital.client.DomainClient
 import uk.gov.justice.digital.model.Domain
+import uk.gov.justice.digital.model.Status
 
 /**
  * Service that wraps calls to the BlockingDomainClient which is responsible for interacting with the backend REST API.
@@ -11,9 +12,6 @@ import uk.gov.justice.digital.model.Domain
  */
 @Singleton
 class DomainService(private val client: DomainClient) {
-
-    fun getAllDomains(): List<Domain> = client.getDomains().toList()
-
-    fun getDomainWithName(name: String): Domain? = client.getDomainWithName(name)
-
+    fun getAllDomains(): Array<Domain> = client.getDomains()
+    fun getDomains(name: String, status: Status? = null): Array<Domain> = client.getDomains(name, status)
 }
