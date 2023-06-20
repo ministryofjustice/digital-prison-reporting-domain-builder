@@ -4,6 +4,7 @@ import jakarta.inject.Singleton
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
 import uk.gov.justice.digital.model.Domain
+import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.repository.table.DomainTable
 import uk.gov.justice.digital.time.ClockProvider
 import java.util.*
@@ -26,13 +27,13 @@ class DomainRepository(dataSource: DataSource, clockProvider: ClockProvider) {
             .firstOrNull()
     }
 
-    // TODO - this needs to support state too
-    fun getDomains(name: String? = null): List<Domain> {
+    fun getDomains(name: String? = null, status: Status? = null): List<Domain> {
         return database
             .from(DomainTable)
             .select(DomainTable.data)
             .whereWithConditions { conditions ->
                 name?.let { conditions += DomainTable.name eq it }
+                status?.let { conditions += DomainTable.status eq it }
             }
             .map { it[DomainTable.data] }
             .filterNotNull()

@@ -15,6 +15,7 @@ import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.test.Fixtures.domain1
 import uk.gov.justice.digital.test.Fixtures.domain2
 import uk.gov.justice.digital.test.Fixtures.domain3
+import uk.gov.justice.digital.test.Fixtures.domains
 import uk.gov.justice.digital.test.Fixtures.publishedDomain1
 import uk.gov.justice.digital.test.time.FixedClock
 import java.time.Instant
@@ -109,7 +110,7 @@ class DomainRepositoryTest {
     }
 
     @Test
-    fun getDomainShouldReturnADomainWhereADomainForTheUUIDExists() {
+    fun `getDomain should return a Domain where a Domain with the UUID exists`() {
         underTest.createDomain(domain1)
         val retrievedDomain = underTest.getDomain(domain1.id)
         assertNotNull(retrievedDomain)
@@ -128,30 +129,45 @@ class DomainRepositoryTest {
 
     @Test
     fun `getDomains should return all Domains where no arguments provided`() {
-        val domains = listOf(domain1, domain2, domain3)
         domains.forEach { underTest.createDomain(it) }
-        // After creation all domains will also have a created and lastupdated timestamp.
+        // After creation all domains will also have a created and lastUpdated timestamp.
         val expectedDomains = domains.map { it.setTimestamps(fixedClock.instant()) }
         assertEquals(expectedDomains, underTest.getDomains())
     }
 
     @Test
-    fun `getDomains should return a single domain where a name is specified which matches an existing Domain`() {
-        listOf(domain1, domain2, domain3).forEach { underTest.createDomain(it) }
+    fun `getDomains should return a single domain where a name is specified matching an existing Domain`() {
+        domains.forEach { underTest.createDomain(it) }
         val expected = domain3.setTimestamps(fixedClock.instant())
         assertEquals(listOf(expected), underTest.getDomains(name = domain3.name))
     }
 
     @Test
     fun `getDomains should return an empty list where no matching names for the specified name exist`() {
-        val domains = listOf(domain1, domain2, domain3)
         domains.forEach { underTest.createDomain(it) }
         assertEquals(emptyList<Domain>(), underTest.getDomains(name = "This domain does not exist"))
     }
 
     @Test
+    fun `getDomains should return matching Domains where a status is specified`() {
+        domains.forEach { underTest.createDomain(it) }
+        assertEquals(domains.map { it.setTimestamps() }, underTest.getDomains(status = Status.DRAFT))
+    }
+
+    @Test
+    fun `getDomains should return an empty list where no Domains have the specified status`() {
+        domains.forEach { underTest.createDomain(it) }
+        assertEquals(emptyList<Domain>(), underTest.getDomains(status = Status.PUBLISHED))
+    }
+
+    @Test
+    fun `getDomains should return a single result for the specified name and status where a matching Domain exists`() {
+        listOf(domain1, publishedDomain1).forEach { underTest.createDomain(it) }
+        assertEquals(listOf(publishedDomain1.setTimestamps()), underTest.getDomains(status = Status.PUBLISHED))
+    }
+
+    @Test
     fun `deleteDomain should delete the specified domain where it exists`() {
-        val domains = listOf(domain1, domain2, domain3)
         domains.forEach { underTest.createDomain(it) }
         assertDoesNotThrow { underTest.deleteDomain(domain1.id) }
         assertNull(underTest.getDomain(domain1.id))
@@ -164,7 +180,6 @@ class DomainRepositoryTest {
 
     @Test
     fun `updateDomain should update an existing Domain`() {
-        val domains = listOf(domain1, domain2, domain3)
         domains.forEach { underTest.createDomain(it) }
 
         val updatedDomain = underTest.getDomain(domain1.id)?.copy(
@@ -193,7 +208,7 @@ class DomainRepositoryTest {
         assertNull( underTest.getDomain(domain1.id))
     }
 
-    private fun Domain.setTimestamps(ts: Instant): Domain {
+    private fun Domain.setTimestamps(ts: Instant = fixedClock.instant()): Domain {
         return this.copy(created = ts, lastUpdated = ts)
     }
 
