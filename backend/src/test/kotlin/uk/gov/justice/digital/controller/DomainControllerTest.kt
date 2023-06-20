@@ -18,6 +18,7 @@ import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.model.Domain
+import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.service.DomainService
 import uk.gov.justice.digital.test.Fixtures.domain1
 import uk.gov.justice.digital.test.Fixtures.domains
@@ -142,6 +143,30 @@ class DomainControllerTest {
         assertEquals(emptyList<Domain>(), response.parsedBody())
 
         verify { mockDomainService.getDomains(nonExistingName) }
+    }
+
+    @Test
+    fun `GET of domain with status should return any domains with that status`() {
+        every { mockDomainService.getDomains(status = eq(Status.DRAFT)) } returns listOf(domain1)
+
+        val response = get("/domain?status=DRAFT")
+
+        assertEquals(OK, response.status)
+        assertEquals(listOf(domain1), response.parsedBody<List<Domain>>())
+
+        verify { mockDomainService.getDomains(status = eq(Status.DRAFT)) }
+    }
+
+    @Test
+    fun `GET of domain with name and status should return a matching domain where it exists`() {
+        every { mockDomainService.getDomains(eq(domain1.name), eq(domain1.status)) } returns listOf(domain1)
+
+        val response = get("/domain?name=Domain%201&status=DRAFT")
+
+        assertEquals(OK, response.status)
+        assertEquals(listOf(domain1), response.parsedBody<List<Domain>>())
+
+        verify { mockDomainService.getDomains(eq(domain1.name), eq(domain1.status)) }
     }
 
     private fun get(location: String): HttpResponse<String> =
