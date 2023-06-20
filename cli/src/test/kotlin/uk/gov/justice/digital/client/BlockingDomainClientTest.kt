@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import uk.gov.justice.digital.model.Domain
+import uk.gov.justice.digital.test.Fixtures
 import uk.gov.justice.digital.test.Fixtures.domain1
 import uk.gov.justice.digital.test.Fixtures.domains
 
@@ -48,7 +49,7 @@ class BlockingDomainClientTest {
     fun `getDomains should return a domain given a name that exists`() {
         val server = createServerForScenario(Scenarios.HAPPY_PATH)
         val underTest = server.applicationContext.createBean(BlockingDomainClient::class.java)
-        val result = underTest.getDomains("some-name")
+        val result = underTest.getDomains("someone")
         assertEquals(1, result.size)
         assertEquals(domain1, result[0])
     }
@@ -57,19 +58,17 @@ class BlockingDomainClientTest {
     @Requires(property = TEST_SCENARIO, value = Scenarios.HAPPY_PATH)
     @Controller
     class HappyPathController {
-        @Get("/domain")
-        fun getAllDomains(): List<Domain> = domains
-        @Get("/domain?name")
-        fun getDomains(@Suppress("UNUSED_PARAMETER") name: String): Array<Domain> = arrayOf(domain1)
+        @Get("/domain{?name}")
+        fun getDomains(name: String?): Array<Domain> =
+            if (name.isNullOrEmpty()) domains.toTypedArray()
+            else arrayOf(domain1)
     }
 
     @Requires(property = TEST_SCENARIO, value = Scenarios.NO_DATA)
-    @Controller
+    @Controller()
     class NoDataController {
-        @Get("/domain")
-        fun getAllDomains(): List<Domain> = emptyList()
-        @Get("/domain?name")
-        fun getDomains(@Suppress("UNUSED_PARAMETER") name: String): Domain? = null
+        @Get("/domain{?name}")
+        fun getDomains(@Suppress("UNUSED_PARAMETER") name: String?): Array<Domain> = emptyArray()
     }
 
     private fun createServerForScenario(scenario: String): EmbeddedServer {
