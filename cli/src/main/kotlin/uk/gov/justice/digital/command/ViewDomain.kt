@@ -45,7 +45,7 @@ class ViewDomain(private val service: DomainService) : Runnable {
                 val output = generateOutput(it)
                 parent.print("$output\n")
             } ?: parent.print("""
-                
+            
             @|red,bold ERROR|@ - no domain with name '@|bold ${domainName()}|@' was found
             
             

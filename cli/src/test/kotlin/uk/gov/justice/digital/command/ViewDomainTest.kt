@@ -16,7 +16,7 @@ class ViewDomainTest {
     private val underTest = ViewDomain(mockDomainService)
 
     @Test
-    fun viewDomainGeneratesExpectedOutput() {
+    fun `view domain displays an existing domain correctly`() {
 
         val capturedOutput = mutableListOf<String>()
 
@@ -44,6 +44,29 @@ class ViewDomainTest {
             @|bold Description |@| A table containing some data
             @|bold Sources     |@| source.table
             @|bold Query       |@| SELECT source.table.field1, source.table.field2 FROM source.table
+            
+            
+        """.trimIndent()
+
+        assertEquals(expectedOutput, capturedOutput.joinToString(""))
+    }
+
+    @Test
+    fun `view domain displays an error message if no domain is found`() {
+
+        val capturedOutput = mutableListOf<String>()
+
+        underTest.parent = mockDomainBuilder
+        underTest.domainNameElements = arrayOf("Domain 1")
+
+        every { mockDomainBuilder.print(capture(capturedOutput)) } answers {  }
+        every { mockDomainService.getDomainWithName(any()) } answers { null }
+
+        underTest.run()
+
+        val expectedOutput = """
+            
+            @|red,bold ERROR|@ - no domain with name '@|bold Domain 1|@' was found
             
             
         """.trimIndent()
