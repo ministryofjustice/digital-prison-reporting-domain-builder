@@ -64,7 +64,7 @@ class ViewDomain(private val service: DomainService) : Runnable {
                     }
                 }
                 else {
-                    val statusText = domainStatus?.let { " and status @|bold $it |@" } ?: ""
+                    val statusText = domainStatus?.let { " and status @|bold $it|@" } ?: ""
                     parent.print("""
                         
                         @|red,bold ERROR|@ - no domain with name '@|bold ${domainName()}|@'$statusText was found

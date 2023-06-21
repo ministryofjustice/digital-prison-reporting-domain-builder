@@ -10,8 +10,9 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import uk.gov.justice.digital.model.Domain
-import uk.gov.justice.digital.test.Fixtures
+import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.test.Fixtures.domain1
+import uk.gov.justice.digital.test.Fixtures.domain2
 import uk.gov.justice.digital.test.Fixtures.domains
 
 @MicronautTest(rebuildContext = true)
@@ -54,21 +55,39 @@ class BlockingDomainClientTest {
         assertEquals(domain1, result[0])
     }
 
-    // TODO - scenario that includes status
+    @Test
+    fun `getDomains should return a domain where a domain exists for the given name and status`() {
+        val server = createServerForScenario(Scenarios.HAPPY_PATH)
+        val underTest = server.applicationContext.createBean(BlockingDomainClient::class.java)
+        val result = underTest.getDomains("someone", Status.DRAFT)
+        assertEquals(1, result.size)
+        assertEquals(domain2, result[0])
+    }
+
+    @Test
+    fun `getDomains should return an empty array if no matching domain exists for the given name and status`() {
+        val server = createServerForScenario(Scenarios.NO_DATA)
+        val underTest = server.applicationContext.createBean(BlockingDomainClient::class.java)
+        val result = underTest.getDomains("someone", Status.DRAFT)
+        assertTrue(result.isEmpty())
+    }
+
     @Requires(property = TEST_SCENARIO, value = Scenarios.HAPPY_PATH)
     @Controller
     class HappyPathController {
-        @Get("/domain{?name}")
-        fun getDomains(name: String?): Array<Domain> =
-            if (name.isNullOrEmpty()) domains.toTypedArray()
-            else arrayOf(domain1)
+        @Get("/domain{?name,status}")
+        fun getDomains(name: String?, status: Status?): Array<Domain> =
+            if (name.isNullOrEmpty() && status == null) domains.toTypedArray()
+            else if (!name.isNullOrEmpty() && status == null) arrayOf(domain1)
+            else arrayOf(domain2)
     }
 
     @Requires(property = TEST_SCENARIO, value = Scenarios.NO_DATA)
     @Controller()
     class NoDataController {
-        @Get("/domain{?name}")
-        fun getDomains(@Suppress("UNUSED_PARAMETER") name: String?): Array<Domain> = emptyArray()
+        @Get("/domain{?name,status}")
+        fun getDomains(@Suppress("UNUSED_PARAMETER") name: String?,
+                       @Suppress("UNUSED_PARAMETER") status: Status?): Array<Domain> = emptyArray()
     }
 
     private fun createServerForScenario(scenario: String): EmbeddedServer {
