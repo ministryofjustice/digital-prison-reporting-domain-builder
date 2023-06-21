@@ -1,11 +1,11 @@
-package uk.gov.justice.digital.controller
+package uk.gov.justice.digital.backend.controller
 
 import io.micronaut.http.MediaType.APPLICATION_JSON
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
-import uk.gov.justice.digital.service.DomainService
+import uk.gov.justice.digital.backend.service.DomainService
 import java.util.*
 
 @Controller("/domain")

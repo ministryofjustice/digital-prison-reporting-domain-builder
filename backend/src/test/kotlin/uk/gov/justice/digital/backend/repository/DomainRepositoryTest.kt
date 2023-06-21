@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.repository
+package uk.gov.justice.digital.backend.repository
 
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.Assertions.*
@@ -10,6 +10,10 @@ import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
+import uk.gov.justice.digital.backend.repository.CreateFailedException
+import uk.gov.justice.digital.backend.repository.DeleteFailedException
+import uk.gov.justice.digital.backend.repository.DomainRepository
+import uk.gov.justice.digital.backend.repository.UpdateFailedException
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.test.Fixtures.domain1

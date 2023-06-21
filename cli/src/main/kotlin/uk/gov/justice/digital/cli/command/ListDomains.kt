@@ -1,11 +1,11 @@
-package uk.gov.justice.digital.command
+package uk.gov.justice.digital.cli.command
 
 import jakarta.inject.Singleton
 import picocli.CommandLine.*
-import uk.gov.justice.digital.DomainBuilder
-import uk.gov.justice.digital.command.ExceptionHandler.runAndHandleExceptions
+import uk.gov.justice.digital.cli.DomainBuilder
+import uk.gov.justice.digital.cli.command.ExceptionHandler.runAndHandleExceptions
 import uk.gov.justice.digital.model.Domain
-import uk.gov.justice.digital.service.DomainService
+import uk.gov.justice.digital.cli.service.DomainService
 
 @Singleton
 @Command(

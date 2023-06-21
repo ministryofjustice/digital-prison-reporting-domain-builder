@@ -1,4 +1,4 @@
-package uk.gov.justice.digital
+package uk.gov.justice.digital.cli
 
 import io.micronaut.configuration.picocli.MicronautFactory
 import io.micronaut.configuration.picocli.PicocliRunner
@@ -6,10 +6,10 @@ import jakarta.inject.Singleton
 import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
-import uk.gov.justice.digital.command.ListDomains
-import uk.gov.justice.digital.command.ViewDomain
-import uk.gov.justice.digital.session.BatchSession
-import uk.gov.justice.digital.session.InteractiveSession
+import uk.gov.justice.digital.cli.command.ListDomains
+import uk.gov.justice.digital.cli.command.ViewDomain
+import uk.gov.justice.digital.cli.session.BatchSession
+import uk.gov.justice.digital.cli.session.InteractiveSession
 
 @Command(
     name = "domain-builder",

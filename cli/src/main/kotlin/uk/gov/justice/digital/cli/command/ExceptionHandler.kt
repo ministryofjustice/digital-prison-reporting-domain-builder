@@ -1,6 +1,6 @@
-package uk.gov.justice.digital.command
+package uk.gov.justice.digital.cli.command
 
-import uk.gov.justice.digital.DomainBuilder
+import uk.gov.justice.digital.cli.DomainBuilder
 
 object ExceptionHandler {
 

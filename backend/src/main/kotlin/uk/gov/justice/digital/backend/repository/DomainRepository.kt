@@ -1,11 +1,11 @@
-package uk.gov.justice.digital.repository
+package uk.gov.justice.digital.backend.repository
 
 import jakarta.inject.Singleton
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
-import uk.gov.justice.digital.repository.table.DomainTable
+import uk.gov.justice.digital.backend.repository.table.DomainTable
 import uk.gov.justice.digital.time.ClockProvider
 import java.util.*
 import javax.sql.DataSource

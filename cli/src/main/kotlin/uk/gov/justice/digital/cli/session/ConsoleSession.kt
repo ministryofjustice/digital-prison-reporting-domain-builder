@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.session
+package uk.gov.justice.digital.cli.session
 
 import jakarta.inject.Singleton
 import org.fusesource.jansi.AnsiConsole

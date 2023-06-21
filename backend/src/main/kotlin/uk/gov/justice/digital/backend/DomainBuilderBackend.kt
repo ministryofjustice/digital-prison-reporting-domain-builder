@@ -1,4 +1,4 @@
-package uk.gov.justice.digital
+package uk.gov.justice.digital.backend
 
 import io.micronaut.runtime.Micronaut
 

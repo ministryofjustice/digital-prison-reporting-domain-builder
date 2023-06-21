@@ -52,7 +52,7 @@ dependencies {
 
 
 application {
-  mainClass.set("uk.gov.justice.digital.DomainBuilder")
+  mainClass.set("uk.gov.justice.digital.cli.DomainBuilder")
 }
 
 tasks {

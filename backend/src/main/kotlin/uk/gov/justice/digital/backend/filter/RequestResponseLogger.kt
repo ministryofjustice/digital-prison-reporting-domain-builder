@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.filter
+package uk.gov.justice.digital.backend.filter
 
 import io.micronaut.core.async.publisher.Publishers
 import io.micronaut.http.HttpRequest
