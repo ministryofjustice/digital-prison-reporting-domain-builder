@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.repository.table
+package uk.gov.justice.digital.backend.repository.table
 
 import org.ktorm.jackson.json
 import org.ktorm.schema.*

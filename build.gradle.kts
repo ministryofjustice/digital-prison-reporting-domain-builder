@@ -5,6 +5,7 @@ plugins {
   jacoco
   id("org.sonarqube") version "3.5.0.2730"
   id("org.owasp.dependencycheck") version "8.2.1"
+  id("jacoco-report-aggregation")
 }
 
 repositories {
@@ -38,3 +39,12 @@ subprojects {
   }
 }
 
+tasks.check {
+    dependsOn(tasks.named<JacocoReport>("testCodeCoverageReport"))
+}
+
+dependencies {
+  implementation(project(":common"))
+  implementation(project(":backend"))
+  implementation(project(":cli"))
+}

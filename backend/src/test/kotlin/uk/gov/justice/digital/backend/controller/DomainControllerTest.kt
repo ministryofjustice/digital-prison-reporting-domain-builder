@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.controller
+package uk.gov.justice.digital.backend.controller
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
-import uk.gov.justice.digital.service.DomainService
+import uk.gov.justice.digital.backend.service.DomainService
 import uk.gov.justice.digital.test.Fixtures.domain1
 import uk.gov.justice.digital.test.Fixtures.domains
 import java.util.*

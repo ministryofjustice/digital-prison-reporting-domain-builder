@@ -1,9 +1,9 @@
-package uk.gov.justice.digital.service
+package uk.gov.justice.digital.backend.service
 
 import jakarta.inject.Singleton
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
-import uk.gov.justice.digital.repository.DomainRepository
+import uk.gov.justice.digital.backend.repository.DomainRepository
 import java.util.*
 
 interface DomainService {

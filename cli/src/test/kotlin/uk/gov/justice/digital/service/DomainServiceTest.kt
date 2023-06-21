@@ -8,7 +8,8 @@ import io.mockk.verify
 import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.client.DomainClient
+import uk.gov.justice.digital.cli.service.DomainService
+import uk.gov.justice.digital.cli.client.DomainClient
 import uk.gov.justice.digital.test.Fixtures.domain1
 import uk.gov.justice.digital.test.Fixtures.domains
 

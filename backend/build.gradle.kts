@@ -72,7 +72,7 @@ dependencies {
 
 application {
   // For local testing only.
-  mainClass.set("uk.gov.justice.digital.DomainBuilderBackend")
+  mainClass.set("uk.gov.justice.digital.backend.DomainBuilderBackend")
 }
 
 // Task specific configuration.

@@ -1,7 +1,7 @@
-package uk.gov.justice.digital.service
+package uk.gov.justice.digital.cli.service
 
 import jakarta.inject.Singleton
-import uk.gov.justice.digital.client.DomainClient
+import uk.gov.justice.digital.cli.client.DomainClient
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
 

@@ -4,8 +4,9 @@ import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.DomainBuilder
-import uk.gov.justice.digital.service.DomainService
+import uk.gov.justice.digital.cli.DomainBuilder
+import uk.gov.justice.digital.cli.command.ViewDomain
+import uk.gov.justice.digital.cli.service.DomainService
 import uk.gov.justice.digital.test.Fixtures.domain1
 
 class ViewDomainTest {

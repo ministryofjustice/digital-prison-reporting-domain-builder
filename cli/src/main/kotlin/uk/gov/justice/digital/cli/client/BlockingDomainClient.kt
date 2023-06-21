@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.client
+package uk.gov.justice.digital.cli.client
 
 import io.micronaut.context.annotation.Factory
 import io.micronaut.context.annotation.Value
