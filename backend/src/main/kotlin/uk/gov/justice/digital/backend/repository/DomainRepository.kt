@@ -6,6 +6,7 @@ import org.ktorm.dsl.*
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.backend.repository.table.DomainTable
+import uk.gov.justice.digital.model.WriteableDomain
 import uk.gov.justice.digital.time.ClockProvider
 import java.util.*
 import javax.sql.DataSource
@@ -39,7 +40,22 @@ class DomainRepository(dataSource: DataSource, clockProvider: ClockProvider) {
             .filterNotNull()
     }
 
-    fun createDomain(domain: Domain) {
+    fun createDomain(writeableDomain: WriteableDomain): UUID = createDomain(writeableDomain.toDomain())
+
+    private fun WriteableDomain.toDomain() =
+        Domain(
+            UUID.randomUUID(),
+            name,
+            description,
+            version,
+            location,
+            tags,
+            owner,
+            author,
+            tables,
+        )
+
+    fun createDomain(domain: Domain): UUID {
         try {
             val now = clock.instant()
             // Set optional values on the domain where no value is set.
@@ -56,6 +72,7 @@ class DomainRepository(dataSource: DataSource, clockProvider: ClockProvider) {
                     set(it.created, domainForInsert.created)
                     set(it.lastUpdated, domainForInsert.lastUpdated)
                 }
+            return domain.id
         }
         catch (e: Exception) {
             throw CreateFailedException("Failed to create domain with id: ${domain.id} name: ${domain.name} status: ${domain.status}", e)
