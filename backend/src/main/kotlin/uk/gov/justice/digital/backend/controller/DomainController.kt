@@ -28,8 +28,8 @@ class DomainController(private val service: DomainService) {
 
     @Post(consumes = [APPLICATION_JSON])
     fun createDomain(domain: WriteableDomain): HttpResponse<Unit>? {
-        // TODO - set header correctly.
-        return HttpResponse.created(URI.create("/domain/some-uuid"));
+        val domainId = service.createDomain(domain)
+        return HttpResponse.created(URI.create("/domain/$domainId"));
     }
 
 }

@@ -173,9 +173,13 @@ class DomainControllerTest {
 
     @Test
     fun `POST of a valid domain should return a HTTP 201 with a location header pointing to the created resource`() {
+        val uuid = UUID.randomUUID()
+        every { mockDomainService.createDomain(any()) } returns uuid
+
         val response = post("/domain", jacksonObjectMapper().writeValueAsString(writeableDomain))
+
         assertEquals(CREATED, response.status)
-        assertEquals("/domain/some-uuid", response.header("Location"))
+        assertEquals("/domain/$uuid", response.header("Location"))
     }
 
     @Test
