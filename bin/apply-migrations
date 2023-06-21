@@ -38,18 +38,20 @@ function run_build_and_check_jar_exists {
       show_fail_and_exit "Build failed            " "Run ./gradlew :backend:shadowJar and review output."
     fi
 
-    jar_path=$(find backend/build/libs -name '*-all.jar')
-    if [ -e $jar_path ]
+    jar_path=$(find build/libs -name '*domain-builder-backend-api-*-all.jar')
+
+    if [ -z $jar_path ]
     then
-      show_ok "Located local jar file: $jar_path"
-    else
       show_fail_and_exit "Build failed            " "Run ./gradlew :backend:shadowJar and review output."
+    else
+      show_ok "Located local jar file: $jar_path"
     fi
   fi
 }
 
 function apply_migrations {
   log_file="/tmp/migration-log-$(date +'%Y-%m-%dT%H:%M:%S').log"
+  show_info "Launching $jar_path"
   show_wait "Applying migrations..."
   if run_with_local_postgres_config java -cp $jar_path uk.gov.justice.digital.MigrationRunner &> $log_file
   then

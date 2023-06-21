@@ -6,8 +6,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import jakarta.inject.Inject
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.client.DomainClient
 import uk.gov.justice.digital.test.Fixtures.domain1
@@ -32,19 +31,20 @@ class DomainServiceTest {
     }
 
     @Test
-    fun `getDomainWithName should return a Domain given a name that exists`() {
-        every { mockDomainClient.getDomainWithName(any()) } returns domain1
+    fun `getDomains should return a Domain given a name that exists`() {
+        every { mockDomainClient.getDomains(any(), any()) } returns arrayOf(domain1)
 
         val name = "Domain 1"
-        val result = underTest.getDomainWithName(name)
+        val result = underTest.getDomains(name)
 
-        assertEquals(name, result?.name)
+        assertEquals(1, result.size)
+        assertEquals(name, result[0].name)
     }
 
     @Test
-    fun `getDomainWithName should return null given a name that does not exist`() {
-        every { mockDomainClient.getDomainWithName(any()) } returns null
-        assertNull(underTest.getDomainWithName("This is not a valid domain name"))
+    fun `getDomains should return null given a name that does not exist`() {
+        every { mockDomainClient.getDomains(any(), any()) } returns emptyArray()
+        assertTrue(underTest.getDomains("This is not a valid domain name").isEmpty())
     }
 
 }

@@ -6,12 +6,13 @@ import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.runtime.server.EmbeddedServer
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import uk.gov.justice.digital.model.Domain
+import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.test.Fixtures.domain1
+import uk.gov.justice.digital.test.Fixtures.domain2
 import uk.gov.justice.digital.test.Fixtures.domains
 
 @MicronautTest(rebuildContext = true)
@@ -25,49 +26,68 @@ class BlockingDomainClientTest {
     }
 
     @Test
-    fun `getDomainWithName should URL encode the name parameter ensuring a valid URL is constructed`() {
+    fun `getDomains should URL encode the name parameter ensuring a valid URL is constructed`() {
         val server = createServerForScenario(Scenarios.NO_DATA)
         val underTest = server.applicationContext.createBean(BlockingDomainClient::class.java)
-        assertDoesNotThrow { underTest.getDomainWithName("This name has spaces which should be encoded") }
+        assertDoesNotThrow { underTest.getDomains("This name has spaces which should be encoded") }
     }
 
     @Test
-    fun `getDomainWithName should return null if no matching domain exists`() {
+    fun `getDomains should return an empty array if no matching domain exists`() {
         val server = createServerForScenario(Scenarios.NO_DATA)
         val underTest = server.applicationContext.createBean(BlockingDomainClient::class.java)
-        assertNull(underTest.getDomainWithName("some-name"))
+        assertTrue(underTest.getDomains("some-name").isEmpty())
     }
 
     @Test
-    fun `getDomains should return all domains returned by the server`() {
+    fun `getDomains call with no parameters should return all domains returned by the server`() {
         val server = createServerForScenario(Scenarios.HAPPY_PATH)
         val underTest = server.applicationContext.createBean(BlockingDomainClient::class.java)
         assertEquals(domains, underTest.getDomains().toList())
     }
 
     @Test
-    fun `getDomainWithName should return a domain given a name`() {
+    fun `getDomains should return a domain given a name that exists`() {
         val server = createServerForScenario(Scenarios.HAPPY_PATH)
         val underTest = server.applicationContext.createBean(BlockingDomainClient::class.java)
-        assertEquals(domain1, underTest.getDomainWithName("some-name"))
+        val result = underTest.getDomains("someone")
+        assertEquals(1, result.size)
+        assertEquals(domain1, result[0])
+    }
+
+    @Test
+    fun `getDomains should return a domain where a domain exists for the given name and status`() {
+        val server = createServerForScenario(Scenarios.HAPPY_PATH)
+        val underTest = server.applicationContext.createBean(BlockingDomainClient::class.java)
+        val result = underTest.getDomains("someone", Status.DRAFT)
+        assertEquals(1, result.size)
+        assertEquals(domain2, result[0])
+    }
+
+    @Test
+    fun `getDomains should return an empty array if no matching domain exists for the given name and status`() {
+        val server = createServerForScenario(Scenarios.NO_DATA)
+        val underTest = server.applicationContext.createBean(BlockingDomainClient::class.java)
+        val result = underTest.getDomains("someone", Status.DRAFT)
+        assertTrue(result.isEmpty())
     }
 
     @Requires(property = TEST_SCENARIO, value = Scenarios.HAPPY_PATH)
     @Controller
     class HappyPathController {
-        @Get("/domain")
-        fun getAllDomains(): List<Domain> = domains
-        @Get("/domain?name")
-        fun getDomainWithName(@Suppress("UNUSED_PARAMETER") name: String): Domain = domain1
+        @Get("/domain{?name,status}")
+        fun getDomains(name: String?, status: Status?): Array<Domain> =
+            if (name.isNullOrEmpty() && status == null) domains.toTypedArray()
+            else if (!name.isNullOrEmpty() && status == null) arrayOf(domain1)
+            else arrayOf(domain2)
     }
 
     @Requires(property = TEST_SCENARIO, value = Scenarios.NO_DATA)
-    @Controller
+    @Controller()
     class NoDataController {
-        @Get("/domain")
-        fun getAllDomains(): List<Domain> = emptyList()
-        @Get("/domain?name")
-        fun getDomainWithName(@Suppress("UNUSED_PARAMETER") name: String): Domain? = null
+        @Get("/domain{?name,status}")
+        fun getDomains(@Suppress("UNUSED_PARAMETER") name: String?,
+                       @Suppress("UNUSED_PARAMETER") status: Status?): Array<Domain> = emptyArray()
     }
 
     private fun createServerForScenario(scenario: String): EmbeddedServer {

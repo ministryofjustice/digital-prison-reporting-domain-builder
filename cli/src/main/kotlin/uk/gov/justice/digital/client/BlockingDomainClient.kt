@@ -10,6 +10,7 @@ import io.micronaut.serde.ObjectMapper
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import uk.gov.justice.digital.model.Domain
+import uk.gov.justice.digital.model.Status
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpClient.Redirect
@@ -20,7 +21,7 @@ import java.time.Duration
 
 interface DomainClient {
     fun getDomains(): Array<Domain>
-    fun getDomainWithName(name: String): Domain?
+    fun getDomains(name: String, status: Status? = null): Array<Domain>
 }
 
 /**
@@ -37,19 +38,20 @@ class BlockingDomainClient : DomainClient {
     @Value("\${http.client.url}")
     private lateinit var baseUrl: String
 
-    private val DOMAIN_RESOURCE by lazy {
+    private val domainResource by lazy {
         UriBuilder.of("$baseUrl/domain").build()
     }
 
-    override fun getDomains(): Array<Domain> = client.get<Array<Domain>>(DOMAIN_RESOURCE)
+    override fun getDomains(): Array<Domain> = client.get<Array<Domain>>(domainResource)
 
-    override fun getDomainWithName(name: String): Domain? {
+    override fun getDomains(name: String, status: Status?): Array<Domain> {
         val requestUri =
-            UriBuilder.of(DOMAIN_RESOURCE)
+            UriBuilder.of(domainResource)
                 .queryParam("name", name)
+                .withOptionalParameter("status", status?.name)
                 .build()
 
-        return client.get<Array<Domain>>(requestUri).firstOrNull()
+        return client.get<Array<Domain>>(requestUri)
     }
 
     private inline fun <reified T> HttpClient.get(url: URI): T {
@@ -73,6 +75,11 @@ class BlockingDomainClient : DomainClient {
     companion object {
         private val REQUEST_TIMEOUT = Duration.ofSeconds(30)
         private val CONNECT_TIMEOUT = Duration.ofSeconds(15)
+
+        // Only add the query parameter if the value is not null.
+        private fun UriBuilder.withOptionalParameter(name: String, value: String?): UriBuilder {
+            return value?.let { this.queryParam(name, it) } ?: this
+        }
     }
 
     @Factory

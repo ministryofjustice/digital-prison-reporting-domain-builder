@@ -4,16 +4,19 @@ import jakarta.inject.Singleton
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
 import uk.gov.justice.digital.model.Domain
+import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.repository.table.DomainTable
-import java.time.Instant
+import uk.gov.justice.digital.time.ClockProvider
 import java.util.*
 import javax.sql.DataSource
 
 @Singleton
-class DomainRepository(dataSource: DataSource) {
+class DomainRepository(dataSource: DataSource, clockProvider: ClockProvider) {
 
     // Only connect to the database if we need to
     private val database by lazy { Database.connect(dataSource) }
+
+    private val clock = clockProvider.clock
 
     fun getDomain(id: UUID): Domain?  {
         return database
@@ -24,12 +27,13 @@ class DomainRepository(dataSource: DataSource) {
             .firstOrNull()
     }
 
-    fun getDomains(name: String? = null): List<Domain> {
+    fun getDomains(name: String? = null, status: Status? = null): List<Domain> {
         return database
             .from(DomainTable)
             .select(DomainTable.data)
             .whereWithConditions { conditions ->
                 name?.let { conditions += DomainTable.name eq it }
+                status?.let { conditions += DomainTable.status eq it }
             }
             .map { it[DomainTable.data] }
             .filterNotNull()
@@ -37,29 +41,39 @@ class DomainRepository(dataSource: DataSource) {
 
     fun createDomain(domain: Domain) {
         try {
-            val timestamp = Instant.now()
+            val now = clock.instant()
+            // Set optional values on the domain where no value is set.
+            val domainForInsert = domain.copy(
+                    created = domain.created ?: now,
+                    lastUpdated = domain.lastUpdated ?: now,
+            )
             database
                 .insert(DomainTable) {
                     set(it.id, domain.id)
                     set(it.name, domain.name)
-                    set(it.data, domain)
-                    set(it.created, timestamp)
-                    set(it.lastUpdated, timestamp)
+                    set(it.status, domain.status)
+                    set(it.data, domainForInsert)
+                    set(it.created, domainForInsert.created)
+                    set(it.lastUpdated, domainForInsert.lastUpdated)
                 }
         }
         catch (e: Exception) {
-            throw CreateFailedException("Failed to create domain with id: ${domain.id} name: ${domain.name}", e)
+            throw CreateFailedException("Failed to create domain with id: ${domain.id} name: ${domain.name} status: ${domain.status}", e)
         }
     }
 
     fun updateDomain(domain: Domain) {
+        val now = clock.instant()
+        // Set optional values on the domain where no value is set.
+        val updatedDomain = domain.copy(lastUpdated = domain.lastUpdated ?: now)
         database
             .update(DomainTable) {
-                set(it.id, domain.id)
-                set(it.name, domain.name)
-                set(it.data, domain)
-                set(it.lastUpdated, Instant.now())
-                where { it.id eq domain.id }
+                set(it.id, updatedDomain.id)
+                set(it.name, updatedDomain.name)
+                set(it.status, updatedDomain.status)
+                set(it.data, updatedDomain)
+                set(it.lastUpdated, updatedDomain.lastUpdated)
+                where { it.id eq updatedDomain.id }
             }
             .throwExceptionIfNoRecordsChanged(UpdateFailedException("Failed to update domain with id: ${domain.id}"))
 

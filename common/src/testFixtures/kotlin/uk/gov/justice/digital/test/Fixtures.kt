@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.test
 
 import uk.gov.justice.digital.model.Domain
+import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.model.Table
 import uk.gov.justice.digital.model.Transform
 import java.util.*
@@ -48,14 +49,19 @@ object Fixtures {
     val domain1 = Domain(
         id = UUID.randomUUID(),
         name = "Domain 1",
+        status = Status.DRAFT,
         description = "A domain",
         version = "0.0.1",
         location = "/domain1",
         tags = tags,
         owner = EMAIL,
         author = EMAIL,
-        originator = EMAIL,
         tables = listOf(table1),
+    )
+
+    val publishedDomain1 = domain1.copy(
+        id = UUID.randomUUID(),
+        status = Status.PUBLISHED
     )
 
     val domain2 = domain1.copy(
