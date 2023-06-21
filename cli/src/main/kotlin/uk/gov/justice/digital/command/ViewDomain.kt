@@ -11,13 +11,22 @@ import uk.gov.justice.digital.service.DomainService
 @Singleton
 @Command(
     name = "view",
-    description = ["View details for a specific domain"]
+    description = ["View information for a specific domain"],
+    synopsisHeading = "Usage:\n",
+    customSynopsis = [
+        "   @|bold view -n Domain Name|@",
+        "   @|bold view -n Domain Name -s DRAFT|@",
+        "Examples:",
+        "   View information for the domain 'Example Domain'",
+        "   @|cyan view -n Example Domain|@",
+        "   View information for the domain 'Example Domain' with the status PUBLISHED",
+        "   @|cyan view -n Example Domain -s PUBLISHED|@",
+    ]
 )
 class ViewDomain(private val service: DomainService) : Runnable {
 
     @Option(
         names = ["-h", "--help"],
-        usageHelp = true,
         description = [ "display this help message" ]
     )
     var usageHelpRequested = false
@@ -36,7 +45,7 @@ class ViewDomain(private val service: DomainService) : Runnable {
     @Option(
         names = ["-s", "--status"],
         description = [
-            "the status of the domain to view"
+            "the status of the domain to view, either DRAFT or PUBLISHED"
         ],
         arity = "1",
         required = false,
