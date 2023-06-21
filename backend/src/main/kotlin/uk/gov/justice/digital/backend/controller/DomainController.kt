@@ -4,8 +4,10 @@ import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus.*
 import io.micronaut.http.MediaType.APPLICATION_JSON
 import io.micronaut.http.annotation.Controller
+import io.micronaut.http.annotation.Error
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
+import uk.gov.justice.digital.backend.repository.DuplicateKeyException
 import uk.gov.justice.digital.backend.service.DomainService
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
@@ -30,6 +32,11 @@ class DomainController(private val service: DomainService) {
     fun createDomain(domain: WriteableDomain): HttpResponse<Unit>? {
         val domainId = service.createDomain(domain)
         return HttpResponse.created(URI.create("/domain/$domainId"));
+    }
+
+    @Error(exception = DuplicateKeyException::class)
+    fun duplicateKeyErrorHandler(): HttpResponse<Unit> {
+        return HttpResponse.status(CONFLICT)
     }
 
 }

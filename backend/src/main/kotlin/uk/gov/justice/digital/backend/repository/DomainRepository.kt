@@ -3,6 +3,8 @@ package uk.gov.justice.digital.backend.repository
 import jakarta.inject.Singleton
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
+import org.postgresql.util.PSQLException
+import org.postgresql.util.PSQLState
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.backend.repository.table.DomainTable
@@ -74,10 +76,18 @@ class DomainRepository(dataSource: DataSource, clockProvider: ClockProvider) {
                 }
             return domain.id
         }
+        catch (px: PSQLException) {
+            if (px.isUniqueConstraintViolation()) throw DuplicateKeyException(domain.exceptionMessage(), px)
+            throw CreateFailedException(domain.exceptionMessage(), px)
+        }
         catch (e: Exception) {
-            throw CreateFailedException("Failed to create domain with id: ${domain.id} name: ${domain.name} status: ${domain.status}", e)
+            throw CreateFailedException(domain.exceptionMessage(), e)
         }
     }
+
+    private fun PSQLException.isUniqueConstraintViolation() = PSQLState.UNIQUE_VIOLATION.state.equals(this.sqlState)
+
+    private fun Domain.exceptionMessage() = "Failed to create domain with id: $id name: $name status: $status"
 
     fun updateDomain(domain: Domain) {
         val now = clock.instant()
@@ -110,5 +120,6 @@ class DomainRepository(dataSource: DataSource, clockProvider: ClockProvider) {
 
 sealed class RepositoryException(message: String, cause: Exception? = null) : RuntimeException(message, cause)
 class CreateFailedException(message: String, cause: Exception) : RepositoryException(message, cause)
+class DuplicateKeyException(message: String, cause: Exception) : RepositoryException(message, cause)
 class UpdateFailedException(message: String) : RepositoryException(message)
 class DeleteFailedException(message: String) : RepositoryException(message)

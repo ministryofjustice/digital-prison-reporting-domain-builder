@@ -18,6 +18,7 @@ import io.mockk.verify
 import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.backend.repository.DuplicateKeyException
 import uk.gov.justice.digital.backend.service.DomainService
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
@@ -186,6 +187,18 @@ class DomainControllerTest {
     fun `POST of an invalid domain should return a HTTP 400`() {
         val responseException = assertThrows(HttpClientResponseException::class.java) { post("/domain", "{}") }
         assertEquals(BAD_REQUEST, responseException.status)
+    }
+
+    @Test
+    fun `POST of duplicate domain returns HTTP 409`() {
+
+        every { mockDomainService.createDomain(any()) } throws DuplicateKeyException("Duplicate key error", RuntimeException())
+
+        val responseException = assertThrows(HttpClientResponseException::class.java) {
+            post("/domain", jacksonObjectMapper().writeValueAsString(writeableDomain))
+        }
+
+        assertEquals(CONFLICT, responseException.status)
     }
 
     private fun get(location: String): HttpResponse<String> =

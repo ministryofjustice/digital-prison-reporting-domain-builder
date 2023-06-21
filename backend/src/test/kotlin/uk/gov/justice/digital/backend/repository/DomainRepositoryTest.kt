@@ -94,9 +94,9 @@ class DomainRepositoryTest {
     }
 
     @Test
-    fun `createDomain should throw an exception for a failed insert`() {
+    fun `createDomain should throw a DuplicateKeyException for attempt to insert duplicate Domain`() {
         underTest.createDomain(domain1)
-        assertThrows(CreateFailedException::class.java) {
+        assertThrows(DuplicateKeyException::class.java) {
             // This second insert attempt should fail since we're trying to insert a duplicate
             underTest.createDomain(domain1)
         }
@@ -134,10 +134,10 @@ class DomainRepositoryTest {
     }
 
     @Test
-    fun `createDomain should reject second attempt to insert a writeable domain that has already been inserted`() {
+    fun `createDomain should throw a DuplicateKeyException for attempt to insert duplicate WriteableDomain`() {
         underTest.createDomain(writeableDomain)
 
-        assertThrows(CreateFailedException::class.java) {
+        assertThrows(DuplicateKeyException::class.java) {
             // This second insert attempt should fail the unique constraint on name and status since we already have
             // a record with the same name and status.
             underTest.createDomain(writeableDomain)
