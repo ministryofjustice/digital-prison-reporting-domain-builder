@@ -75,17 +75,10 @@ application {
   mainClass.set("uk.gov.justice.digital.backend.DomainBuilderBackend")
 }
 
-// Task specific configuration.
 tasks {
 
   named<Test>("test") {
     useJUnitPlatform()
-  }
-
-  // TODO - temporary fudge for the sync script which expects both jars to be present
-  named<Jar>("jar") {
-    archiveBaseName.set("domain-builder-backend-api")
-    destinationDirectory.set(File("${project.rootDir}/build/libs"))
   }
 
   named<ShadowJar>("shadowJar") {

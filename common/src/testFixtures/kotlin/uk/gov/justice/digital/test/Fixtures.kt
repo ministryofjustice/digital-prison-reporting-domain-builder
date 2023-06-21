@@ -1,9 +1,6 @@
 package uk.gov.justice.digital.test
 
-import uk.gov.justice.digital.model.Domain
-import uk.gov.justice.digital.model.Status
-import uk.gov.justice.digital.model.Table
-import uk.gov.justice.digital.model.Transform
+import uk.gov.justice.digital.model.*
 import java.util.*
 
 object Fixtures {
@@ -81,5 +78,17 @@ object Fixtures {
     )
 
     val domains = listOf(domain1, domain2, domain3)
+
+    val writeableDomain = WriteableDomain(
+        name = "New Domain 1",
+        status = Status.DRAFT,
+        description = "A new domain",
+        version = "0.0.1",
+        location = "/newDomain1",
+        tags = tags,
+        owner = EMAIL,
+        author = EMAIL,
+        tables = listOf(table1),
+    )
 
 }
