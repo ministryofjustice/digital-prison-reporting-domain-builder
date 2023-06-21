@@ -10,7 +10,6 @@ import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.annotation.Client
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.runtime.server.EmbeddedServer
-import io.micronaut.serde.ObjectMapper
 import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import io.mockk.every
@@ -175,8 +174,14 @@ class DomainControllerTest {
     @Test
     fun `POST of a valid domain should return a HTTP 201 with a location header pointing to the created resource`() {
         val response = post("/domain", jacksonObjectMapper().writeValueAsString(writeableDomain))
-
         assertEquals(CREATED, response.status)
+        assertEquals("/domain/some-uuid", response.header("Location"))
+    }
+
+    @Test
+    fun `POST of an invalid domain should return a HTTP 400`() {
+        val responseException = assertThrows(HttpClientResponseException::class.java) { post("/domain", "{}") }
+        assertEquals(BAD_REQUEST, responseException.status)
     }
 
     private fun get(location: String): HttpResponse<String> =
@@ -187,7 +192,11 @@ class DomainControllerTest {
     private fun post(location: String, requestBody: String): HttpResponse<String> =
         client
             .toBlocking()
-            .exchange(HttpRequest.POST(location, requestBody).contentType(MediaType.APPLICATION_JSON_TYPE))
+            .exchange(
+                HttpRequest
+                    .POST(location, requestBody)
+                    .contentType(MediaType.APPLICATION_JSON_TYPE)
+            )
 
     private fun getAndCatchResponseException(location: String) =
         assertThrows(HttpClientResponseException::class.java) { get(location) }
