@@ -30,16 +30,16 @@ class CreateDomain(private val service: DomainService) : Runnable {
         required = true,
         paramLabel = "FILE_NAME",
     )
-    lateinit var fileName: String
+    lateinit var filename: String
 
     @ParentCommand
     lateinit var parent: DomainBuilder
 
     override fun run() =
         runAndHandleExceptions(parent) {
-            val filePath = Path(fileName)
-            if (filePath.exists()) processJson(File(fileName).readText(UTF_8))
-            else parent.print("File $fileName not found")
+            if (Path(filename).exists()) processJson(File(filename).readText(UTF_8))
+            // TODO - error messaging
+            else parent.print("File $filename not found")
         }
 
     private fun processJson(json: String) {

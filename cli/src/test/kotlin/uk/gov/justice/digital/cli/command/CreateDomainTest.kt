@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import uk.gov.justice.digital.cli.DomainBuilder
 import uk.gov.justice.digital.cli.service.DomainService
+import uk.gov.justice.digital.test.DomainJsonResources
 import java.io.File
 import java.util.*
 import kotlin.text.Charsets.UTF_8
@@ -23,15 +24,9 @@ class CreateDomainTest {
 
     @Test
     fun `create domain should create a new domain given a valid domain definition file`() {
-        val sourceFile = "/domains/valid-domain.json"
-
-        val data = this::class.java.getResourceAsStream(sourceFile)
-            ?.readAllBytes()
-            ?.joinToString()
-
         val validFilename = "$tempDir/${UUID.randomUUID()}.json"
 
-        File(validFilename).writeText(data!!, UTF_8)
+        File(validFilename).writeText(DomainJsonResources.validDomain, UTF_8)
 
         val domainPath = "/domain/12345"
 
@@ -40,7 +35,7 @@ class CreateDomainTest {
         val capturedOutput = captureCommandOutput()
 
         underTest.parent = mockDomainBuilder
-        underTest.fileName = validFilename
+        underTest.filename = validFilename
 
         underTest.run()
 
@@ -51,22 +46,16 @@ class CreateDomainTest {
 
     @Test
     fun `create domain should display an error given a domain definition that could not be parsed before sending`() {
-        val sourceFile = "/domains/invalid-domain.json"
-
-        val data = this::class.java.getResourceAsStream(sourceFile)
-            ?.readAllBytes()
-            ?.joinToString()
-
         val validFilename = "$tempDir/${UUID.randomUUID()}.json"
 
-        File(validFilename).writeText(data!!, UTF_8)
+        File(validFilename).writeText(DomainJsonResources.invalidDomain, UTF_8)
 
         every { mockDomainService.createDomain(any()) } throws(RuntimeException("Failed to parse JSON file"))
 
         val capturedOutput = captureCommandOutput()
 
         underTest.parent = mockDomainBuilder
-        underTest.fileName = validFilename
+        underTest.filename = validFilename
 
         underTest.run()
 
@@ -89,7 +78,7 @@ class CreateDomainTest {
         val capturedOutput = captureCommandOutput()
 
         underTest.parent = mockDomainBuilder
-        underTest.fileName = invalidFilename
+        underTest.filename = invalidFilename
 
         underTest.run()
 
