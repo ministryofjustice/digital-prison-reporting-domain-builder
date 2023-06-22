@@ -31,7 +31,7 @@ class DomainController(private val service: DomainService) {
     @Post(consumes = [APPLICATION_JSON])
     fun createDomain(domain: WriteableDomain): HttpResponse<Unit>? {
         val domainId = service.createDomain(domain)
-        return HttpResponse.created(URI.create("/domain/$domainId"));
+        return HttpResponse.created(URI.create("/domain/$domainId"))
     }
 
     @Error(exception = DuplicateKeyException::class)

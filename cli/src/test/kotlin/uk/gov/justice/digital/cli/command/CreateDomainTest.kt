@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import uk.gov.justice.digital.cli.DomainBuilder
+import uk.gov.justice.digital.cli.service.DomainService
 import java.io.File
 import java.util.*
 import kotlin.text.Charsets.UTF_8
@@ -13,8 +14,9 @@ import kotlin.text.Charsets.UTF_8
 class CreateDomainTest {
 
     private val mockDomainBuilder: DomainBuilder = mockk()
+    private val mockDomainService: DomainService = mockk()
 
-    private val underTest = CreateDomain()
+    private val underTest = CreateDomain(mockDomainService)
 
     @TempDir
     var tempDir: File? = null
@@ -31,6 +33,10 @@ class CreateDomainTest {
 
         File(validFilename).writeText(data!!, UTF_8)
 
+        val domainPath = "/domain/12345"
+
+        every { mockDomainService.createDomain(any()) } answers { domainPath }
+
         val capturedOutput = captureCommandOutput()
 
         underTest.parent = mockDomainBuilder
@@ -38,7 +44,41 @@ class CreateDomainTest {
 
         underTest.run()
 
-        val expectedOutput = """File: $validFilename exists"""
+        val expectedOutput = "@|bold,green Domain successfully created with id: $domainPath|@"
+
+        assertEquals(expectedOutput, capturedOutput.joinToString())
+    }
+
+    @Test
+    fun `create domain should display an error given a domain definition that could not be parsed before sending`() {
+        val sourceFile = "/domains/invalid-domain.json"
+
+        val data = this::class.java.getResourceAsStream(sourceFile)
+            ?.readAllBytes()
+            ?.joinToString()
+
+        val validFilename = "$tempDir/${UUID.randomUUID()}.json"
+
+        File(validFilename).writeText(data!!, UTF_8)
+
+        every { mockDomainService.createDomain(any()) } throws(RuntimeException("Failed to parse JSON file"))
+
+        val capturedOutput = captureCommandOutput()
+
+        underTest.parent = mockDomainBuilder
+        underTest.fileName = validFilename
+
+        underTest.run()
+
+        val expectedOutput = """
+            
+            @|red,bold There was a problem with your request.|@
+
+            Please try again later.
+
+            Cause: @|red Failed to parse JSON file|@
+             
+        """.trimIndent()
 
         assertEquals(expectedOutput, capturedOutput.joinToString())
     }
@@ -56,7 +96,6 @@ class CreateDomainTest {
         val expectedOutput = """File $invalidFilename not found"""
 
         assertEquals(expectedOutput, capturedOutput.joinToString())
-
     }
 
     private fun captureCommandOutput(): MutableList<String> {
