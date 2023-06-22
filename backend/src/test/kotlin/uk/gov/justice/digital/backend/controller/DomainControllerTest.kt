@@ -5,6 +5,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus.*
+import io.micronaut.http.MediaType
 import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.annotation.Client
 import io.micronaut.http.client.exceptions.HttpClientResponseException
@@ -17,11 +18,13 @@ import io.mockk.verify
 import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.backend.repository.DuplicateKeyException
+import uk.gov.justice.digital.backend.service.DomainService
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
-import uk.gov.justice.digital.backend.service.DomainService
 import uk.gov.justice.digital.test.Fixtures.domain1
 import uk.gov.justice.digital.test.Fixtures.domains
+import uk.gov.justice.digital.test.Fixtures.writeableDomain
 import java.util.*
 
 @MicronautTest
@@ -169,10 +172,48 @@ class DomainControllerTest {
         verify { mockDomainService.getDomains(eq(domain1.name), eq(domain1.status)) }
     }
 
+    @Test
+    fun `POST of a valid domain should return a HTTP 201 with a location header pointing to the created resource`() {
+        val uuid = UUID.randomUUID()
+        every { mockDomainService.createDomain(any()) } returns uuid
+
+        val response = post("/domain", jacksonObjectMapper().writeValueAsString(writeableDomain))
+
+        assertEquals(CREATED, response.status)
+        assertEquals("/domain/$uuid", response.header("Location"))
+    }
+
+    @Test
+    fun `POST of an invalid domain should return a HTTP 400`() {
+        val responseException = assertThrows(HttpClientResponseException::class.java) { post("/domain", "{}") }
+        assertEquals(BAD_REQUEST, responseException.status)
+    }
+
+    @Test
+    fun `POST of duplicate domain returns HTTP 409`() {
+
+        every { mockDomainService.createDomain(any()) } throws DuplicateKeyException("Duplicate key error", RuntimeException())
+
+        val responseException = assertThrows(HttpClientResponseException::class.java) {
+            post("/domain", jacksonObjectMapper().writeValueAsString(writeableDomain))
+        }
+
+        assertEquals(CONFLICT, responseException.status)
+    }
+
     private fun get(location: String): HttpResponse<String> =
         client
             .toBlocking()
             .exchange(HttpRequest.GET<String>(location), String::class.java)
+
+    private fun post(location: String, requestBody: String): HttpResponse<String> =
+        client
+            .toBlocking()
+            .exchange(
+                HttpRequest
+                    .POST(location, requestBody)
+                    .contentType(MediaType.APPLICATION_JSON_TYPE)
+            )
 
     private fun getAndCatchResponseException(location: String) =
         assertThrows(HttpClientResponseException::class.java) { get(location) }

@@ -10,10 +10,6 @@ import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
-import uk.gov.justice.digital.backend.repository.CreateFailedException
-import uk.gov.justice.digital.backend.repository.DeleteFailedException
-import uk.gov.justice.digital.backend.repository.DomainRepository
-import uk.gov.justice.digital.backend.repository.UpdateFailedException
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.test.Fixtures.domain1
@@ -21,6 +17,7 @@ import uk.gov.justice.digital.test.Fixtures.domain2
 import uk.gov.justice.digital.test.Fixtures.domain3
 import uk.gov.justice.digital.test.Fixtures.domains
 import uk.gov.justice.digital.test.Fixtures.publishedDomain1
+import uk.gov.justice.digital.test.Fixtures.writeableDomain
 import uk.gov.justice.digital.test.time.FixedClock
 import java.time.Instant
 import java.util.*
@@ -78,8 +75,9 @@ class DomainRepositoryTest {
 
     @Test
     fun `createDomain should set timestamps where none are provided`() {
-        underTest.createDomain(domain1)
-        val retrievedDomain = underTest.getDomain(domain1.id)
+        val domainId = underTest.createDomain(domain1)
+        val retrievedDomain = underTest.getDomain(domainId)
+        assertEquals(retrievedDomain?.id, domainId)
         assertEquals(fixedClock.instant(), retrievedDomain?.created)
         assertEquals(fixedClock.instant(), retrievedDomain?.lastUpdated)
     }
@@ -91,14 +89,14 @@ class DomainRepositoryTest {
                 created = ts,
                 lastUpdated = ts,
         )
-        underTest.createDomain(domainWithTimestamps)
-        assertEquals(domainWithTimestamps, underTest.getDomain(domainWithTimestamps.id))
+        val domainId = underTest.createDomain(domainWithTimestamps)
+        assertEquals(domainWithTimestamps, underTest.getDomain(domainId))
     }
 
     @Test
-    fun `createDomain should throw an exception for a failed insert`() {
+    fun `createDomain should throw a DuplicateKeyException for attempt to insert duplicate Domain`() {
         underTest.createDomain(domain1)
-        assertThrows(CreateFailedException::class.java) {
+        assertThrows(DuplicateKeyException::class.java) {
             // This second insert attempt should fail since we're trying to insert a duplicate
             underTest.createDomain(domain1)
         }
@@ -110,6 +108,39 @@ class DomainRepositoryTest {
         assertDoesNotThrow {
             // This second assert should succeed
             underTest.createDomain(publishedDomain1)
+        }
+    }
+
+    @Test
+    fun `createDomain should create a valid domain from a writeable domain`() {
+        val domainId = underTest.createDomain(writeableDomain)
+        val createdDomain = underTest.getDomain(domainId)
+        // Verify fields that should be set during create
+        assertEquals(domainId, createdDomain?.id)
+        assertEquals(fixedClock.instant(), createdDomain?.created)
+        assertEquals(fixedClock.instant(), createdDomain?.lastUpdated)
+        // Verify that remaining fields are mapped from writeableDomain to Domain correctly.
+        mapOf(
+            writeableDomain.name to createdDomain?.name,
+            writeableDomain.description to createdDomain?.description,
+            writeableDomain.version to createdDomain?.version,
+            writeableDomain.location to createdDomain?.location,
+            writeableDomain.tags to createdDomain?.tags,
+            writeableDomain.owner to createdDomain?.owner,
+            writeableDomain.author to createdDomain?.author,
+            writeableDomain.tables to createdDomain?.tables,
+            writeableDomain.status to createdDomain?.status,
+        ).forEach { (expected, got) -> assertEquals(expected, got) }
+    }
+
+    @Test
+    fun `createDomain should throw a DuplicateKeyException for attempt to insert duplicate WriteableDomain`() {
+        underTest.createDomain(writeableDomain)
+
+        assertThrows(DuplicateKeyException::class.java) {
+            // This second insert attempt should fail the unique constraint on name and status since we already have
+            // a record with the same name and status.
+            underTest.createDomain(writeableDomain)
         }
     }
 
