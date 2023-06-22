@@ -17,6 +17,16 @@ object Fixtures {
         sources = listOf("source.table"),
     )
 
+    val mapping = Mapping(
+        viewText = "SELECT another.table.field FROM another.table"
+    )
+
+    val violation = Violation(
+        check = "Some violation check",
+        location = "some/location",
+        name = "Some violation name"
+    )
+
     val table1 = Table(
         name = "Table 1",
         description = "A table containing some data",
@@ -27,7 +37,8 @@ object Fixtures {
         author = EMAIL,
         primaryKey = "id",
         transform = transform,
-        violations = emptyList(),
+        mapping = mapping,
+        violations = listOf(violation),
     )
 
     val table2 = table1.copy(
