@@ -23,9 +23,7 @@
       "primaryKey": "some_pk_field",
       "transform": {
         "viewText": "select * from somedb.foo",
-        "sources": [
-          "somedb.foo"
-        ]
+        "sources": ["somedb.foo"]
       },
       "mapping": {
         "viewText": "select foo from bar"
