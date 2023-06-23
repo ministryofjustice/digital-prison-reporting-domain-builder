@@ -36,7 +36,8 @@ class TraceIdFilter : HttpServerFilter {
                 sessionId?.let { response.header(Header.SESSION_ID_HEADER_NAME, it) }
 
                 // Clear the MDC
-                MDC.clear()
+                MDC.remove(TRACE_ID)
+                MDC.remove(SESSION_ID)
 
                 response
             }
