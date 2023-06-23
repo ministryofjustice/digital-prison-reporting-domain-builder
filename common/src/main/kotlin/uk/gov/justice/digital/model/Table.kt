@@ -15,5 +15,6 @@ data class Table(
     val author: String,
     val primaryKey: String,
     val transform: Transform,
-    val violations: List<String> = emptyList()
+    val mapping: Mapping,
+    val violations: List<Violation> = emptyList()
 )

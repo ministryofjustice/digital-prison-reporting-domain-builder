@@ -1,0 +1,39 @@
+{
+  "name": "Valid Domain",
+  "description": "A valid domain that should parse as a WriteableDomain",
+  "version": "0.0.1",
+  "location": "some/location",
+  "tags": {
+    "foo": "bar"
+  },
+  "owner": "someone@example.com",
+  "author": "someone@example.com",
+  "tables": [
+    {
+      "name": "A table",
+      "description": "A table that should parse correctly",
+      "version": "0.0.1",
+      "location": "some/table/location",
+      "tags": {
+        "bar": "baz"
+      },
+      "owner": "someone@example.com",
+      "author": "someone@example.com",
+      "primaryKey": "some_pk_field",
+      "transform": {
+        "viewText": "select * from somedb.foo",
+        "sources": ["somedb.foo"]
+      },
+      "mapping": {
+        "viewText": "select foo from bar"
+      },
+      "violations": [
+        {
+          "check": "Some violation check",
+          "location": "some/location",
+          "name": "Some violation name"
+        }
+      ]
+    }
+  ]
+}

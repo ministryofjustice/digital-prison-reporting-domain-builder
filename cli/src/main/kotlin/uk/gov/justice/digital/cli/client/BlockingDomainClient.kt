@@ -2,8 +2,9 @@ package uk.gov.justice.digital.cli.client
 
 import io.micronaut.context.annotation.Factory
 import io.micronaut.context.annotation.Value
-import io.micronaut.http.HttpHeaders.ACCEPT
-import io.micronaut.http.HttpHeaders.USER_AGENT
+import io.micronaut.http.HttpHeaders.*
+import io.micronaut.http.HttpStatus
+import io.micronaut.http.HttpStatus.*
 import io.micronaut.http.MediaType.APPLICATION_JSON
 import io.micronaut.http.uri.UriBuilder
 import io.micronaut.serde.ObjectMapper
@@ -11,6 +12,7 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
+import uk.gov.justice.digital.model.WriteableDomain
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpClient.Redirect
@@ -19,9 +21,11 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
 
+// TODO - trace and session ID header filter
 interface DomainClient {
     fun getDomains(): Array<Domain>
     fun getDomains(name: String, status: Status? = null): Array<Domain>
+    fun createDomain(domain: WriteableDomain): String
 }
 
 /**
@@ -54,32 +58,50 @@ class BlockingDomainClient : DomainClient {
         return client.get<Array<Domain>>(requestUri)
     }
 
-    private inline fun <reified T> HttpClient.get(url: URI): T {
-        val request = HttpRequest.newBuilder()
-            .GET()
-            .headers(
-                ACCEPT, APPLICATION_JSON,
-                USER_AGENT, "domain-builder-cli/v0.0.1"
-            )
-            .uri(url)
+    // Only add the query parameter if the value is not null.
+    private fun UriBuilder.withOptionalParameter(name: String, value: String?): UriBuilder {
+        return value?.let { this.queryParam(name, it) } ?: this
+    }
+
+    private fun configuredRequestBuilder(uri: URI) =
+        HttpRequest.newBuilder(uri)
+            .header(ACCEPT, APPLICATION_JSON)
+            .header(USER_AGENT, "domain-builder-cli/v0.0.1")
             .timeout(REQUEST_TIMEOUT)
+
+    private inline fun <reified T> HttpClient.get(uri: URI): T {
+        val request = configuredRequestBuilder(uri)
+            .GET()
             .build()
 
-        val response = client.send(request, HttpResponse.BodyHandlers.ofInputStream())
+        val response = this.send(request, HttpResponse.BodyHandlers.ofInputStream())
 
         if (response.statusCode() in 200..299)
-            return objectMapper.readValue(response.body(), T::class.java) ?: throw RuntimeException("No data in response")
-        else throw RuntimeException("Server returned an error")
+            return objectMapper.readValue(response.body(), T::class.java) ?: throw UnexpectedResponseException("No data in response")
+        else throw UnexpectedResponseException("Server returned an unexpected response: HTTP ${response.statusCode()}")
+    }
+
+    override fun createDomain(domain: WriteableDomain): String {
+        val request = configuredRequestBuilder(domainResource)
+            .header(CONTENT_TYPE, APPLICATION_JSON)
+            .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(domain)))
+            .build()
+
+        val response = client.send(request, HttpResponse.BodyHandlers.ofString())
+
+        return when(HttpStatus.valueOf(response.statusCode())) {
+            CREATED -> response.headers()
+                .firstValue(LOCATION)
+                .orElseThrow { IllegalStateException("No $LOCATION header on response") }
+            CONFLICT -> throw ConflictException("Domain with name: ${domain.name} and status: ${domain.status} already exists")
+            BAD_REQUEST -> throw BadRequestException("The server could not process your request")
+            else -> throw UnexpectedResponseException("Got unexpected response from server: $response")
+        }
     }
 
     companion object {
         private val REQUEST_TIMEOUT = Duration.ofSeconds(30)
         private val CONNECT_TIMEOUT = Duration.ofSeconds(15)
-
-        // Only add the query parameter if the value is not null.
-        private fun UriBuilder.withOptionalParameter(name: String, value: String?): UriBuilder {
-            return value?.let { this.queryParam(name, it) } ?: this
-        }
     }
 
     @Factory
@@ -94,3 +116,8 @@ class BlockingDomainClient : DomainClient {
     }
 
 }
+
+sealed class ClientException(message: String) : RuntimeException(message)
+class BadRequestException(message: String) : ClientException(message)
+class ConflictException(message: String) : ClientException(message)
+class UnexpectedResponseException(message: String) : ClientException(message)

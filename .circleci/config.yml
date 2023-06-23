@@ -21,8 +21,8 @@ workflows:
           deploy_to_test: true # Deploy to Test Environment
           deploy_to_preprod: true # Deploy to PreProd Environment
           cache_key: "v5"
-          notify_jira: false
-          notify_slack: false
+          notify_jira: true
+          notify_slack: true
           channel: dpr_cicd_alerts
           filters:
             branches:
@@ -44,7 +44,7 @@ workflows:
                 - main
     jobs:
       - reporting/gradle_owasp_check:
-          notify_slack: false
+          notify_slack: true
           channel: dpr_cicd_alerts
           context:
             - hmpps-reporting-common
