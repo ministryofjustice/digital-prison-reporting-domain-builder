@@ -63,33 +63,28 @@ class BlockingDomainClient : DomainClient {
         return value?.let { this.queryParam(name, it) } ?: this
     }
 
-    private inline fun <reified T> HttpClient.get(url: URI): T {
-        val request = HttpRequest.newBuilder(url)
-            .GET()
-            .headers(
-                ACCEPT, APPLICATION_JSON,
-                USER_AGENT, "domain-builder-cli/v0.0.1"
-            )
+    private fun configuredRequestBuilder(uri: URI) =
+        HttpRequest.newBuilder(uri)
+            .header(ACCEPT, APPLICATION_JSON)
+            .header(USER_AGENT, "domain-builder-cli/v0.0.1")
             .timeout(REQUEST_TIMEOUT)
+
+    private inline fun <reified T> HttpClient.get(uri: URI): T {
+        val request = configuredRequestBuilder(uri)
+            .GET()
             .build()
 
-        val response = client.send(request, HttpResponse.BodyHandlers.ofInputStream())
+        val response = this.send(request, HttpResponse.BodyHandlers.ofInputStream())
 
         if (response.statusCode() in 200..299)
-            return objectMapper.readValue(response.body(), T::class.java) ?: throw RuntimeException("No data in response")
-        else throw RuntimeException("Server returned an error")
+            return objectMapper.readValue(response.body(), T::class.java) ?: throw UnexpectedResponseException("No data in response")
+        else throw UnexpectedResponseException("Server returned an unexpected response: HTTP ${response.statusCode()}")
     }
 
-    // TODO - review this for the best way to factor out the common headers
     override fun createDomain(domain: WriteableDomain): String {
-        val request = HttpRequest.newBuilder(URI.create("$baseUrl/domain"))
+        val request = configuredRequestBuilder(domainResource)
+            .header(CONTENT_TYPE, APPLICATION_JSON)
             .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(domain)))
-            .headers(
-                ACCEPT, APPLICATION_JSON,
-                CONTENT_TYPE, APPLICATION_JSON,
-                USER_AGENT, "domain-builder-cli/v0.0.1"
-            )
-            .timeout(REQUEST_TIMEOUT)
             .build()
 
         val response = client.send(request, HttpResponse.BodyHandlers.ofString())
