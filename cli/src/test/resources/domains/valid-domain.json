@@ -3,6 +3,7 @@
   "description": "A valid domain that should parse as a WriteableDomain",
   "version": "0.0.1",
   "location": "some/location",
+  "status": "DRAFT",
   "tags": {
     "foo": "bar"
   },

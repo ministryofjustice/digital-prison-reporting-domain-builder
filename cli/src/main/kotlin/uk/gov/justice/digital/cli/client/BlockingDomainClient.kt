@@ -98,7 +98,7 @@ class BlockingDomainClient : DomainClient {
             CREATED -> response.headers()
                 .firstValue(LOCATION)
                 .orElseThrow { IllegalStateException("No $LOCATION header on response") }
-            CONFLICT -> throw ConflictException("Domain with name: '${domain.name} status: '${domain.status}' already exists")
+            CONFLICT -> throw ConflictException("Domain with name: ${domain.name} and status: ${domain.status} already exists")
             BAD_REQUEST -> throw BadRequestException("The server could not process your request")
             else -> throw UnexpectedResponseException("Got unexpected response from server: $response")
         }

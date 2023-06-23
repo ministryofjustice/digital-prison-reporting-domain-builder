@@ -38,8 +38,7 @@ class CreateDomain(private val service: DomainService) : Runnable {
     override fun run() =
         runAndHandleExceptions(parent) {
             if (Path(filename).exists()) processJson(File(filename).readText(UTF_8))
-            // TODO - error messaging
-            else parent.print("File $filename not found")
+            else parent.print("@|red,bold File $filename not found|@")
         }
 
     private fun processJson(json: String) {

@@ -2,7 +2,6 @@ package uk.gov.justice.digital.cli.service
 
 import com.fasterxml.jackson.core.JsonParseException
 import io.micronaut.serde.ObjectMapper
-import io.micronaut.serde.Serde
 import io.micronaut.serde.exceptions.SerdeException
 import jakarta.inject.Inject
 import jakarta.inject.Singleton

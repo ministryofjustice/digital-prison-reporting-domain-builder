@@ -7,8 +7,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import uk.gov.justice.digital.cli.DomainBuilder
 import uk.gov.justice.digital.cli.service.DomainService
+import uk.gov.justice.digital.cli.service.JsonParsingFailedException
 import uk.gov.justice.digital.test.DomainJsonResources
 import java.io.File
+import java.lang.RuntimeException
 import java.util.*
 import kotlin.text.Charsets.UTF_8
 
@@ -50,7 +52,11 @@ class CreateDomainTest {
 
         File(validFilename).writeText(DomainJsonResources.invalidDomain, UTF_8)
 
-        every { mockDomainService.createDomain(any()) } throws(RuntimeException("Failed to parse JSON file"))
+        every { mockDomainService.createDomain(any()) } throws(
+            JsonParsingFailedException(
+                "Unexpected character ('s' (code 115)): was expecting double-quote to start field name on line: 11 at column: 4",
+                RuntimeException("Json parsing failed")
+            ))
 
         val capturedOutput = captureCommandOutput()
 
@@ -61,12 +67,19 @@ class CreateDomainTest {
 
         val expectedOutput = """
             
-            @|red,bold There was a problem with your request.|@
+            @|red,bold Error: Could not create new domain|@
 
-            Please try again later.
+            @|white,bold Cause: Unexpected character ('s' (code 115)): was expecting double-quote to start field name on line: 11 at column: 4|@
 
-            Cause: @|red Failed to parse JSON file|@
-             
+            @|blue,bold Possible fixes|@
+
+            1. Read the cause above since it will usually describe the
+               problem with the JSON and what needs to be done to fix it
+            2. Ensure that your JSON is syntactically valid
+            3. Ensure that all mandatory fields have been given a value
+            4. Ensure that the status value is fully capitalised
+            
+            
         """.trimIndent()
 
         assertEquals(expectedOutput, capturedOutput.joinToString())
@@ -74,7 +87,7 @@ class CreateDomainTest {
 
     @Test
     fun `create domain should display a file not found error given an invalid file name`() {
-        val invalidFilename = "file_that_does_not_exist"
+        val invalidFilename = "does-not-exist"
         val capturedOutput = captureCommandOutput()
 
         underTest.parent = mockDomainBuilder
@@ -82,7 +95,7 @@ class CreateDomainTest {
 
         underTest.run()
 
-        val expectedOutput = """File $invalidFilename not found"""
+        val expectedOutput = """@|red,bold File $invalidFilename not found|@"""
 
         assertEquals(expectedOutput, capturedOutput.joinToString())
     }
