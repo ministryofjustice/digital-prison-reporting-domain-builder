@@ -2,6 +2,9 @@ package uk.gov.justice.digital.client
 
 import io.micronaut.context.ApplicationContext
 import io.micronaut.context.annotation.Requires
+import io.micronaut.core.type.Headers
+import io.micronaut.http.HttpHeaders.USER_AGENT
+import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.annotation.Controller
@@ -16,6 +19,7 @@ import uk.gov.justice.digital.cli.client.BadRequestException
 import uk.gov.justice.digital.cli.client.BlockingDomainClient
 import uk.gov.justice.digital.cli.client.ConflictException
 import uk.gov.justice.digital.cli.client.UnexpectedResponseException
+import uk.gov.justice.digital.headers.Header
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.model.WriteableDomain
@@ -24,6 +28,7 @@ import uk.gov.justice.digital.test.Fixtures.domain2
 import uk.gov.justice.digital.test.Fixtures.domains
 import uk.gov.justice.digital.test.Fixtures.writeableDomain
 import java.net.URI
+import java.net.http.HttpHeaders
 
 @MicronautTest(rebuildContext = true)
 class BlockingDomainClientTest {
@@ -97,6 +102,15 @@ class BlockingDomainClientTest {
         }
     }
 
+    @Test
+    fun `createDomain should set standard headers on requests`() {
+        val client = createClientForScenario(Scenarios.VERIFY_HEADERS)
+        // Get the session ID...
+        val sessionId = client.createDomain(writeableDomain)
+        // ...and verify that it's the same on successive requests
+        assertEquals(sessionId, client.createDomain(writeableDomain))
+    }
+
     @Requires(property = TEST_SCENARIO, value = Scenarios.HAPPY_PATH)
     @Controller
     class HappyPathController {
@@ -142,6 +156,28 @@ class BlockingDomainClientTest {
             HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
     }
 
+    @Requires(property = TEST_SCENARIO, value = Scenarios.VERIFY_HEADERS)
+    @Controller()
+    class VerifyHeadersController {
+        @Post("/domain")
+        fun createDomain(request: HttpRequest<WriteableDomain>): HttpResponse<Unit> {
+            val headers = request.headers
+
+            val traceId = headers.get(Header.TRACE_ID_HEADER_NAME)
+            val sessionId = headers.get(Header.SESSION_ID_HEADER_NAME)
+            val userAgent = headers.get(USER_AGENT)
+
+            val uuidLength = 36
+            assertEquals(uuidLength, traceId?.length)
+            assertEquals(uuidLength, sessionId?.length)
+            assertEquals(userAgent, "domain-builder-cli/v0.0.1")
+
+            // Return the session ID in the location header so the client returns this to us.
+            return HttpResponse.created(URI.create("SessionId:$sessionId"))
+        }
+
+    }
+
     private fun createClientForScenario(scenario: String): BlockingDomainClient =
         createServerForScenario(scenario)
             .applicationContext
@@ -169,6 +205,7 @@ class BlockingDomainClientTest {
             const val CONFLICT = "conflict"
             const val BAD_REQUEST = "badRequest"
             const val INTERNAL_SERVER_ERROR = "internalServerError"
+            const val VERIFY_HEADERS = "verifyHeaders"
         }
 
     }

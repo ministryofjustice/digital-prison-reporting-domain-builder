@@ -10,6 +10,9 @@ import io.micronaut.http.uri.UriBuilder
 import io.micronaut.serde.ObjectMapper
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
+import uk.gov.justice.digital.headers.Header
+import uk.gov.justice.digital.headers.SessionIdHeader
+import uk.gov.justice.digital.headers.TraceIdHeader
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.model.WriteableDomain
@@ -67,7 +70,11 @@ class BlockingDomainClient : DomainClient {
         HttpRequest.newBuilder(uri)
             .header(ACCEPT, APPLICATION_JSON)
             .header(USER_AGENT, "domain-builder-cli/v0.0.1")
+            .withCustomHeader(TraceIdHeader())
+            .withCustomHeader(SessionIdHeader.instance)
             .timeout(REQUEST_TIMEOUT)
+
+    private fun HttpRequest.Builder.withCustomHeader(header: Header) = this.header(header.name, header.value)
 
     private inline fun <reified T> HttpClient.get(uri: URI): T {
         val request = configuredRequestBuilder(uri)
