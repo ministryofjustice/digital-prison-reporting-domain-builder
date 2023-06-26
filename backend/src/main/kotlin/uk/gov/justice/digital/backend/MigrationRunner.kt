@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.backend
 
-import com.amazonaws.services.lambda.runtime.Context
 import io.micronaut.configuration.picocli.PicocliRunner
 import io.micronaut.function.aws.MicronautRequestHandler
 import jakarta.inject.Singleton
@@ -9,6 +8,8 @@ import org.slf4j.LoggerFactory
 import picocli.CommandLine.Command
 import javax.sql.DataSource
 import kotlin.system.exitProcess
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent
+import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 
 /**
  * Command to apply migrations on the configured database.
@@ -19,7 +20,7 @@ import kotlin.system.exitProcess
  */
 @Singleton
 @Command(name = "MigrationRunner")
-class MigrationRunner(private val defaultDataSource: DataSource) : Runnable, MicronautRequestHandler<String, String>() {
+class MigrationRunner(private val defaultDataSource: DataSource) : Runnable, MicronautRequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent>() {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -54,14 +55,14 @@ class MigrationRunner(private val defaultDataSource: DataSource) : Runnable, Mic
         }
     }
 
-    override fun execute(input: String): String {
+    override fun execute(input: APIGatewayProxyRequestEvent): APIGatewayProxyResponseEvent {
         logger.info("Applying migrations")
         runMigrationsWithExceptionHandler { e ->
             logger.error("Failed to apply migrations", e)
             throw e
         }
         logger.info("Migrations applied successfully")
-        return "OK"
+        return APIGatewayProxyResponseEvent().withStatusCode(204)
     }
 
 }
