@@ -25,6 +25,9 @@ dependencies {
   testImplementation(testFixtures(project(":common")))
 
   implementation("io.micronaut.aws:micronaut-function-aws-api-proxy")
+  // TODO - can this co-exist with the above?
+  implementation("io.micronaut.aws:micronaut-function-aws")
+
   implementation("io.micronaut.flyway:micronaut-flyway")
   implementation("io.micronaut.picocli:micronaut-picocli")
   implementation("io.micronaut:micronaut-http-client")
