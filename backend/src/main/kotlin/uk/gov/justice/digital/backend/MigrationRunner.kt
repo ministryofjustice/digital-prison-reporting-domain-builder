@@ -19,7 +19,7 @@ import kotlin.system.exitProcess
  */
 @Singleton
 @Command(name = "MigrationRunner")
-class MigrationRunner(private val defaultDataSource: DataSource) : Runnable, MicronautRequestHandler<Unit, Unit>() {
+class MigrationRunner(private val defaultDataSource: DataSource) : Runnable, MicronautRequestHandler<String, String>() {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -54,13 +54,14 @@ class MigrationRunner(private val defaultDataSource: DataSource) : Runnable, Mic
         }
     }
 
-    override fun execute(input: Unit?) {
+    override fun execute(input: String): String {
         logger.info("Applying migrations")
         runMigrationsWithExceptionHandler { e ->
             logger.error("Failed to apply migrations", e)
             throw e
         }
         logger.info("Migrations applied successfully")
+        return "OK"
     }
 
 }
