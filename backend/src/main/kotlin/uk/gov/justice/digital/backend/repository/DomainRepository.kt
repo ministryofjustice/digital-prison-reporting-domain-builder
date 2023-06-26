@@ -5,6 +5,8 @@ import org.ktorm.database.Database
 import org.ktorm.dsl.*
 import org.postgresql.util.PSQLException
 import org.postgresql.util.PSQLState
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.backend.repository.table.DomainTable
@@ -16,22 +18,32 @@ import javax.sql.DataSource
 @Singleton
 class DomainRepository(dataSource: DataSource, clockProvider: ClockProvider) {
 
+    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
+
     // Only connect to the database if we need to
     private val database by lazy { Database.connect(dataSource) }
 
     private val clock = clockProvider.clock
 
-    fun getDomain(id: UUID): Domain?  {
-        return database
+    fun getDomain(id: UUID): Domain? {
+        logger.info("Fetching domain with ID: {}", id)
+
+        val result = database
             .from(DomainTable)
             .select(DomainTable.data)
             .where(DomainTable.id eq id)
             .map { it[DomainTable.data] }
             .firstOrNull()
+
+        logger.info("Domain with ID: {} {}", id, result?.let { "found" } ?: "not found" )
+
+        return result
     }
 
     fun getDomains(name: String? = null, status: Status? = null): List<Domain> {
-        return database
+        logger.info("Fetching domains with name: {} status: {}", name, status)
+
+        val result = database
             .from(DomainTable)
             .select(DomainTable.data)
             .whereWithConditions { conditions ->
@@ -40,6 +52,10 @@ class DomainRepository(dataSource: DataSource, clockProvider: ClockProvider) {
             }
             .map { it[DomainTable.data] }
             .filterNotNull()
+
+        logger.info("Returning {} matching domains", result.size)
+
+        return result
     }
 
     fun createDomain(writeableDomain: WriteableDomain): UUID = createDomain(writeableDomain.toDomain())
@@ -59,6 +75,8 @@ class DomainRepository(dataSource: DataSource, clockProvider: ClockProvider) {
 
     fun createDomain(domain: Domain): UUID {
         try {
+            logger.info("Creating domain with name: {} status: {}", domain.name, domain.status)
+
             val now = clock.instant()
             // Set optional values on the domain where no value is set.
             val domainForInsert = domain.copy(
@@ -74,13 +92,17 @@ class DomainRepository(dataSource: DataSource, clockProvider: ClockProvider) {
                     set(it.created, domainForInsert.created)
                     set(it.lastUpdated, domainForInsert.lastUpdated)
                 }
+
+            logger.info("Successfully created domain with id: ${domain.id}")
             return domain.id
         }
         catch (px: PSQLException) {
             if (px.isUniqueConstraintViolation()) throw DuplicateKeyException(domain.exceptionMessage(), px)
+            logger.error(domain.exceptionMessage(), px)
             throw CreateFailedException(domain.exceptionMessage(), px)
         }
         catch (e: Exception) {
+            logger.error(domain.exceptionMessage(), e)
             throw CreateFailedException(domain.exceptionMessage(), e)
         }
     }
