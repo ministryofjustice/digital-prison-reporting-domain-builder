@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.test
+package uk.gov.justice.digital.cli.test
 
 import java.lang.IllegalStateException
 

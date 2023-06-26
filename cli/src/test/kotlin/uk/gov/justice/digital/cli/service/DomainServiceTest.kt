@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.service
+package uk.gov.justice.digital.cli.service
 
 import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.cli.client.DomainClient
 import uk.gov.justice.digital.cli.service.DomainService
 import uk.gov.justice.digital.cli.service.JsonParsingFailedException
-import uk.gov.justice.digital.test.DomainJsonResources
+import uk.gov.justice.digital.cli.test.DomainJsonResources
 import uk.gov.justice.digital.test.Fixtures.domain1
 import uk.gov.justice.digital.test.Fixtures.domains
 
