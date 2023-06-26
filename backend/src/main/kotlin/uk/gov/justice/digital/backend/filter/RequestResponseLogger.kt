@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory
 @Filter(MATCH_ALL_PATTERN)
 class RequestResponseLogger : HttpServerFilter {
 
-    private val logger = LoggerFactory.getLogger(RequestResponseLogger::class.java)
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     override fun getOrder(): Int = ServerFilterPhase.LAST.after()
 
