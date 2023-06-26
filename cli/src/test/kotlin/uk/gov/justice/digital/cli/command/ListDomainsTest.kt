@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.command
+package uk.gov.justice.digital.cli.command
 
 import io.mockk.every
 import io.mockk.mockk

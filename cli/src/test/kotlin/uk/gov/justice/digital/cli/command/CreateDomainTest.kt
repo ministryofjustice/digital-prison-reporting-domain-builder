@@ -8,7 +8,7 @@ import org.junit.jupiter.api.io.TempDir
 import uk.gov.justice.digital.cli.DomainBuilder
 import uk.gov.justice.digital.cli.service.DomainService
 import uk.gov.justice.digital.cli.service.JsonParsingFailedException
-import uk.gov.justice.digital.test.DomainJsonResources
+import uk.gov.justice.digital.cli.test.DomainJsonResources
 import java.io.File
 import java.lang.RuntimeException
 import java.util.*
