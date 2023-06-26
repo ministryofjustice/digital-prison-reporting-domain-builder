@@ -23,11 +23,11 @@ val testContainersVersion = "1.18.0"
 dependencies {
   implementation(project(":common"))
   testImplementation(testFixtures(project(":common")))
-  
+
   implementation("io.micronaut.aws:micronaut-function-aws-api-proxy")
   // TODO - can this co-exist with the above?
   implementation("com.amazonaws:aws-lambda-java-events:3.11.0")
-  implementation("io.micronaut.aws:micronaut-function-aws")
+  //implementation("io.micronaut.aws:micronaut-function-aws")
 
   implementation("io.micronaut.flyway:micronaut-flyway")
   implementation("io.micronaut.picocli:micronaut-picocli")
