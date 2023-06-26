@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.backend
 
 import com.amazonaws.services.lambda.runtime.Context
-import com.amazonaws.services.lambda.runtime.RequestHandler
 import io.micronaut.configuration.picocli.PicocliRunner
+import io.micronaut.function.aws.MicronautRequestHandler
 import jakarta.inject.Singleton
 import org.flywaydb.core.Flyway
 import org.slf4j.LoggerFactory
@@ -19,7 +19,7 @@ import kotlin.system.exitProcess
  */
 @Singleton
 @Command(name = "MigrationRunner")
-class MigrationRunner(private val defaultDataSource: DataSource) : Runnable, RequestHandler<Unit, Unit> {
+class MigrationRunner(private val defaultDataSource: DataSource) : Runnable, MicronautRequestHandler<Unit, Unit>() {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -34,16 +34,6 @@ class MigrationRunner(private val defaultDataSource: DataSource) : Runnable, Req
             exitProcess(1)
         }
         println("Migrations applied successfully")
-    }
-
-    // AWS Lambda request handler for execution on AWS as a Lambda Function.
-    override fun handleRequest(input: Unit?, context: Context?) {
-        logger.info("Applying migrations")
-        runMigrationsWithExceptionHandler { e ->
-            logger.error("Failed to apply migrations", e)
-            throw e
-        }
-        logger.info("Migrations applied successfully")
     }
 
     private fun runMigrationsWithExceptionHandler(handleException: (Exception) -> Unit) {
@@ -62,6 +52,15 @@ class MigrationRunner(private val defaultDataSource: DataSource) : Runnable, Req
         fun main(args: Array<String>) {
             PicocliRunner.run(MigrationRunner::class.java)
         }
+    }
+
+    override fun execute(input: Unit?) {
+        logger.info("Applying migrations")
+        runMigrationsWithExceptionHandler { e ->
+            logger.error("Failed to apply migrations", e)
+            throw e
+        }
+        logger.info("Migrations applied successfully")
     }
 
 }
