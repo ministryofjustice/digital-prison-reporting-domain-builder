@@ -40,7 +40,7 @@ class RepositoryBackedDomainServiceTest {
             }
         )
 
-        assertThrows(RuntimeException::class.java) {
+        assertThrows(InvalidSparkSqlException::class.java) {
             underTest.createDomain(writeableDomainWithInvalidSql)
         }
     }

@@ -7,7 +7,6 @@ import uk.gov.justice.digital.backend.validator.SparkSqlValidator
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.model.WriteableDomain
-import java.lang.RuntimeException
 import java.util.*
 
 interface DomainService {
@@ -33,14 +32,14 @@ class RepositoryBackedDomainService(
     override fun getDomain(id: UUID): Domain? = repository.getDomain(id)
 
     override fun createDomain(domain: WriteableDomain): UUID {
-        // Map list of tables and validate each mapping so we get a list of validation results
         val results = domain.tables
             .map { it.mapping.viewText }
             .map { sqlValidator.validate(it) }
-            .filterNot { it.isValid }
+            .filterIsInstance<InvalidSparkSql>()
 
         if (results.isEmpty()) return repository.createDomain(domain)
-        // TODO - tidy this up
-        else throw RuntimeException((results.first() as InvalidSparkSql).reason)
+        else throw InvalidSparkSqlException(results.first())
     }
 }
+
+class InvalidSparkSqlException(validationResult: InvalidSparkSql) : RuntimeException(validationResult.reason)
