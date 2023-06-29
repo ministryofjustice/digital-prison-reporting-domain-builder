@@ -1,9 +1,9 @@
 package uk.gov.justice.digital.backend.service
 
 import jakarta.inject.Singleton
+import uk.gov.justice.digital.backend.repository.DomainRepository
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
-import uk.gov.justice.digital.backend.repository.DomainRepository
 import uk.gov.justice.digital.model.WriteableDomain
 import java.util.*
 

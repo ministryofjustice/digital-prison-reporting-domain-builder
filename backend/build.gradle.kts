@@ -48,6 +48,8 @@ dependencies {
 
   implementation("org.postgresql:postgresql:42.6.0")
 
+  implementation("org.apache.spark:spark-sql_2.12:2.4.0")
+
   kapt("io.micronaut:micronaut-inject-java")
   kapt("io.micronaut:micronaut-http-validation")
 
