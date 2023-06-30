@@ -20,11 +20,14 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.backend.repository.DuplicateKeyException
 import uk.gov.justice.digital.backend.service.DomainService
+import uk.gov.justice.digital.backend.service.InvalidSparkSqlException
+import uk.gov.justice.digital.backend.validator.InvalidSparkSqlResult
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.test.Fixtures.domain1
 import uk.gov.justice.digital.test.Fixtures.domains
 import uk.gov.justice.digital.test.Fixtures.writeableDomain
+import uk.gov.justice.digital.test.Fixtures.writeableDomainWithInvalidMappingSql
 import java.util.*
 
 @MicronautTest
@@ -191,7 +194,6 @@ class DomainControllerTest {
 
     @Test
     fun `POST of duplicate domain returns HTTP 409`() {
-
         every { mockDomainService.createDomain(any()) } throws DuplicateKeyException("Duplicate key error", RuntimeException())
 
         val responseException = assertThrows(HttpClientResponseException::class.java) {
@@ -199,6 +201,15 @@ class DomainControllerTest {
         }
 
         assertEquals(CONFLICT, responseException.status)
+    }
+
+    @Test
+    fun `POST of domain with invalid SQL should return a HTTP 400`() {
+        every { mockDomainService.createDomain(any()) } throws InvalidSparkSqlException(InvalidSparkSqlResult("Bad SQL"))
+        val responseException = assertThrows(HttpClientResponseException::class.java) {
+            post("/domain", jacksonObjectMapper().writeValueAsString(writeableDomainWithInvalidMappingSql))
+        }
+        assertEquals(BAD_REQUEST, responseException.status)
     }
 
     private fun get(location: String): HttpResponse<String> =

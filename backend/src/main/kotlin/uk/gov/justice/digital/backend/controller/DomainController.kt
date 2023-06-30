@@ -9,6 +9,7 @@ import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
 import uk.gov.justice.digital.backend.repository.DuplicateKeyException
 import uk.gov.justice.digital.backend.service.DomainService
+import uk.gov.justice.digital.backend.service.InvalidSparkSqlException
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.model.WriteableDomain
@@ -37,6 +38,11 @@ class DomainController(private val service: DomainService) {
     @Error(exception = DuplicateKeyException::class)
     fun duplicateKeyErrorHandler(): HttpResponse<Unit> {
         return HttpResponse.status(CONFLICT)
+    }
+
+    @Error(exception = InvalidSparkSqlException::class)
+    fun invalidSparkSqlErrorHandler(): HttpResponse<Unit> {
+        return HttpResponse.status(BAD_REQUEST)
     }
 
 }

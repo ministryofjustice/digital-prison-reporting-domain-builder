@@ -3,16 +3,16 @@ package uk.gov.justice.digital.backend.service
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.backend.repository.DomainRepository
 import uk.gov.justice.digital.backend.validator.InvalidSparkSqlResult
 import uk.gov.justice.digital.backend.validator.SparkSqlValidator
 import uk.gov.justice.digital.backend.validator.ValidSparkSqlResult
 import uk.gov.justice.digital.model.WriteableDomain
-import uk.gov.justice.digital.test.Fixtures.mapping
-import uk.gov.justice.digital.test.Fixtures.transform
 import uk.gov.justice.digital.test.Fixtures.writeableDomain
+import uk.gov.justice.digital.test.Fixtures.writeableDomainWithInvalidMappingSql
+import uk.gov.justice.digital.test.Fixtures.writeableDomainWithInvalidTransformSql
 import java.util.*
 
 class RepositoryBackedDomainServiceTest {
@@ -35,14 +35,8 @@ class RepositoryBackedDomainServiceTest {
     fun `create should throw an exception given a domain containing invalid mapping sql`() {
         every { mockValidator.validate(any()) } returns InvalidSparkSqlResult("Parse failure message")
 
-        val writeableDomainWithInvalidSql = writeableDomain.copy(
-            tables = writeableDomain.tables.map {
-                it.copy(mapping = mapping.copy(viewText = "This is not valid SQL"))
-            }
-        )
-
         assertThrows(InvalidSparkSqlException::class.java) {
-            underTest.createDomain(writeableDomainWithInvalidSql)
+            underTest.createDomain(writeableDomainWithInvalidMappingSql)
         }
     }
 
@@ -50,14 +44,8 @@ class RepositoryBackedDomainServiceTest {
     fun `create should throw an exception given a domain containing invalid transform sql`() {
         every { mockValidator.validate(any()) } returns InvalidSparkSqlResult("Parse failure message")
 
-        val writeableDomainWithInvalidSql = writeableDomain.copy(
-            tables = writeableDomain.tables.map {
-                it.copy(transform = transform.copy(viewText = "This is not valid SQL"))
-            }
-        )
-
         assertThrows(InvalidSparkSqlException::class.java) {
-            underTest.createDomain(writeableDomainWithInvalidSql)
+            underTest.createDomain(writeableDomainWithInvalidTransformSql)
         }
     }
 
