@@ -15,15 +15,15 @@ class SparkSqlValidator {
     fun validate(sparkSql: String): SparkSqlValidationResult {
         return try {
             validator.parseExpression(sparkSql)
-            ValidSparkSql()
+            ValidSparkSqlResult()
         } catch (ex: Exception) {
             logger.warn("Failed to validate spark SQL: '{}'", sparkSql)
-            InvalidSparkSql(ex.localizedMessage)
+            InvalidSparkSqlResult(ex.localizedMessage)
         }
     }
 
 }
 
 sealed interface SparkSqlValidationResult { val isValid: Boolean }
-class ValidSparkSql : SparkSqlValidationResult { override val isValid: Boolean = true }
-class InvalidSparkSql(val reason: String) : SparkSqlValidationResult { override val isValid: Boolean = false }
+class ValidSparkSqlResult : SparkSqlValidationResult { override val isValid: Boolean = true }
+class InvalidSparkSqlResult(val reason: String) : SparkSqlValidationResult { override val isValid: Boolean = false }

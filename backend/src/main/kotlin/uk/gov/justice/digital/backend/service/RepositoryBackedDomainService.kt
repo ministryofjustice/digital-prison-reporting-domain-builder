@@ -2,10 +2,11 @@ package uk.gov.justice.digital.backend.service
 
 import jakarta.inject.Singleton
 import uk.gov.justice.digital.backend.repository.DomainRepository
-import uk.gov.justice.digital.backend.validator.InvalidSparkSql
+import uk.gov.justice.digital.backend.validator.InvalidSparkSqlResult
 import uk.gov.justice.digital.backend.validator.SparkSqlValidator
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
+import uk.gov.justice.digital.model.Table
 import uk.gov.justice.digital.model.WriteableDomain
 import java.util.*
 
@@ -31,15 +32,22 @@ class RepositoryBackedDomainService(
 
     override fun getDomain(id: UUID): Domain? = repository.getDomain(id)
 
-    override fun createDomain(domain: WriteableDomain): UUID {
-        val results = domain.tables
-            .map { it.mapping.viewText }
-            .map { sqlValidator.validate(it) }
-            .filterIsInstance<InvalidSparkSql>()
+    override fun createDomain(domain: WriteableDomain): UUID =
+        domain
+            .validateSql { it.mapping.viewText }
+            .validateSql { it.transform.viewText }
+            .let { repository.createDomain(it) }
 
-        if (results.isEmpty()) return repository.createDomain(domain)
-        else throw InvalidSparkSqlException(results.first())
-    }
+    private fun validateDomainSql(domain: WriteableDomain, getSqlFromTable: (Table) -> String): WriteableDomain =
+        domain.tables
+            .map(getSqlFromTable)
+            .map { sqlValidator.validate(it) }
+            .filterIsInstance<InvalidSparkSqlResult>()
+            .firstOrNull()?.let { throw InvalidSparkSqlException(it) } ?: domain
+
+    private fun WriteableDomain.validateSql(getSqlFromTable: (Table) -> String): WriteableDomain =
+        validateDomainSql(this, getSqlFromTable)
+
 }
 
-class InvalidSparkSqlException(validationResult: InvalidSparkSql) : RuntimeException(validationResult.reason)
+class InvalidSparkSqlException(validationResult: InvalidSparkSqlResult) : RuntimeException(validationResult.reason)
