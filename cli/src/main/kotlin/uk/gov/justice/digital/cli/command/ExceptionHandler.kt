@@ -45,16 +45,23 @@ object ExceptionHandler {
             """.trimIndent())
         }
         catch (brx: BadRequestException) {
+            val messageLines = brx.localizedMessage.split("\n")
+
             d.print("""
                 
                 @|red,bold Could not create new domain|@
                 
-                @|white,bold ${brx.localizedMessage}|@
-                 
+                @|white,bold ${messageLines.firstOrNull()}|@
             """.trimIndent())
+
+            // The error string may contain additional lines which should also be displayed where present
+            val errorDescription =
+                if (messageLines.size > 10) messageLines.drop(1).joinToString("\n")
+                else "\nNo reason was given.\n"
+
+            d.print(errorDescription)
         }
         catch (ex: Exception) {
-            println("Caught exception: $ex")
             d.print("""
                 
                 @|red,bold There was a problem with your request|@

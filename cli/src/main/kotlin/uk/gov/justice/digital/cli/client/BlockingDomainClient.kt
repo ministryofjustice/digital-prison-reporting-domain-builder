@@ -6,6 +6,7 @@ import io.micronaut.http.HttpHeaders.*
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.HttpStatus.*
 import io.micronaut.http.MediaType.APPLICATION_JSON
+import io.micronaut.http.hateoas.JsonError
 import io.micronaut.http.uri.UriBuilder
 import io.micronaut.serde.ObjectMapper
 import jakarta.inject.Inject
@@ -23,6 +24,7 @@ import java.net.http.HttpClient.Version
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
+import java.util.*
 
 // TODO - trace and session ID header filter
 interface DomainClient {
@@ -101,10 +103,23 @@ class BlockingDomainClient : DomainClient {
                 .firstValue(LOCATION)
                 .orElseThrow { IllegalStateException("No $LOCATION header on response") }
             CONFLICT -> throw ConflictException("Domain with name: ${domain.name} and status: ${domain.status} already exists")
-            BAD_REQUEST -> throw BadRequestException("The server could not process your request")
+            BAD_REQUEST -> throw BadRequestException(createErrorMessageForBadRequest(response))
             else -> throw UnexpectedResponseException("Got unexpected response from server: $response")
         }
     }
+
+    private fun <T> createErrorMessageForBadRequest(response: HttpResponse<T>) = response.headers()
+            .firstValue(CONTENT_TYPE)
+            .filter { it.equals(APPLICATION_JSON) }
+            .flatMap { _ ->
+                try {
+                    val jsonError = objectMapper.readValue(response.body().toString(), JsonError::class.java)
+                    Optional.ofNullable<String>(jsonError?.message)
+                }
+                catch (ex: Exception) { Optional.empty() }
+            }
+            .map { "The server could not process your request because:\n$it" }
+            .orElse("The server could not process your request")
 
     companion object {
         private val REQUEST_TIMEOUT = Duration.ofSeconds(30)
