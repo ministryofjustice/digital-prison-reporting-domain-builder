@@ -22,10 +22,10 @@ import uk.gov.justice.digital.session.ConsoleSession
 //      - consider using ...digital.interactive.DomainEditor since this will only be available for interactive sessions.
 @Singleton
 @Command(
-        name = "create",
+        name = "create-interactive",
         description = ["Create a new domain"],
 )
-class CreateDomain(private val service: DomainService) : Runnable {
+class CreateDomainInteractive(private val service: DomainService) : Runnable {
 
     @ParentCommand
     lateinit var parent: DomainBuilder

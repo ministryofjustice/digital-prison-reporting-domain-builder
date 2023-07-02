@@ -6,7 +6,7 @@ import jakarta.inject.Singleton
 import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
-import uk.gov.justice.digital.command.CreateDomain
+import uk.gov.justice.digital.command.CreateDomainInteractive
 import uk.gov.justice.digital.command.ListDomains
 import uk.gov.justice.digital.command.ViewDomain
 import uk.gov.justice.digital.session.BatchSession
@@ -18,7 +18,7 @@ import java.lang.IllegalStateException
     subcommands = [
         ListDomains::class,
         ViewDomain::class,
-        CreateDomain::class,
+        CreateDomainInteractive::class,
     ],
 )
 @Singleton
