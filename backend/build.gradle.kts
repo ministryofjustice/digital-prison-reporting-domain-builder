@@ -19,6 +19,7 @@ micronaut {
 val kotlinVersion = "1.8.10"
 val ktormVersion = "3.6.0"
 val testContainersVersion = "1.18.0"
+val sparkVersion = "3.3.0"
 
 dependencies {
   implementation(project(":common"))
@@ -48,7 +49,10 @@ dependencies {
 
   implementation("org.postgresql:postgresql:42.6.0")
 
-  implementation("org.apache.spark:spark-sql_2.12:2.4.0")
+  // Spark dependencies
+  implementation("org.apache.spark:spark-sql_2.12:$sparkVersion")
+  implementation("org.apache.spark:spark-catalyst_2.12:$sparkVersion")
+  implementation("org.apache.spark:spark-core_2.12:$sparkVersion")
 
   kapt("io.micronaut:micronaut-inject-java")
   kapt("io.micronaut:micronaut-http-validation")

@@ -11,9 +11,7 @@ workflows:
           context:
             - hmpps-reporting-common
             - hmpps-reporting-orb
-          filters:
-            branches:
-              only: main
+          cache_key: "dpr-domain-builder-owasp-build-cache"
       - reporting/gradle_build_publish:
           app: domain-builder
           app_artifacts_directory: build/libs/

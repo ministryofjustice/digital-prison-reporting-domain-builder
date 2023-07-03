@@ -2,7 +2,6 @@ package uk.gov.justice.digital.backend.validator
 
 import jakarta.inject.Singleton
 import org.apache.spark.sql.execution.SparkSqlParser
-import org.apache.spark.sql.internal.SQLConf
 import org.slf4j.LoggerFactory
 
 @Singleton
@@ -10,7 +9,7 @@ class SparkSqlValidator {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    private val validator = SparkSqlParser(SQLConf())
+    private val validator = SparkSqlParser()
 
     fun validate(sparkSql: String): SparkSqlValidationResult {
         return try {
