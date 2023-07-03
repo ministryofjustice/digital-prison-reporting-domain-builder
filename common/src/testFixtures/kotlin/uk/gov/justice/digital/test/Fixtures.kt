@@ -102,4 +102,16 @@ object Fixtures {
         tables = listOf(table1),
     )
 
+    val writeableDomainWithInvalidMappingSql = writeableDomain.copy(
+        tables = writeableDomain.tables.map {
+            it.copy(mapping = mapping.copy(viewText = "This is not valid SQL"))
+        }
+    )
+
+    val writeableDomainWithInvalidTransformSql = writeableDomain.copy(
+        tables = writeableDomain.tables.map {
+            it.copy(transform = transform.copy(viewText = "This is not valid SQL"))
+        }
+    )
+
 }
