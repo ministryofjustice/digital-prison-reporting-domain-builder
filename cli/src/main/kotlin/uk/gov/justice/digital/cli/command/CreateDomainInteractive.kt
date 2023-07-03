@@ -36,6 +36,7 @@ class CreateDomainInteractive(private val service: DomainService) : Runnable {
                      parent.getInteractiveSession())
     }
 
+    // TODO - this needs to reinit the form data
     override fun run() {
         editor.run()
     }
@@ -81,24 +82,7 @@ class DomainEditor(private val terminal: Terminal,
     // Initial position when editing - defaults to first field
     private var position = 0
 
-    private var pageElements = listOf(
-            Blank(),
-            Heading("Create domain", "green"),
-            Blank(),
-            InputField("Name", ""),
-            InputField("Description", ""),
-            InputField("Originator", ""),
-            Blank(),
-            Heading("Table Properties", "yellow"),
-            Blank(),
-            InputField("Table", ""),
-            InputField("Description", ""),
-            InputField("Sources", ""),
-            InputField("Query", ""),
-            Blank(),
-            Heading("j: Down k: Up q: Quit", "white"),
-            Blank(),
-    )
+    private var pageElements = emptyPageElements()
 
     private val inputFieldMargin = pageElements
             .filter { it.canSelect && it is InputField }
@@ -112,6 +96,35 @@ class DomainEditor(private val terminal: Terminal,
     // Bounds for user cursor up/down
     private val minPosition = 0
     private val maxPosition = selectableElementIndexes.size - 1
+
+    private fun emptyPageElements() = listOf(
+        Blank(),
+        Heading("Create New Domain", "green"),
+        Blank(),
+        Heading("Domain Properties", "yellow"),
+        Blank(),
+        InputField("Name", ""),
+        InputField("Description", ""),
+        InputField("Location", ""),
+        // TODO - tags, allow key value pair entry / deletion
+        InputField("Owner", ""),
+        InputField("Author", ""),
+        Blank(),
+        Heading("Table Properties", "yellow"),
+        Blank(),
+        InputField("Name", ""),
+        InputField("Description", ""),
+        InputField("Location", ""),
+        // TODO - tags, allow key value pair entry / deletion
+        InputField("Owner", ""),
+        InputField("Author", ""),
+        InputField("Primary Key", ""),
+        InputField("Sources", ""),
+        InputField("Spark Query", ""),
+        Blank(),
+        Heading("Use cursor up/down keys to move up and down. Press enter to edit a field. Press q to Quit", "white"),
+        Blank(),
+    )
 
     private fun updateDisplay(input: String = "") {
         val width = terminalSize.columns
@@ -160,6 +173,7 @@ class DomainEditor(private val terminal: Terminal,
         terminal.flush()
     }
 
+    // TODO - clearDisplay causes flicker - replace this with fullwidth strings printed for each line on each refresh
     private fun clearDisplay() {
         terminal.puts(Capability.clear_screen)
         terminal.flush()
@@ -178,36 +192,39 @@ class DomainEditor(private val terminal: Terminal,
         }
     }
 
+    // TODO - does anything else need to be reset?
+    private fun resetState() {
+        pageElements = emptyPageElements()
+        position = 0
+    }
+
     fun run() {
-        val status = Status.getStatus(terminal);
-        status?.suspend()
+        resetState()
 
-        terminalSize.copy(terminal.size)
-
-        terminal.handle(Signal.WINCH, this::handleSignal)
-
-        display.reset()
-
+        // TODO - can we clean this up using an immutable map instead?
         val keys = KeyMap<Operation>()
-
         bindKeys(keys)
 
+        terminalSize.copy(terminal.size)
+        terminal.handle(Signal.WINCH, this::handleSignal)
+        display.reset()
+
         val originalAttributes = terminal.enterRawMode()
+        terminal.flush()
         terminal.writer().flush()
 
         updateDisplay()
-        checkInterrupted()
 
         var continueRunning = true
 
         do {
             checkInterrupted()
 
-            when (bindingReader.readBinding(keys, null, false)) {
+            when (bindingReader.readBinding(keys, null, true)) {
                 Operation.EXIT -> {
                     continueRunning = false
                     clearDisplay()
-                    terminal.setAttributes(originalAttributes)
+                    terminal.attributes = originalAttributes
                 }
                 Operation.UP -> {
                     updatePosition(-1)
@@ -221,14 +238,18 @@ class DomainEditor(private val terminal: Terminal,
                     // For dumb terminals, we need to make sure that CR are ignored
                     val attr = Attributes(originalAttributes)
                     attr.setInputFlag(Attributes.InputFlag.ICRNL, true)
-                    terminal.setAttributes(attr)
-                    val lineReader = LineReaderBuilder.builder().build()
+                    terminal.attributes = attr
+                    val lineReader = LineReaderBuilder.builder()
+                        .terminal(terminal)
+                        .build()
                     val input = lineReader.readLine()
-                    terminal.setAttributes(originalAttributes)
+                    terminal.attributes = originalAttributes
                     terminal.enterRawMode()
                     updateDisplay(input)
                 }
-                else -> { /** NO-OP **/ }
+                else -> {
+                    /** NO-OP **/
+                }
             }
 
         } while (continueRunning)
@@ -241,13 +262,10 @@ class DomainEditor(private val terminal: Terminal,
             else newPosition
     }
 
-    // TODO - Up/Down arrow keys were working - investigate
     private fun bindKeys(map: KeyMap<Operation>) {
         map.bind(Operation.EXIT, "q")
-        map.bind(Operation.UP, "k", "\\e[A", key(Capability.back_tab), key(Capability.key_up))
-        map.bind(Operation.DOWN, "j", "\\e[B", key(Capability.tab), key(Capability.key_down))
-        map.bind(Operation.LEFT, key(Capability.key_left))
-        map.bind(Operation.RIGHT, key(Capability.key_right))
+        map.bind(Operation.UP, "\u001B[A", "k")
+        map.bind(Operation.DOWN, "\u001B[B", "j")
         map.bind(Operation.EDIT, "\r")
     }
 

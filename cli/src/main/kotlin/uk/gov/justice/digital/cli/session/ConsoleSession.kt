@@ -63,7 +63,10 @@ class InteractiveSession: ConsoleSession {
         AnsiConsole.systemInstall()
 
         try {
-            this.terminal = TerminalBuilder.builder().build()
+            this.terminal = TerminalBuilder
+                .builder()
+                .system(true)
+                .build()
             this.terminal.use { interactiveSession(commandLine, it) }
         } finally {
             AnsiConsole.systemUninstall()
