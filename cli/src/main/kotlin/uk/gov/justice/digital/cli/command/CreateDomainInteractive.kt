@@ -11,16 +11,12 @@ import org.jline.terminal.Terminal.Signal
 import org.jline.utils.Curses
 import org.jline.utils.Display
 import org.jline.utils.InfoCmp.Capability
-import org.jline.utils.Status
 import picocli.CommandLine.Command
 import picocli.CommandLine.ParentCommand
 import uk.gov.justice.digital.cli.DomainBuilder
 import uk.gov.justice.digital.cli.service.DomainService
 import uk.gov.justice.digital.cli.session.ConsoleSession
 
-// TODO - factor out the 'editor' functionality into a separate DomainEditor component that can be used by create/edit
-//      - consider using ...digital.interactive.DomainEditor since this will only be available for interactive sessions.
-@Singleton
 @Command(
         name = "create-interactive",
         description = ["Create a new domain"],
@@ -226,14 +222,9 @@ class DomainEditor(private val terminal: Terminal,
                     clearDisplay()
                     terminal.attributes = originalAttributes
                 }
-                Operation.UP -> {
-                    updatePosition(-1)
-                    updateDisplay()
-                }
-                Operation.DOWN -> {
-                    updatePosition(1)
-                    updateDisplay()
-                }
+                Operation.UP -> updatePositionAndRefreshDisplay(-1)
+                Operation.DOWN -> updatePositionAndRefreshDisplay(1)
+                // TODO - can we add ESC to abort editing?
                 Operation.EDIT -> {
                     // For dumb terminals, we need to make sure that CR are ignored
                     val attr = Attributes(originalAttributes)
@@ -255,11 +246,12 @@ class DomainEditor(private val terminal: Terminal,
         } while (continueRunning)
     }
 
-    private fun updatePosition(i: Int) {
+    private fun updatePositionAndRefreshDisplay(i: Int) {
         val newPosition = position + i
         position = if (newPosition < minPosition) minPosition
             else if (newPosition > maxPosition) maxPosition
             else newPosition
+        updateDisplay()
     }
 
     private fun bindKeys(map: KeyMap<Operation>) {
@@ -279,8 +271,6 @@ class DomainEditor(private val terminal: Terminal,
         // Motion
         UP,
         DOWN,
-        LEFT,
-        RIGHT,
         // Editing
         EDIT
     }
