@@ -17,6 +17,7 @@ import uk.gov.justice.digital.cli.DomainBuilder
 import uk.gov.justice.digital.cli.service.DomainService
 import uk.gov.justice.digital.cli.session.ConsoleSession
 
+@Singleton
 @Command(
         name = "create-interactive",
         description = ["Create a new domain"],
@@ -157,14 +158,10 @@ class DomainEditor(private val terminal: Terminal,
         // Reset cursor position and move to the currently selected element
         terminal.puts(Capability.cursor_home)
 
-        for (i in 1..selectedElementIndex) {
-            terminal.puts(Capability.cursor_down)
-        }
-
+        // TODO - should be possible to do these moves in one go by specifying repetitions in the escape sequence.
+        for (i in 1..selectedElementIndex) { terminal.puts(Capability.cursor_down) }
         // TODO - don't use hardcoded margin value
-        for (i in 1..14) {
-            terminal.puts(Capability.cursor_right)
-        }
+        for (i in 1..14) { terminal.puts(Capability.cursor_right) }
 
         terminal.flush()
     }
@@ -230,6 +227,7 @@ class DomainEditor(private val terminal: Terminal,
                     val attr = Attributes(originalAttributes)
                     attr.setInputFlag(Attributes.InputFlag.ICRNL, true)
                     terminal.attributes = attr
+                    // TODO - can we set a margin to prevent deletion of the labels?
                     val lineReader = LineReaderBuilder.builder()
                         .terminal(terminal)
                         .build()
