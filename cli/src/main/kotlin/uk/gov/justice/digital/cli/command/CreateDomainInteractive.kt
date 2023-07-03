@@ -48,6 +48,7 @@ class Blank: Element {
     override val canSelect = false
     override fun render(): String { return "" }
 }
+// TODO - consider providing a prompt method here that can be used for generating the list view and for edits.
 data class InputField(val name: String,
                       val value: String,
                       val selected: Boolean = false,
@@ -77,6 +78,7 @@ class DomainEditor(private val terminal: Terminal,
     private val display = Display(terminal, true)
 
     // Initial position when editing - defaults to first field
+    // TODO - rename this - editable field position
     private var position = 0
 
     private var pageElements = emptyPageElements()
@@ -94,6 +96,7 @@ class DomainEditor(private val terminal: Terminal,
     private val minPosition = 0
     private val maxPosition = selectableElementIndexes.size - 1
 
+    // TODO - tags, allow key value pair entry / deletion
     private fun emptyPageElements() = listOf(
         Blank(),
         Heading("Create New Domain", "green"),
@@ -103,7 +106,6 @@ class DomainEditor(private val terminal: Terminal,
         InputField("Name", ""),
         InputField("Description", ""),
         InputField("Location", ""),
-        // TODO - tags, allow key value pair entry / deletion
         InputField("Owner", ""),
         InputField("Author", ""),
         Blank(),
@@ -112,7 +114,6 @@ class DomainEditor(private val terminal: Terminal,
         InputField("Name", ""),
         InputField("Description", ""),
         InputField("Location", ""),
-        // TODO - tags, allow key value pair entry / deletion
         InputField("Owner", ""),
         InputField("Author", ""),
         InputField("Primary Key", ""),
@@ -123,7 +124,7 @@ class DomainEditor(private val terminal: Terminal,
         Blank(),
     )
 
-    private fun updateDisplay(input: String = "") {
+    private fun updateDisplay(input: String? = null) {
         val width = terminalSize.columns
         // TODO - handle case where there's too much output to display.
         val height = terminalSize.rows
@@ -131,7 +132,8 @@ class DomainEditor(private val terminal: Terminal,
         clearDisplay()
 
         // Update state - TODO - separate method
-        val selectedElementIndex = selectableElementIndexes.get(position)
+        // TODO - clean this up
+        val selectedElementIndex = selectableElementIndexes[position]
         pageElements = pageElements
                 .withIndex()
                 .map { item ->
@@ -143,8 +145,8 @@ class DomainEditor(private val terminal: Terminal,
                         // TODO - cursor position should be updated too
                         is InputField -> element.copy(
                                 selected = selected,
-                                margin = inputFieldMargin ?: 20,
-                                value = if (selected && input.isNotBlank()) input else element.value
+                                margin = inputFieldMargin ?: 20, // TODO - define default elsewhere
+                                value = if (selected && input != null) input else element.value
                         )
                     }
                 }
@@ -222,16 +224,29 @@ class DomainEditor(private val terminal: Terminal,
                 Operation.UP -> updatePositionAndRefreshDisplay(-1)
                 Operation.DOWN -> updatePositionAndRefreshDisplay(1)
                 // TODO - can we add ESC to abort editing?
+                // TODO - replace yellow highlight with negated colors?
                 Operation.EDIT -> {
+                    val selectedElementIndex = selectableElementIndexes[position]
+                    val selectedElement = pageElements[selectedElementIndex] as? InputField
                     // For dumb terminals, we need to make sure that CR are ignored
                     val attr = Attributes(originalAttributes)
                     attr.setInputFlag(Attributes.InputFlag.ICRNL, true)
                     terminal.attributes = attr
+
                     // TODO - can we set a margin to prevent deletion of the labels?
                     val lineReader = LineReaderBuilder.builder()
-                        .terminal(terminal)
+                        .terminal(this.terminal)
                         .build()
-                    val input = lineReader.readLine()
+
+                    // TODO - this code is a bit messy - provide helper methods
+                    val currentValue = selectedElement?.value ?: ""
+
+                    // TODO - better way to do this? We set prompt to ' ' so we need to move the cursor one char
+                    //        left before initiating edit.
+                    terminal.puts(Capability.cursor_left)
+
+                    val input = lineReader.readLine(" ", null, currentValue)
+
                     terminal.attributes = originalAttributes
                     terminal.enterRawMode()
                     updateDisplay(input)
