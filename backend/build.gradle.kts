@@ -127,7 +127,10 @@ tasks {
     destinationDirectory.set(File("${project.rootDir}/build/libs"))
     setProperty("zip64", true)
     minimize {
-      exclude("**/io/micronaut/**")
+      // TODO - StaticMDCBinder is not being included in the Jar even though it is in org/slf4j
+      mergeServiceFiles("org/slf4j")
+      exclude(dependency("io.micronaut.*:.*"))
+      exclude(dependency("ch.qos.logback:.*:.*"))
     }
   }
 
