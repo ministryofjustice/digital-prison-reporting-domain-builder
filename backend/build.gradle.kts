@@ -21,8 +21,13 @@ val ktormVersion = "3.6.0"
 val testContainersVersion = "1.18.0"
 val sparkVersion = "3.3.0"
 
+// Exclude unused dependencies to ensure that the backend jar does not exceed
+// the AWS Lambda limit of 250MiB uncompressed.
+// excludes are declared globally here to avoid repeated declarations across
+// the spark dependencies that are used in this module.
 configurations {
     all {
+      exclude("org.apache.hadoop.shaded")
       exclude("com.google.crypto.tink")
       exclude("com.google.flatbuffers")
       exclude("com.google.protobuf")
@@ -36,6 +41,8 @@ configurations {
       exclude("org.apache.ivy")
       exclude("org.apache.orc")
       exclude("org.apache.parquet")
+      exclude("org.rocksdb")
+      exclude("org.sparkproject")
       exclude("org.apache.spark", "spark-kvstore_2.12")
       exclude("org.apache.spark", "spark-launcher_2.12")
       exclude("org.apache.spark", "spark-network-shuffle_2.12")
@@ -46,6 +53,7 @@ configurations {
       exclude("org.glassfish.jersey.containers")
       exclude("org.glassfish.jersey.core")
       exclude("org.glassfish.jersey.inject")
+      exclude("org.xerial.snappy")
     }
 }
 
