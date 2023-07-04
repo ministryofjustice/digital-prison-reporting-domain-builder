@@ -50,9 +50,16 @@ dependencies {
   implementation("org.postgresql:postgresql:42.6.0")
 
   // Spark dependencies
-  implementation("org.apache.spark:spark-sql_2.12:$sparkVersion")
-  implementation("org.apache.spark:spark-catalyst_2.12:$sparkVersion")
-  implementation("org.apache.spark:spark-core_2.12:$sparkVersion")
+  implementation("org.apache.spark:spark-sql_2.12:$sparkVersion") {
+    // Exclude transitive dependencies that are not needed to keep the unpacked
+    // jar size within the AWS Lambda limit of 250MiB
+    exclude("org.apache.spark", "spark-sketch_2.12")
+    exclude("org.apache.avro")
+    exclude("org.apache.curator")
+    exclude("org.apache.zookeeper")
+    exclude("org.glassfish")
+    exclude("com.twitter")
+  }
 
   kapt("io.micronaut:micronaut-inject-java")
   kapt("io.micronaut:micronaut-http-validation")
