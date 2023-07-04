@@ -91,6 +91,7 @@ tasks {
     archiveBaseName.set("domain-builder-backend-api")
     destinationDirectory.set(File("${project.rootDir}/build/libs"))
     setProperty("zip64", true)
+    minimize()
   }
 
 }
