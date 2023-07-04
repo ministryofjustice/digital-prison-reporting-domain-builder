@@ -53,12 +53,39 @@ dependencies {
   implementation("org.apache.spark:spark-sql_2.12:$sparkVersion") {
     // Exclude transitive dependencies that are not needed to keep the unpacked
     // jar size within the AWS Lambda limit of 250MiB
+    exclude("org.apache.spark", "spark-core_2.12")
+    exclude("org.apache.spark", "spark-catalyst_2.12")
     exclude("org.apache.spark", "spark-sketch_2.12")
-    exclude("org.apache.avro")
-    exclude("org.apache.curator")
-    exclude("org.apache.zookeeper")
-    exclude("org.glassfish")
+    exclude("org.apache.orc")
+    exclude("org.apache.parquet")
+  }
+
+  implementation("org.apache.spark:spark-core_2.12:$sparkVersion") {
+    // Exclude transitive dependencies that are not needed to keep the unpacked
+    // jar size within the AWS Lambda limit of 250MiB
+    exclude("io.netty")
+    exclude("org.apache.spark", "spark-catalyst_2.12")
+    exclude("org.apache.spark", "spark-kvstore_2.12")
+    exclude("org.apache.spark", "spark-launcher_2.12")
+    exclude("org.apache.spark", "spark-network-shuffle_2.12")
+    exclude("org.apache.spark", "spark-sketch_2.12")
+    exclude("org.apache.spark", "spark-unsafe_2.12")
+    exclude("org.apache.avro", "avro-mapred")
+    exclude("org.apache.curator", "curator-recipes")
+    exclude("org.apache.zookeeper", "zookeeper")
+    exclude("org.glassfish.jersey.core")
+    exclude("org.glassfish.jersey.containers")
+    exclude("org.glassfish.jersey.inject")
     exclude("com.twitter")
+  }
+
+  implementation("org.apache.spark:spark-catalyst_2.12:$sparkVersion") {
+    exclude("org.apache.spark", "spark-unsafe_2.12")
+    exclude("com.twitter")
+    exclude("org.apache.arrow")
+    exclude("org.apache.orc")
+    exclude("org.apache.hive")
+    exclude("org.apache.parquet")
   }
 
   kapt("io.micronaut:micronaut-inject-java")
