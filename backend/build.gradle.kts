@@ -127,7 +127,7 @@ tasks {
     destinationDirectory.set(File("${project.rootDir}/build/libs"))
     setProperty("zip64", true)
     minimize {
-      exclude("io.micronaut")
+      exclude("**/io/micronaut/**")
     }
   }
 
