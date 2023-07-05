@@ -93,7 +93,7 @@ dependencies {
   kapt("io.micronaut:micronaut-http-validation")
 
   kapt("io.micronaut.serde:micronaut-serde-processor:1.5.2")
-  runtimeOnly("io.micronaut.serde:micronaut-serde-jackson:1.5.2")
+  implementation("io.micronaut.serde:micronaut-serde-jackson:1.5.2")
   implementation("io.micronaut.serde:micronaut-serde-api:1.5.2")
 
   kaptTest("io.micronaut:micronaut-inject-java")
@@ -127,12 +127,9 @@ tasks {
     destinationDirectory.set(File("${project.rootDir}/build/libs"))
     setProperty("zip64", true)
     minimize {
-      // TODO - StaticMDCBinder is not being included in the Jar even though it is in org/slf4j
-      mergeServiceFiles("org/slf4j")
-
-      exclude(project(":common"))
-      exclude(dependency("io.micronaut.*:.*"))
       exclude(dependency("ch.qos.logback:.*:.*"))
+      exclude(dependency("io.micronaut.*:.*:.*"))
+      exclude(project(":common"))
     }
   }
 
