@@ -1,9 +1,10 @@
 plugins {
   id("org.jetbrains.kotlin.jvm") version "1.8.10"
+  id("org.jetbrains.kotlin.plugin.allopen") version "1.8.10"
   id("io.micronaut.minimal.library") version "3.7.7"
-  id("kotlin-kapt")
   id("java-test-fixtures")
   jacoco
+  kotlin("kapt")
 }
 
 repositories {
@@ -15,6 +16,7 @@ micronaut {
 }
 
 dependencies {
+  kapt("io.micronaut:micronaut-inject-java")
   kapt("io.micronaut.serde:micronaut-serde-processor:1.5.2")
   runtimeOnly("io.micronaut.serde:micronaut-serde-jackson:1.5.2")
   implementation("io.micronaut:micronaut-jackson-databind:2.14.2")
@@ -26,4 +28,8 @@ dependencies {
 
 tasks.named<Test>("test") {
   useJUnitPlatform()
+}
+
+kapt {
+    useBuildCache = false
 }

@@ -2,8 +2,9 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
   id("org.jetbrains.kotlin.jvm") version "1.8.10"
+  id("org.jetbrains.kotlin.kapt")
+  id("org.jetbrains.kotlin.plugin.allopen") version "1.8.10"
   id("io.micronaut.minimal.application") version "3.7.7"
-  id("kotlin-kapt")
   id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
