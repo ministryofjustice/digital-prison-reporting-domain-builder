@@ -129,6 +129,7 @@ tasks {
     minimize {
       exclude(dependency("ch.qos.logback:.*:.*"))
       exclude(dependency("io.micronaut.*:.*:.*"))
+      exclude(dependency("org.jetbrains.*:.*:.*"))
       exclude(project(":common"))
     }
   }
