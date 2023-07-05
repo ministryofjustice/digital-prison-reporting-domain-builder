@@ -13,11 +13,12 @@ import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.backend.repository.table.DomainTable
 import uk.gov.justice.digital.model.WriteableDomain
 import uk.gov.justice.digital.time.ClockProvider
+import uk.gov.justice.digital.time.DefaultClockProvider
 import java.util.*
 import javax.sql.DataSource
 
 @Singleton
-class DomainRepository(dataSource: DataSource, @param:Named("DefaultClockProvider") private val clockProvider: ClockProvider) {
+class DomainRepository(dataSource: DataSource, clockProvider: ClockProvider = DefaultClockProvider()) {
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 

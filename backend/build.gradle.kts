@@ -23,8 +23,8 @@ val sparkVersion = "3.3.0"
 
 // Exclude unused dependencies to ensure that the backend jar does not exceed
 // the AWS Lambda limit of 250MiB uncompressed.
-// excludes are declared globally here to avoid repeated declarations across
-// the spark dependencies that are used in this module.
+// Excludes are declared globally here to avoid repeated declarations for each
+// of the spark dependencies that are required.
 configurations {
     all {
       exclude("com.google.crypto.tink")
@@ -127,9 +127,12 @@ tasks {
     destinationDirectory.set(File("${project.rootDir}/build/libs"))
     setProperty("zip64", true)
     minimize {
+      // The following dependencies are excluded from minimization so they will
+      // be *included* in the jar.
       exclude(dependency("ch.qos.logback:.*:.*"))
       exclude(dependency("io.micronaut.*:.*:.*"))
       exclude(dependency("org.jetbrains.*:.*:.*"))
+      exclude(project(":backend"))
       exclude(project(":common"))
     }
   }
