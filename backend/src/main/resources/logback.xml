@@ -18,8 +18,8 @@
     </appender>
 
     <!-- when running locally set to CONSOLE to see MDC values -->
-    <root level="INFO">
-      <appender-ref ref="CLOUDWATCH" />
+    <root level="TRACE">
+      <appender-ref ref="CONSOLE" />
     </root>
 
 </configuration>
