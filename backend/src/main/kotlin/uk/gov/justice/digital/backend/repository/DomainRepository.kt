@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.backend.repository
 
+import jakarta.inject.Named
 import jakarta.inject.Singleton
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
@@ -16,7 +17,7 @@ import java.util.*
 import javax.sql.DataSource
 
 @Singleton
-class DomainRepository(dataSource: DataSource, clockProvider: ClockProvider) {
+class DomainRepository(dataSource: DataSource, @param:Named("Default") private val clockProvider: ClockProvider) {
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
