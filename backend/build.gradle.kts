@@ -129,6 +129,8 @@ tasks {
     minimize {
       // TODO - StaticMDCBinder is not being included in the Jar even though it is in org/slf4j
       mergeServiceFiles("org/slf4j")
+
+      exclude(project(":common"))
       exclude(dependency("io.micronaut.*:.*"))
       exclude(dependency("ch.qos.logback:.*:.*"))
     }
