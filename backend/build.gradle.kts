@@ -123,6 +123,17 @@ tasks {
   }
 
   named<ShadowJar>("shadowJar") {
+    // Dump out some java version info
+    val javaVersion = System.getProperty("java.runtime.version")
+    val javaVMName = System.getProperty("java.vm.name")
+    val javaVendor = System.getProperty("java.vendor")
+    val javaVendorVersion = System.getProperty("java.vendor.version")
+
+    println("\nBuilding jar with")
+    println("   Java:           $javaVMName $javaVersion")
+    println("   Vendor:         $javaVendor")
+    println("   Vendor Version: $javaVendorVersion")
+
     archiveBaseName.set("domain-builder-backend-api")
     destinationDirectory.set(File("${project.rootDir}/build/libs"))
     setProperty("zip64", true)
