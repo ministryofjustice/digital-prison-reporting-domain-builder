@@ -138,15 +138,15 @@ tasks {
     archiveBaseName.set("domain-builder-backend-api")
     destinationDirectory.set(File("${project.rootDir}/build/libs"))
     setProperty("zip64", true)
-    minimize {
-      // The following dependencies are excluded from minimization so they will
-      // be *included* in the jar.
-      exclude(dependency("ch.qos.logback:.*:.*"))
-      exclude(dependency("io.micronaut.*:.*:.*"))
-      exclude(dependency("org.jetbrains.*:.*:.*"))
-      exclude(project(":backend"))
-      exclude(project(":common"))
-    }
+//    minimize {
+//      // The following dependencies are excluded from minimization so they will
+//      // be *included* in the jar.
+//      exclude(dependency("ch.qos.logback:.*:.*"))
+//      exclude(dependency("io.micronaut.*:.*:.*"))
+//      exclude(dependency("org.jetbrains.*:.*:.*"))
+//      exclude(project(":backend"))
+//      exclude(project(":common"))
+//    }
   }
 
 }
