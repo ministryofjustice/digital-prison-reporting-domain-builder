@@ -17,7 +17,7 @@ import java.util.*
 import javax.sql.DataSource
 
 @Singleton
-class DomainRepository(dataSource: DataSource, @param:Named("Default") private val clockProvider: ClockProvider) {
+class DomainRepository(dataSource: DataSource, @param:Named("DefaultClockProvider") private val clockProvider: ClockProvider) {
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
