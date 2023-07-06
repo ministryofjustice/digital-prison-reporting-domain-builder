@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.backend.validator
 
 import jakarta.inject.Singleton
-import org.apache.spark.sql.execution.SparkSqlParser
 import org.slf4j.LoggerFactory
 
 @Singleton
@@ -9,16 +8,10 @@ class SparkSqlValidator {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    private val validator = SparkSqlParser()
-
+    // TODO - reimplement Spark SQL validation. See DPR-600.
     fun validate(sparkSql: String): SparkSqlValidationResult {
-        return try {
-            validator.parseExpression(sparkSql)
-            ValidSparkSqlResult()
-        } catch (ex: Exception) {
-            logger.warn("Failed to validate spark SQL: '{}'", sparkSql)
-            InvalidSparkSqlResult(ex.localizedMessage)
-        }
+        logger.warn("Spark SQL validation not implemented. Treating query '{}' as valid.", sparkSql)
+        return ValidSparkSqlResult()
     }
 
 }
