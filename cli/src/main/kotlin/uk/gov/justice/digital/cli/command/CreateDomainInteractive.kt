@@ -132,6 +132,26 @@ class DomainEditor(private val terminal: Terminal,
         Heading("keys │ ↑ move up │ ↓ move down │ enter to edit │ s to Save │ q to Quit ", "black", "white")
     )
 
+    private fun updateSelectedElement(input: String?) {
+        val selectedElementIndex = selectableElementIndexes[position]
+        pageElements = pageElements
+            .withIndex()
+            .map { item ->
+                val selected = item.index == selectedElementIndex
+                when(val element = item.value) {
+                    is Blank -> element
+                    is Heading -> element
+                    // TODO - fix this - ideally the margin isn't nullable
+                    // TODO - cursor position should be updated too
+                    is InputField -> element.copy(
+                        selected = selected,
+                        margin = inputFieldMargin ?: 20, // TODO - define default elsewhere
+                        value = if (selected && input != null) input else element.value
+                    )
+                }
+            }
+    }
+
     private fun updateDisplay(input: String? = null) {
         val width = terminalSize.columns
 
@@ -140,9 +160,8 @@ class DomainEditor(private val terminal: Terminal,
 
         moveCursorToHome()
 
-        // Update state - TODO - separate method
-        // TODO - clean this up
         val selectedElementIndex = selectableElementIndexes[position]
+
         pageElements = pageElements
                 .withIndex()
                 .map { item ->
@@ -150,11 +169,9 @@ class DomainEditor(private val terminal: Terminal,
                     when(val element = item.value) {
                         is Blank -> element
                         is Heading -> element
-                        // TODO - fix this - ideally the margin isn't nullable
-                        // TODO - cursor position should be updated too
                         is InputField -> element.copy(
                                 selected = selected,
-                                margin = inputFieldMargin ?: 20, // TODO - define default elsewhere
+                                margin = inputFieldMargin,
                                 value = if (selected && input != null) input else element.value
                         )
                     }
@@ -169,14 +186,10 @@ class DomainEditor(private val terminal: Terminal,
         // Reset cursor position and move to the currently selected element
         terminal.puts(Capability.cursor_home)
 
-        // TODO - should be possible to do these moves in one go by specifying repetitions in the escape sequence.
-        for (i in 1..selectedElementIndex) { terminal.puts(Capability.cursor_down) }
-        // TODO - don't use hardcoded margin value
-        // TODO - cursor should appear at end of input where present
         val selectedElement = pageElements[selectedElementIndex]
         val inputLength = if (selectedElement is InputField) selectedElement.value.length else 0
-        // TODO - should be possible to do these moves in one go by specifying repetitions in the escape sequence.
-        for (i in 1..(15 + inputLength)) { terminal.puts(Capability.cursor_right) }
+
+        moveCursorTo(selectedElementIndex, inputLength + 15)
 
         terminal.flush()
     }
@@ -184,6 +197,22 @@ class DomainEditor(private val terminal: Terminal,
     private fun moveCursorToHome() {
         terminal.puts(Capability.cursor_home)
         terminal.flush()
+    }
+
+    private fun moveCursorTo(line: Int, column: Int) {
+        moveCursorToHome()
+        // TODO - try escape codes with parameters again. Should be possible to include the number of moves in a
+        //        single code e.g. ESC[12A but it's not worked so far hence the loops below.
+        moveCursorDown(line)
+        moveCursorRight(column)
+    }
+
+    private fun moveCursorDown(lines: Int) = applyAction(Capability.cursor_down, lines)
+    private fun moveCursorRight(columns: Int) = applyAction(Capability.cursor_right, columns)
+    private fun moveCursorLeft(columns: Int) = applyAction(Capability.cursor_left, columns)
+
+    private fun applyAction(action: Capability, count: Int = 1) {
+        for (i in 1..count) { terminal.puts(action) }
     }
 
     private fun clearDisplay() {
@@ -260,7 +289,7 @@ class DomainEditor(private val terminal: Terminal,
 
                     // Move the cursor to the start of the value string before we accept input since it will be in the
                     // wrong place if we already have a value (we default to placing the cursor at the end of the string).
-                    for (i in 1..(inputLength)) { terminal.puts(Capability.cursor_left) }
+                    moveCursorLeft(inputLength)
 
                     val lineReader = LineReaderBuilder.builder()
                         .terminal(this.terminal)
