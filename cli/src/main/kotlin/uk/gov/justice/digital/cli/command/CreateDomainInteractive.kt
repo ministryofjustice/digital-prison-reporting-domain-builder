@@ -131,8 +131,7 @@ class DomainEditor(private val terminal: Terminal,
         InputField("Sources", ""),
         InputField("Spark Query", ""),
         Blank(),
-        // TODO - use some sort of dynamic status line?
-        Heading("Use cursor up/down keys to select field. Press enter to edit. Press q to Quit", "black", "white"),
+        Heading("keys │ ↑ move up │ ↓ move down │ enter to edit │ s to Save │ q to Quit ", "black", "white")
     )
 
     private fun updateDisplay(input: String? = null) {
