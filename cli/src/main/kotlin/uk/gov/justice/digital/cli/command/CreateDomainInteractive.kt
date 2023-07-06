@@ -64,8 +64,8 @@ data class InputField(val name: String,
         val padding = " ".repeat(width - margin - 36)
         // TODO - the 30 padding here needs to be specified elsewhere
         val formattedValue = String.format("%-30s%s", value, padding)
-        return if (selected) "@|bold  $formattedName |@│ @|underline $formattedValue |@"
-            else "@|bold,faint  $formattedName |@│ $formattedValue"
+        return if (selected) "@|bold  $formattedName |@│ @|underline $formattedValue |@ "
+            else "@|bold,faint  $formattedName |@│ $formattedValue  "
 
     }
 }
@@ -141,7 +141,7 @@ class DomainEditor(private val terminal: Terminal,
         // TODO - handle case where there's too much output to display.
         val height = terminalSize.rows
 
-        clearDisplay()
+        moveCursorToHome()
 
         // Update state - TODO - separate method
         // TODO - clean this up
@@ -184,7 +184,11 @@ class DomainEditor(private val terminal: Terminal,
         terminal.flush()
     }
 
-    // TODO - clearDisplay causes flicker - replace this with fullwidth strings printed for each line on each refresh
+    private fun moveCursorToHome() {
+        terminal.puts(Capability.cursor_home)
+        terminal.flush()
+    }
+
     private fun clearDisplay() {
         terminal.puts(Capability.clear_screen)
         terminal.flush()
@@ -233,6 +237,7 @@ class DomainEditor(private val terminal: Terminal,
 
             when (bindingReader.readBinding(keys, null, true)) {
                 Operation.EXIT -> {
+                    // TODO - are you sure prompt
                     continueRunning = false
                     clearDisplay()
                     terminal.attributes = originalAttributes
@@ -275,7 +280,7 @@ class DomainEditor(private val terminal: Terminal,
                     updateDisplay(input)
                 }
                 else -> {
-                    /** NO-OP **/
+                    terminal.puts(Capability.bell)
                 }
             }
 
