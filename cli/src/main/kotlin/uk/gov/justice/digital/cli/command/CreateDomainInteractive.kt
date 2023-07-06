@@ -42,30 +42,37 @@ class CreateDomainInteractive(private val service: DomainService) : Runnable {
 
 sealed interface Element {
     val canSelect: Boolean
-    fun render(): String
+    fun render(width: Int): String
 }
+
 class Blank: Element {
     override val canSelect = false
-    override fun render(): String { return "" }
+    override fun render(width: Int): String { return " ".repeat(width) }
 }
+
 // TODO - consider providing a prompt method here that can be used for generating the list view and for edits.
 data class InputField(val name: String,
                       val value: String,
                       val selected: Boolean = false,
                       val margin: Int = name.length): Element {
     override val canSelect = true
-    override fun render(): String {
+    override fun render(width: Int): String {
         val formattedName = String.format("%-${margin}s",  name)
-        val formattedValue = String.format("%-30s", value)
-        return if (selected) "@|bold $formattedName |@| @|bg(yellow),fg(black) $formattedValue |@"
-            else "@|bold $formattedName |@| $formattedValue"
+        val padding = " ".repeat(width - margin - 34)
+        // TODO - the 30 padding here needs to be specified elsewhere
+        val formattedValue = String.format("%-30s%s", value, padding)
+        return if (selected) "@|bold $formattedName |@│ @|bg(white),fg(black) $formattedValue |@"
+            else "@|bold,faint $formattedName |@│ $formattedValue"
 
     }
 }
-data class Heading(val heading: String, val color: String): Element {
+
+data class Heading(val heading: String, val color: String, val backgroundColor: String? = null): Element {
     override val canSelect = false
-    override fun render(): String {
-        return "@|$color,bold $heading|@"
+    override fun render(width: Int): String {
+        val bgString = backgroundColor?.let { ",bg($it)" } ?: ""
+        val padding = " ".repeat(width - heading.length)
+        return "@|fg($color)$bgString,bold $heading$padding|@"
     }
 }
 
@@ -97,20 +104,22 @@ class DomainEditor(private val terminal: Terminal,
     private val maxPosition = selectableElementIndexes.size - 1
 
     // TODO - tags, allow key value pair entry / deletion
+    // TODO - the following fits into an 80 x 24 window - if more entries are required we will need to handle this
+    //        by defining a window or offset to only show those values that fit as the user moves up and down.
     private fun emptyPageElements() = listOf(
         Blank(),
-        Heading("Create New Domain", "green"),
+        Heading("Create New Domain", "black", "green"),
         Blank(),
         Heading("Domain Properties", "yellow"),
-        Blank(),
+        Heading("────────────┐", "white"),
         InputField("Name", ""),
         InputField("Description", ""),
         InputField("Location", ""),
         InputField("Owner", ""),
         InputField("Author", ""),
-        Blank(),
+        Heading("────────────┘", "white"),
         Heading("Table Properties", "yellow"),
-        Blank(),
+        Heading("────────────┐", "white"),
         InputField("Name", ""),
         InputField("Description", ""),
         InputField("Location", ""),
@@ -119,9 +128,9 @@ class DomainEditor(private val terminal: Terminal,
         InputField("Primary Key", ""),
         InputField("Sources", ""),
         InputField("Spark Query", ""),
-        Blank(),
-        Heading("Use cursor up/down keys to move up and down. Press enter to edit a field. Press q to Quit", "white"),
-        Blank(),
+        Heading("────────────┘", "white"),
+        // TODO - use some sort of dynamic status line?
+        Heading("Use cursor up/down keys to select field. Press enter to edit. Press q to Quit", "black", "white"),
     )
 
     private fun updateDisplay(input: String? = null) {
@@ -152,10 +161,15 @@ class DomainEditor(private val terminal: Terminal,
                 }
 
         pageElements.forEach { e ->
-            val content = e.render()
+            val content = e.render(width)
             if (content.isNotEmpty()) println(session.toAnsi(content))
             else println()
         }
+
+//        listOf("bold", "faint", "underline", "italic", "blink", "reverse", "reset").forEach {
+//            println(session.toAnsi("@|$it This is using the $it style |@"))
+//            println()
+//        }
 
         // Reset cursor position and move to the currently selected element
         terminal.puts(Capability.cursor_home)
