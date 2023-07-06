@@ -16,6 +16,8 @@ import picocli.CommandLine.ParentCommand
 import uk.gov.justice.digital.cli.DomainBuilder
 import uk.gov.justice.digital.cli.service.DomainService
 import uk.gov.justice.digital.cli.session.ConsoleSession
+import java.lang.Integer.min
+import kotlin.math.max
 
 @Singleton
 @Command(
@@ -167,18 +169,17 @@ class DomainEditor(private val terminal: Terminal,
             else println()
         }
 
-//        listOf("bold", "faint", "underline", "italic", "blink", "reverse", "reset").forEach {
-//            println(session.toAnsi("@|$it This is using the $it style |@"))
-//            println()
-//        }
-
         // Reset cursor position and move to the currently selected element
         terminal.puts(Capability.cursor_home)
 
         // TODO - should be possible to do these moves in one go by specifying repetitions in the escape sequence.
         for (i in 1..selectedElementIndex) { terminal.puts(Capability.cursor_down) }
         // TODO - don't use hardcoded margin value
-        for (i in 1..14) { terminal.puts(Capability.cursor_right) }
+        // TODO - cursor should appear at end of input where present
+        val selectedElement = pageElements[selectedElementIndex]
+        val inputLength = if (selectedElement is InputField) selectedElement.value.length else 0
+        // TODO - should be possible to do these moves in one go by specifying repetitions in the escape sequence.
+        for (i in 1..(15 + inputLength)) { terminal.puts(Capability.cursor_right) }
 
         terminal.flush()
     }
@@ -239,14 +240,21 @@ class DomainEditor(private val terminal: Terminal,
                 Operation.UP -> updatePositionAndRefreshDisplay(-1)
                 Operation.DOWN -> updatePositionAndRefreshDisplay(1)
                 // TODO - can we add ESC to abort editing?
-                // TODO - replace yellow highlight with negated colors?
                 Operation.EDIT -> {
+                    // TODO - provide a method to get the current input field or null?
                     val selectedElementIndex = selectableElementIndexes[position]
                     val selectedElement = pageElements[selectedElementIndex] as? InputField
+
                     // For dumb terminals, we need to make sure that CR are ignored
                     val attr = Attributes(originalAttributes)
                     attr.setInputFlag(Attributes.InputFlag.ICRNL, true)
                     terminal.attributes = attr
+
+                    val inputLength = selectedElement?.value?.length ?: 0
+
+                    // Move the cursor to the start of the value string before we accept input since it will be in the
+                    // wrong place if we already have a value (we default to placing the cursor at the end of the string).
+                    for (i in 1..(inputLength)) { terminal.puts(Capability.cursor_left) }
 
                     // TODO - can we set a margin to prevent deletion of the labels?
                     val lineReader = LineReaderBuilder.builder()
@@ -275,11 +283,14 @@ class DomainEditor(private val terminal: Terminal,
     }
 
     private fun updatePositionAndRefreshDisplay(i: Int) {
-        val newPosition = position + i
-        position = if (newPosition < minPosition) minPosition
-            else if (newPosition > maxPosition) maxPosition
-            else newPosition
-        updateDisplay()
+        // Ensure the updated value remains within the bounds minPosition < position < maxPosition
+        // TODO - check kotlin syntax - does it provide anything to express this?
+        val newPosition = min(maxPosition, max(minPosition, position + i))
+        // Only update the display if the position has changed
+        if (newPosition != position) {
+            position = newPosition
+            updateDisplay()
+        }
     }
 
     private fun bindKeys(map: KeyMap<Operation>) {
