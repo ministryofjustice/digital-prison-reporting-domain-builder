@@ -46,7 +46,7 @@ function check_jar_exists {
   then
     show_ok "Backend api jar exists in expected location"
   else
-    show_fail_and_exist "Backend api jar does not exist" "Review build output and check backend/build/libs contains the correctly named jar file"
+    show_fail_and_exit "Backend api jar does not exist" "Review build output and check backend/build/libs contains the correctly named jar file"
   fi
 }
 
