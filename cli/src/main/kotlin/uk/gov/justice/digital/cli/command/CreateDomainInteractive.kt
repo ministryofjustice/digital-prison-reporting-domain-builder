@@ -49,20 +49,17 @@ class Blank: Element {
     override fun render(width: Int): String { return " ".repeat(width) }
 }
 
-// TODO - consider providing a prompt method here that can be used for generating the list view and for edits.
 data class InputField(val name: String,
                       val value: String,
                       val selected: Boolean = false,
                       val margin: Int = name.length): Element {
+
     override val canSelect = true
     override fun render(width: Int): String {
         val formattedName = String.format("%-${margin}s",  name)
-        // TODO - fix these magic numbers
-        val padding = " ".repeat(width - margin - 36)
-        // TODO - the 30 padding here needs to be specified elsewhere
-        val formattedValue = String.format("%-30s%s", value, padding)
-        return if (selected) "@|bold  $formattedName |@│ @|underline $formattedValue |@ "
-            else "@|bold,faint  $formattedName |@│ $formattedValue  "
+        val padding = " ".repeat(width - margin - value.length - 6)
+        return if (selected) "@|bold  $formattedName |@│ @|underline $value$padding |@ "
+            else "@|bold,faint  $formattedName |@│ $value$padding  "
 
     }
 }
@@ -93,8 +90,9 @@ class DomainEditor(private val terminal: Terminal,
     private var pageElements = emptyPageElements()
 
     private val inputFieldMargin = pageElements
-            .filter { it.canSelect && it is InputField }
-            .maxOfOrNull { if (it is InputField) it.name.length else 0 }
+        .filter { it.canSelect && it is InputField }
+        .map { it as InputField }
+        .maxOf { it.name.length }
 
     private val selectableElementIndexes = pageElements
             .withIndex()
