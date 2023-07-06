@@ -4,11 +4,9 @@ import jakarta.inject.Singleton
 import org.jline.keymap.BindingReader
 import org.jline.keymap.KeyMap
 import org.jline.reader.LineReaderBuilder
-import org.jline.terminal.Attributes
 import org.jline.terminal.Size
 import org.jline.terminal.Terminal
 import org.jline.terminal.Terminal.Signal
-import org.jline.utils.Curses
 import org.jline.utils.Display
 import org.jline.utils.InfoCmp.Capability
 import picocli.CommandLine.Command
@@ -35,7 +33,6 @@ class CreateDomainInteractive(private val service: DomainService) : Runnable {
                      parent.getInteractiveSession())
     }
 
-    // TODO - this needs to reinit the form data
     override fun run() {
         editor.run()
     }
@@ -83,9 +80,11 @@ data class Heading(val heading: String, val color: String, val backgroundColor: 
 // directly.
 class DomainEditor(private val terminal: Terminal,
                    private val session: ConsoleSession) {
+
     private val bindingReader: BindingReader = BindingReader(terminal.reader())
     private val terminalSize: Size = Size()
     private val display = Display(terminal, true)
+    private val originalAttributes = terminal.attributes
 
     // Initial position when editing - defaults to first field
     // TODO - rename this - editable field position
@@ -138,8 +137,9 @@ class DomainEditor(private val terminal: Terminal,
 
     private fun updateDisplay(input: String? = null) {
         val width = terminalSize.columns
-        // TODO - handle case where there's too much output to display.
-        val height = terminalSize.rows
+
+        // By default hide the cursor until the user enters edit mode
+        terminal.puts(Capability.cursor_invisible)
 
         moveCursorToHome()
 
@@ -207,10 +207,17 @@ class DomainEditor(private val terminal: Terminal,
         }
     }
 
-    // TODO - does anything else need to be reset?
     private fun resetState() {
         pageElements = emptyPageElements()
         position = 0
+    }
+
+    private fun enableRawMode() {
+        terminal.enterRawMode()
+    }
+
+    private fun disableRawMode() {
+        terminal.attributes = originalAttributes
     }
 
     fun run() {
@@ -224,9 +231,7 @@ class DomainEditor(private val terminal: Terminal,
         terminal.handle(Signal.WINCH, this::handleSignal)
         display.reset()
 
-        val originalAttributes = terminal.enterRawMode()
-        terminal.flush()
-        terminal.writer().flush()
+        enableRawMode()
 
         updateDisplay()
 
@@ -240,20 +245,19 @@ class DomainEditor(private val terminal: Terminal,
                     // TODO - are you sure prompt
                     continueRunning = false
                     clearDisplay()
-                    terminal.attributes = originalAttributes
+                    terminal.puts(Capability.cursor_visible)
+                    disableRawMode()
                 }
                 Operation.UP -> updatePositionAndRefreshDisplay(-1)
                 Operation.DOWN -> updatePositionAndRefreshDisplay(1)
                 // TODO - can we add ESC to abort editing?
                 Operation.EDIT -> {
+
                     // TODO - provide a method to get the current input field or null?
                     val selectedElementIndex = selectableElementIndexes[position]
                     val selectedElement = pageElements[selectedElementIndex] as? InputField
 
-                    // For dumb terminals, we need to make sure that CR are ignored
-                    val attr = Attributes(originalAttributes)
-                    attr.setInputFlag(Attributes.InputFlag.ICRNL, true)
-                    terminal.attributes = attr
+                    disableRawMode()
 
                     val inputLength = selectedElement?.value?.length ?: 0
 
@@ -261,7 +265,6 @@ class DomainEditor(private val terminal: Terminal,
                     // wrong place if we already have a value (we default to placing the cursor at the end of the string).
                     for (i in 1..(inputLength)) { terminal.puts(Capability.cursor_left) }
 
-                    // TODO - can we set a margin to prevent deletion of the labels?
                     val lineReader = LineReaderBuilder.builder()
                         .terminal(this.terminal)
                         .build()
@@ -269,20 +272,25 @@ class DomainEditor(private val terminal: Terminal,
                     // TODO - this code is a bit messy - provide helper methods
                     val currentValue = selectedElement?.value ?: ""
 
-                    // TODO - better way to do this? We set prompt to ' ' so we need to move the cursor one char
-                    //        left before initiating edit.
+                    // Since we need to set the prompt to a single space we need to shift the cursor left on char before
+                    // we accept user input otherwise the cursor will not be properly aligned.
                     terminal.puts(Capability.cursor_left)
+                    // Now make the cursor visible
+                    terminal.puts(Capability.cursor_visible)
 
                     val input = lineReader.readLine(" ", null, currentValue)
 
-                    terminal.attributes = originalAttributes
-                    terminal.enterRawMode()
+                    // Hide the cursor again as soon as the user has hit enter.
+                    terminal.puts(Capability.cursor_invisible)
+
+                    enableRawMode()
                     updateDisplay(input)
                 }
                 else -> {
-                    terminal.puts(Capability.bell)
+                    /* Do nothing on unhandled input */
                 }
             }
+
 
         } while (continueRunning)
     }
@@ -305,10 +313,7 @@ class DomainEditor(private val terminal: Terminal,
         map.bind(Operation.EDIT, "\r")
     }
 
-    private fun key(capability: Capability): String {
-        return Curses.tputs(terminal.getStringCapability(capability))
-    }
-
+    // TODO - we need a SAVE operation
     private enum class Operation {
         // General
         EXIT,
