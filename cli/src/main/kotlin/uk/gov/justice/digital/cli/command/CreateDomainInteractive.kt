@@ -58,11 +58,12 @@ data class InputField(val name: String,
     override val canSelect = true
     override fun render(width: Int): String {
         val formattedName = String.format("%-${margin}s",  name)
-        val padding = " ".repeat(width - margin - 34)
+        // TODO - fix these magic numbers
+        val padding = " ".repeat(width - margin - 36)
         // TODO - the 30 padding here needs to be specified elsewhere
         val formattedValue = String.format("%-30s%s", value, padding)
-        return if (selected) "@|bold $formattedName |@│ @|bg(white),fg(black) $formattedValue |@"
-            else "@|bold,faint $formattedName |@│ $formattedValue"
+        return if (selected) "@|bold  $formattedName |@│ @|underline $formattedValue |@"
+            else "@|bold,faint  $formattedName |@│ $formattedValue"
 
     }
 }
@@ -71,8 +72,8 @@ data class Heading(val heading: String, val color: String, val backgroundColor: 
     override val canSelect = false
     override fun render(width: Int): String {
         val bgString = backgroundColor?.let { ",bg($it)" } ?: ""
-        val padding = " ".repeat(width - heading.length)
-        return "@|fg($color)$bgString,bold $heading$padding|@"
+        val padding = " ".repeat(width - heading.length - 1)
+        return "@|fg($color)$bgString,bold  $heading$padding|@"
     }
 }
 
@@ -111,15 +112,15 @@ class DomainEditor(private val terminal: Terminal,
         Heading("Create New Domain", "black", "green"),
         Blank(),
         Heading("Domain Properties", "yellow"),
-        Heading("────────────┐", "white"),
+        Blank(),
         InputField("Name", ""),
         InputField("Description", ""),
         InputField("Location", ""),
         InputField("Owner", ""),
         InputField("Author", ""),
-        Heading("────────────┘", "white"),
+        Blank(),
         Heading("Table Properties", "yellow"),
-        Heading("────────────┐", "white"),
+        Blank(),
         InputField("Name", ""),
         InputField("Description", ""),
         InputField("Location", ""),
@@ -128,7 +129,7 @@ class DomainEditor(private val terminal: Terminal,
         InputField("Primary Key", ""),
         InputField("Sources", ""),
         InputField("Spark Query", ""),
-        Heading("────────────┘", "white"),
+        Blank(),
         // TODO - use some sort of dynamic status line?
         Heading("Use cursor up/down keys to select field. Press enter to edit. Press q to Quit", "black", "white"),
     )
