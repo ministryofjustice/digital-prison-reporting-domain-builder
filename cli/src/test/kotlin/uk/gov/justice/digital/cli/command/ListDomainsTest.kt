@@ -5,7 +5,6 @@ import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.cli.DomainBuilder
-import uk.gov.justice.digital.cli.command.ListDomains
 import uk.gov.justice.digital.cli.service.DomainService
 import uk.gov.justice.digital.test.Fixtures.domain1
 import uk.gov.justice.digital.test.Fixtures.domain2
@@ -19,7 +18,7 @@ class ListDomainsTest {
     private val underTest = ListDomains(mockDomainService)
 
     @Test
-    fun listDomainsGeneratesExpectedOutput() {
+    fun `should generate a list of domains when domains exist`() {
 
         val capturedOutput = mutableListOf<String>()
 
@@ -41,6 +40,28 @@ class ListDomainsTest {
             | Domain 2 | DRAFT  | Another domain     |
             | Domain 3 | DRAFT  | Yet another domain |
             +----------+--------+--------------------+
+    
+""".trimIndent()
+
+        assertEquals(expectedOutput, capturedOutput.joinToString(""))
+    }
+
+    @Test
+    fun `should show a no domains found message when the api returns an empty list`() {
+
+        val capturedOutput = mutableListOf<String>()
+
+        underTest.parent = mockDomainBuilder
+
+        every { mockDomainBuilder.print(capture(capturedOutput)) } answers {  }
+        every { mockDomainService.getAllDomains() } answers { emptyArray() }
+
+        underTest.run()
+
+        val expectedOutput = """
+    
+            @|bold No domains were found|@
+            
     
 """.trimIndent()
 
