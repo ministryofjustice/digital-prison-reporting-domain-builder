@@ -36,11 +36,8 @@ class ListDomains(private val service: DomainService) : Runnable {
 
     private fun fetchAndDisplayDomains() {
         val result = service.getAllDomains()
-
-        val output = generateOutput(result)
-
-        if (result.isEmpty()) parent.print("@|red,bold ERROR|@ No domains were found")
-        else parent.print(output)
+        if (result.isEmpty()) parent.print("\n@|bold No domains were found|@\n\n")
+        else parent.print(generateOutput(result))
     }
 
     private fun generateOutput(data: Array<Domain>): String {
