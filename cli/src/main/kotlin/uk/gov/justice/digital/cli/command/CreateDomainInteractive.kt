@@ -49,10 +49,10 @@ class Blank: Element {
     override fun render(width: Int): String { return " ".repeat(width) }
 }
 
-data class InputField(val name: String,
-                      val value: String,
-                      val selected: Boolean = false,
-                      val margin: Int = name.length): Element {
+data class Field(val name: String,
+                 val value: String,
+                 val selected: Boolean = false,
+                 val margin: Int = name.length): Element {
 
     override val canSelect = true
     override fun render(width: Int): String {
@@ -83,15 +83,14 @@ class DomainEditor(private val terminal: Terminal,
     private val display = Display(terminal, true)
     private val originalAttributes = terminal.attributes
 
-    // Initial position when editing - defaults to first field
-    // TODO - rename this - editable field position
-    private var position = 0
+    // Initial position when editing - defaults to first editable field
+    private var selectedField = 0
 
     private var pageElements = emptyPageElements()
 
     private val inputFieldMargin = pageElements
-        .filter { it.canSelect && it is InputField }
-        .map { it as InputField }
+        .filter { it.canSelect && it is Field }
+        .map { it as Field }
         .maxOf { it.name.length }
 
     private val selectableElementIndexes = pageElements
@@ -112,28 +111,28 @@ class DomainEditor(private val terminal: Terminal,
         Blank(),
         Heading("Domain Properties", "yellow"),
         Blank(),
-        InputField("Name", ""),
-        InputField("Description", ""),
-        InputField("Location", ""),
-        InputField("Owner", ""),
-        InputField("Author", ""),
+        Field("Name", ""),
+        Field("Description", ""),
+        Field("Location", ""),
+        Field("Owner", ""),
+        Field("Author", ""),
         Blank(),
         Heading("Table Properties", "yellow"),
         Blank(),
-        InputField("Name", ""),
-        InputField("Description", ""),
-        InputField("Location", ""),
-        InputField("Owner", ""),
-        InputField("Author", ""),
-        InputField("Primary Key", ""),
-        InputField("Sources", ""),
-        InputField("Spark Query", ""),
+        Field("Name", ""),
+        Field("Description", ""),
+        Field("Location", ""),
+        Field("Owner", ""),
+        Field("Author", ""),
+        Field("Primary Key", ""),
+        Field("Sources", ""),
+        Field("Spark Query", ""),
         Blank(),
         Heading("keys │ ↑ move up │ ↓ move down │ enter to edit │ s to Save │ q to Quit ", "black", "white")
     )
 
     private fun updateSelectedElement(input: String?) {
-        val selectedElementIndex = selectableElementIndexes[position]
+        val selectedElementIndex = selectableElementIndexes[selectedField]
         pageElements = pageElements
             .withIndex()
             .map { item ->
@@ -143,7 +142,7 @@ class DomainEditor(private val terminal: Terminal,
                     is Heading -> element
                     // TODO - fix this - ideally the margin isn't nullable
                     // TODO - cursor position should be updated too
-                    is InputField -> element.copy(
+                    is Field -> element.copy(
                         selected = selected,
                         margin = inputFieldMargin ?: 20, // TODO - define default elsewhere
                         value = if (selected && input != null) input else element.value
@@ -160,7 +159,7 @@ class DomainEditor(private val terminal: Terminal,
 
         moveCursorToHome()
 
-        val selectedElementIndex = selectableElementIndexes[position]
+        val selectedElementIndex = selectableElementIndexes[selectedField]
 
         pageElements = pageElements
                 .withIndex()
@@ -169,7 +168,7 @@ class DomainEditor(private val terminal: Terminal,
                     when(val element = item.value) {
                         is Blank -> element
                         is Heading -> element
-                        is InputField -> element.copy(
+                        is Field -> element.copy(
                                 selected = selected,
                                 margin = inputFieldMargin,
                                 value = if (selected && input != null) input else element.value
@@ -187,7 +186,7 @@ class DomainEditor(private val terminal: Terminal,
         terminal.puts(Capability.cursor_home)
 
         val selectedElement = pageElements[selectedElementIndex]
-        val inputLength = if (selectedElement is InputField) selectedElement.value.length else 0
+        val inputLength = if (selectedElement is Field) selectedElement.value.length else 0
 
         moveCursorTo(selectedElementIndex, inputLength + 15)
 
@@ -235,7 +234,7 @@ class DomainEditor(private val terminal: Terminal,
 
     private fun resetState() {
         pageElements = emptyPageElements()
-        position = 0
+        selectedField = 0
     }
 
     private fun enableRawMode() {
@@ -280,8 +279,8 @@ class DomainEditor(private val terminal: Terminal,
                 Operation.EDIT -> {
 
                     // TODO - provide a method to get the current input field or null?
-                    val selectedElementIndex = selectableElementIndexes[position]
-                    val selectedElement = pageElements[selectedElementIndex] as? InputField
+                    val selectedElementIndex = selectableElementIndexes[selectedField]
+                    val selectedElement = pageElements[selectedElementIndex] as? Field
 
                     disableRawMode()
 
@@ -291,6 +290,7 @@ class DomainEditor(private val terminal: Terminal,
                     // wrong place if we already have a value (we default to placing the cursor at the end of the string).
                     moveCursorLeft(inputLength)
 
+                    // TODO - can we support multiline input?
                     val lineReader = LineReaderBuilder.builder()
                         .terminal(this.terminal)
                         .build()
@@ -324,10 +324,10 @@ class DomainEditor(private val terminal: Terminal,
     private fun updatePositionAndRefreshDisplay(i: Int) {
         // Ensure the updated value remains within the bounds minPosition < position < maxPosition
         // TODO - check kotlin syntax - does it provide anything to express this?
-        val newPosition = min(maxPosition, max(minPosition, position + i))
+        val newPosition = min(maxPosition, max(minPosition, selectedField + i))
         // Only update the display if the position has changed
-        if (newPosition != position) {
-            position = newPosition
+        if (newPosition != selectedField) {
+            selectedField = newPosition
             updateDisplay()
         }
     }
