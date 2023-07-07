@@ -48,3 +48,8 @@ dependencies {
   implementation(project(":backend"))
   implementation(project(":cli"))
 }
+
+dependencyCheck {
+  suppressionFile = "dependency-check-suppressions.xml"
+  failBuildOnCVSS = 4.0F
+}

@@ -15,11 +15,11 @@ micronaut {
 }
 
 dependencies {
-  kapt("io.micronaut.serde:micronaut-serde-processor:1.5.2")
-  runtimeOnly("io.micronaut.serde:micronaut-serde-jackson:1.5.2")
-  implementation("io.micronaut:micronaut-jackson-databind:2.14.2")
-  implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
-  implementation("io.micronaut.serde:micronaut-serde-api:1.5.2")
+  kapt("io.micronaut.serde:micronaut-serde-processor:1.5.3")
+  runtimeOnly("io.micronaut.serde:micronaut-serde-jackson:1.5.3")
+  implementation("io.micronaut:micronaut-jackson-databind:3.9.4")
+  implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
+  implementation("io.micronaut.serde:micronaut-serde-api:1.5.3")
   testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
   testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.1")
 }

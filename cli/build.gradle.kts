@@ -24,7 +24,7 @@ dependencies {
   implementation("info.picocli:picocli")
   implementation("info.picocli:picocli-shell-jline3:4.7.1")
   implementation("io.micronaut.picocli:micronaut-picocli")
-  implementation("io.micronaut.serde:micronaut-serde-api:1.5.2")
+  implementation("io.micronaut.serde:micronaut-serde-api:1.5.3")
   implementation("io.micronaut:micronaut-jackson-databind")
   implementation("io.micronaut:micronaut-runtime")
   implementation("io.micronaut:micronaut-validation")
@@ -33,13 +33,13 @@ dependencies {
   implementation(project(":common"))
   implementation("io.micronaut.reactor:micronaut-reactor")
 
-  kapt("io.micronaut.serde:micronaut-serde-processor:1.5.2")
+  kapt("io.micronaut.serde:micronaut-serde-processor:1.5.3")
   kapt("io.micronaut:micronaut-inject-java")
 
   kaptTest("io.micronaut:micronaut-inject-java")
 
   runtimeOnly("ch.qos.logback:logback-classic")
-  runtimeOnly("io.micronaut.serde:micronaut-serde-jackson:1.5.2")
+  runtimeOnly("io.micronaut.serde:micronaut-serde-jackson:1.5.3")
 
   testImplementation("io.micronaut.test:micronaut-test-junit5")
   testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.1")
