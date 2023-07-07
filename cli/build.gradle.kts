@@ -70,7 +70,7 @@ tasks {
     destinationDirectory.set(File("${project.rootDir}/build/libs"))
   }
 
-  withType<Jar>() {
+  withType<Copy>() {
     duplicatesStrategy = DuplicatesStrategy.WARN
   }
 }
