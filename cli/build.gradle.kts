@@ -69,12 +69,4 @@ tasks {
     archiveBaseName.set("domain-builder-cli-frontend")
     destinationDirectory.set(File("${project.rootDir}/build/libs"))
   }
-
-  withType<Tar> {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-  }
-
-  withType<Zip> {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-  }
 }
