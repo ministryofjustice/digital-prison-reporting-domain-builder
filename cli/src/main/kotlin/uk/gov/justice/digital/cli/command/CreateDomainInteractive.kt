@@ -131,6 +131,7 @@ class DomainEditor(private val terminal: Terminal,
         Heading("keys │ ↑ move up │ ↓ move down │ enter to edit │ s to Save │ q to Quit ", "black", "white")
     )
 
+    // TODO - try to integrate this if possible?
     private fun updateSelectedElement(input: String?) {
         val selectedElementIndex = selectableElementIndexes[selectedField]
         pageElements = pageElements
@@ -155,7 +156,7 @@ class DomainEditor(private val terminal: Terminal,
         val width = terminalSize.columns
 
         // By default hide the cursor until the user enters edit mode
-        terminal.puts(Capability.cursor_invisible)
+        hideCursor()
 
         moveCursorToHome()
 
@@ -247,6 +248,7 @@ class DomainEditor(private val terminal: Terminal,
 
     fun run() {
         resetState()
+        clearDisplay()
 
         // TODO - can we clean this up using an immutable map instead?
         val keys = KeyMap<Operation>()
@@ -270,7 +272,7 @@ class DomainEditor(private val terminal: Terminal,
                     // TODO - are you sure prompt
                     continueRunning = false
                     clearDisplay()
-                    terminal.puts(Capability.cursor_visible)
+                    showCursor()
                     disableRawMode()
                 }
                 Operation.UP -> updatePositionAndRefreshDisplay(-1)
@@ -282,35 +284,147 @@ class DomainEditor(private val terminal: Terminal,
                     val selectedElementIndex = selectableElementIndexes[selectedField]
                     val selectedElement = pageElements[selectedElementIndex] as? Field
 
-                    disableRawMode()
+                    if (selectedElement?.name == "Spark Query") {
+                        showCursor()
+                        terminal.flush()
 
-                    val inputLength = selectedElement?.value?.length ?: 0
+                        clearDisplay()
+                        println("Edit Spark Query")
+                        println()
 
-                    // Move the cursor to the start of the value string before we accept input since it will be in the
-                    // wrong place if we already have a value (we default to placing the cursor at the end of the string).
-                    moveCursorLeft(inputLength)
+                        val editReader = BindingReader(terminal.reader())
 
-                    // TODO - can we support multiline input?
-                    val lineReader = LineReaderBuilder.builder()
-                        .terminal(this.terminal)
-                        .build()
+                        val map = KeyMap<String>()
+                        map.bind("up", "\u001B[A", "k")
+                        map.bind("down", "\u001B[B", "j")
+                        map.bind("right", "\u001B[C", "j")
+                        map.bind("left", "\u001B[D", "j")
+                        map.bind("enter", "\r")
+                        map.bind("delete", "\b")
 
-                    // TODO - this code is a bit messy - provide helper methods
-                    val currentValue = selectedElement?.value ?: ""
+                        for (i in 32..255) {
+                            // Only bind if the char is not DEL (ASCII 127)
+                            if (i != 127) map.bind("insert", Character.toString(i))
+                            else map.bind("delete", Character.toString(i))
+                        }
 
-                    // Since we need to set the prompt to a single space we need to shift the cursor left on char before
-                    // we accept user input otherwise the cursor will not be properly aligned.
-                    terminal.puts(Capability.cursor_left)
-                    // Now make the cursor visible
-                    terminal.puts(Capability.cursor_visible)
+                        val minLine = 0
+                        val maxLine = 20
+                        val minColumn = 0
+                        val maxColumn = 79
 
-                    val input = lineReader.readLine(" ", null, currentValue)
+                        var currentLine = 0
+                        var currentColumn = 0
 
-                    // Hide the cursor again as soon as the user has hit enter.
-                    terminal.puts(Capability.cursor_invisible)
+                        val lines = Array(20) { _ -> ""}
 
-                    enableRawMode()
-                    updateDisplay(input)
+                        while(true) {
+                            val result = editReader.readBinding(map, null, true)
+                            when (result) {
+                                "up" -> if (currentLine > minLine) {
+                                    terminal.puts(Capability.cursor_up)
+                                    currentLine--
+                                }
+
+                                "down" -> if (currentLine <= maxLine) {
+                                    terminal.puts(Capability.cursor_down)
+                                    currentLine++
+                                }
+
+                                "left" -> if (currentColumn > minColumn) {
+                                    terminal.puts(Capability.cursor_left)
+                                    currentColumn--
+                                }
+                                "right" -> if (currentColumn < maxColumn) {
+                                    terminal.puts(Capability.cursor_right)
+                                    currentColumn++
+                                }
+                                "insert" -> {
+                                    if (currentColumn < maxColumn) {
+                                        print(editReader.lastBinding)
+                                        lines[currentLine] = lines[currentLine] + editReader.lastBinding
+                                        currentColumn++
+                                    }
+                                    else if (currentLine < maxLine) {
+                                        terminal.puts(Capability.cursor_down)
+                                        print("\r")
+                                        currentColumn = 0
+                                        currentLine++
+                                    }
+                                }
+                                "enter" -> if (currentLine < maxLine) {
+                                    terminal.puts(Capability.cursor_down)
+                                    print("\r")
+                                    currentColumn = 0
+                                    currentLine++
+                                }
+                                "delete" -> {
+                                    val line = lines[currentLine]
+                                    if (line.isNotEmpty()) {
+                                        lines[currentLine] = line.removeRange(currentColumn - 1, currentColumn)
+                                        terminal.puts(Capability.cursor_left)
+                                        terminal.puts(Capability.delete_character)
+                                    }
+                                    else if (currentLine > minLine) {
+                                        currentLine--
+                                        terminal.puts(Capability.cursor_up)
+                                        for(i in 0 until lines[currentLine].length) {
+                                            terminal.puts(Capability.cursor_right)
+                                            currentColumn++
+                                        }
+                                    }
+                                }
+                            }
+                            terminal.flush()
+////                            println("got $result")
+////                            print(editReader.readStringUntil("\n"))
+////                            println("buffer: ${editReader.currentBuffer}")
+                        }
+
+//                        var lineReader: LineReader? = null
+//
+//                        lineReader = LineReaderBuilder.builder()
+//                            .terminal(this.terminal)
+//                            .parser(MultilineParser(terminal))
+//                            .build()
+//
+//                        val currentValue = selectedElement.value
+//
+//                        val input = lineReader.readLine(" ", null, currentValue)
+//
+//                        updateDisplay(input)
+                    }
+                    else {
+                        disableRawMode()
+
+                        val inputLength = selectedElement?.value?.length ?: 0
+
+                        // Move the cursor to the start of the value string before we accept input since it will be in the
+                        // wrong place if we already have a value (we default to placing the cursor at the end of the string).
+                        moveCursorLeft(inputLength)
+
+                        // TODO - can we support multiline input?
+                        val lineReader = LineReaderBuilder.builder()
+                            .terminal(this.terminal)
+                            .build()
+
+                        // TODO - this code is a bit messy - provide helper methods
+                        val currentValue = selectedElement?.value ?: ""
+
+                        // Since we need to set the prompt to a single space we need to shift the cursor left on char before
+                        // we accept user input otherwise the cursor will not be properly aligned.
+                        terminal.puts(Capability.cursor_left)
+                        // Now make the cursor visible
+                        showCursor()
+
+                        val input = lineReader.readLine(" ", null, currentValue)
+
+                        // Hide the cursor again as soon as the user has hit enter.
+                        hideCursor()
+
+                        enableRawMode()
+                        updateDisplay(input)
+                    }
                 }
                 else -> {
                     /* Do nothing on unhandled input */
@@ -320,6 +434,10 @@ class DomainEditor(private val terminal: Terminal,
 
         } while (continueRunning)
     }
+
+    private fun showCursor() = terminal.puts(Capability.cursor_visible)
+
+    private fun hideCursor() = terminal.puts(Capability.cursor_invisible)
 
     private fun updatePositionAndRefreshDisplay(i: Int) {
         // Ensure the updated value remains within the bounds minPosition < position < maxPosition
@@ -349,5 +467,6 @@ class DomainEditor(private val terminal: Terminal,
         // Editing
         EDIT
     }
+
 
 }
