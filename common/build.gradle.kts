@@ -1,6 +1,6 @@
 plugins {
   id("org.jetbrains.kotlin.jvm") version "1.8.10"
-  id("io.micronaut.minimal.library") version "3.7.7"
+  id("io.micronaut.minimal.library") version "3.7.10"
   id("kotlin-kapt")
   id("java-test-fixtures")
   jacoco
@@ -11,7 +11,7 @@ repositories {
 }
 
 micronaut {
-  version.set("3.8.8")
+  version.set("3.9.4")
 }
 
 dependencies {
