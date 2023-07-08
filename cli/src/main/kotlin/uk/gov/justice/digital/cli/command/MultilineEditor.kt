@@ -4,11 +4,19 @@ import org.jline.keymap.BindingReader
 import org.jline.keymap.KeyMap
 import org.jline.terminal.Terminal
 import org.jline.utils.InfoCmp
+import uk.gov.justice.digital.cli.session.ConsoleSession
 
-class MultilineEditor(private val terminal: Terminal, private val heading: String) {
+class MultilineEditor(private val terminal: Terminal,
+                      private val session: ConsoleSession,
+                      private val heading: String) {
 
     fun run(text: String? = null): String {
-        println(heading)
+
+        val originalAttributes = terminal.enterRawMode()
+
+        val padding = " ".repeat(terminal.width - heading.length - 1)
+        println()
+        println(session.toAnsi("@|fg(black),bg(cyan),bold  $heading$padding|@"))
         println()
 
         val editReader = BindingReader(terminal.reader())
@@ -39,6 +47,14 @@ class MultilineEditor(private val terminal: Terminal, private val heading: Strin
 
         lines.forEach { println(it) }
         repeat(lines.size) { terminal.puts(InfoCmp.Capability.cursor_up) }
+        terminal.flush()
+
+        print("\u001B7") // Save cursor pos
+        print("\u001B[23;0H")
+        val statusLine = "keys │ ↑ move up │ ↓ move down │ ← move left │ → move right │ CTRL-S save and exit │ ESC exit"
+        val statusPadding = " ".repeat(terminal.width - statusLine.length - 1)
+        print(session.toAnsi("@|fg(black),bg(white),bold  $statusLine$statusPadding|@"))
+        print("\u001B8") // restore saved cursor pos
         terminal.flush()
 
         while(true) {
@@ -127,12 +143,9 @@ class MultilineEditor(private val terminal: Terminal, private val heading: Strin
                     }
                 }
             }
-            print("\u001B7") // Save cursor pos
-            print("\u001B[24;0H")
-            print("line: $currentLine column: $currentColumn currentLineLength: ${lines[currentLine].length}                   ")
-            print("\u001B8") // restore saved cursor pos
             terminal.flush()
         }
+        terminal.attributes = originalAttributes
         return lines.joinToString("\n")
     }
 

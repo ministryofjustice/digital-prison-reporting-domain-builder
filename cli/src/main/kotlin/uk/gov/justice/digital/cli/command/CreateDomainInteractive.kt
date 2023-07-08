@@ -141,11 +141,9 @@ class DomainEditor(private val terminal: Terminal,
                 when(val element = item.value) {
                     is Blank -> element
                     is Heading -> element
-                    // TODO - fix this - ideally the margin isn't nullable
-                    // TODO - cursor position should be updated too
                     is Field -> element.copy(
                         selected = selected,
-                        margin = inputFieldMargin ?: 20, // TODO - define default elsewhere
+                        margin = inputFieldMargin ,
                         value = if (selected && input != null) input else element.value
                     )
                 }
@@ -250,9 +248,7 @@ class DomainEditor(private val terminal: Terminal,
         resetState()
         clearDisplay()
 
-        // TODO - can we clean this up using an immutable map instead?
-        val keys = KeyMap<Operation>()
-        bindKeys(keys)
+        val keys = bindKeys()
 
         terminalSize.copy(terminal.size)
         terminal.handle(Signal.WINCH, this::handleSignal)
@@ -290,7 +286,8 @@ class DomainEditor(private val terminal: Terminal,
                         clearDisplay()
 
                         // TODO - pass in multiline
-                        val updatedValue = MultilineEditor(terminal, "Edit Spark Query").run()
+                        val input = MultilineEditor(terminal, session, "Edit Spark Query").run()
+                        updateDisplay(input)
                     }
                     else {
                         disableRawMode()
@@ -348,14 +345,15 @@ class DomainEditor(private val terminal: Terminal,
         }
     }
 
-    private fun bindKeys(map: KeyMap<Operation>) {
+    private fun bindKeys(): KeyMap<Operation> {
+        val map = KeyMap<Operation>()
         map.bind(Operation.EXIT, "q")
         map.bind(Operation.UP, "\u001B[A", "k")
         map.bind(Operation.DOWN, "\u001B[B", "j")
         map.bind(Operation.EDIT, "\r")
+        return map
     }
 
-    // TODO - we need a SAVE operation
     private enum class Operation {
         // General
         EXIT,
