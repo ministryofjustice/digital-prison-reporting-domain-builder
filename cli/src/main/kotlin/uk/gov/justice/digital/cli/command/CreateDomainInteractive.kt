@@ -324,26 +324,44 @@ class DomainEditor(private val terminal: Terminal,
                                 "up" -> if (currentLine > minLine) {
                                     terminal.puts(Capability.cursor_up)
                                     currentLine--
+                                    val line = lines[currentLine]
+
+                                    // TODO - prevent cursor exceeding line length
+                                    if (currentColumn > line.length) {
+                                        print("\u001B[0G")
+                                        print("\u001B[${line.length}G")
+                                        currentColumn = line.length
+                                    }
                                 }
 
-                                "down" -> if (currentLine <= maxLine) {
+                                "down" -> if (currentLine < maxLine && lines[currentLine].isNotEmpty()) {
                                     terminal.puts(Capability.cursor_down)
                                     currentLine++
+                                    val line = lines[currentLine]
+//                                    if (currentColumn > line.length) {
+//                                        print("\u001B[0G")
+//                                        print("\u001B[${line.length}G")
+//                                        currentColumn = line.length
+//                                    }
                                 }
 
                                 "left" -> if (currentColumn > minColumn) {
-                                    terminal.puts(Capability.cursor_left)
+//                                    terminal.puts(Capability.cursor_left)
                                     currentColumn--
                                 }
-                                "right" -> if (currentColumn < maxColumn) {
-                                    terminal.puts(Capability.cursor_right)
+                                "right" -> if (currentColumn < maxColumn && currentColumn < lines[currentLine].length) {
+//                                    terminal.puts(Capability.cursor_right)
                                     currentColumn++
                                 }
                                 "insert" -> {
                                     if (currentColumn < maxColumn) {
-                                        print(editReader.lastBinding)
-                                        lines[currentLine] = lines[currentLine] + editReader.lastBinding
-                                        currentColumn++
+                                        val line = lines[currentLine]
+                                        // TODO - at this point we need to consider where we are in the string
+                                        if (currentColumn == line.length) {
+                                            lines[currentLine] = line + editReader.lastBinding
+                                            print(editReader.lastBinding)
+                                            currentColumn++
+                                        }
                                     }
                                     else if (currentLine < maxLine) {
                                         terminal.puts(Capability.cursor_down)
@@ -364,6 +382,7 @@ class DomainEditor(private val terminal: Terminal,
                                         lines[currentLine] = line.removeRange(currentColumn - 1, currentColumn)
                                         terminal.puts(Capability.cursor_left)
                                         terminal.puts(Capability.delete_character)
+                                        currentColumn--
                                     }
                                     else if (currentLine > minLine) {
                                         currentLine--
@@ -375,6 +394,10 @@ class DomainEditor(private val terminal: Terminal,
                                     }
                                 }
                             }
+                            print("\u001B7") // Save cursor pos
+                            print("\u001B[24;0H")
+                            print("line: $currentLine column: $currentColumn currentLineLength: ${lines[currentLine].length}                   ")
+                            print("\u001B8") // restore saved cursor pos
                             terminal.flush()
 ////                            println("got $result")
 ////                            print(editReader.readStringUntil("\n"))
