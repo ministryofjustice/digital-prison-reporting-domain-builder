@@ -316,7 +316,14 @@ class DomainEditor(private val terminal: Terminal,
                         var currentLine = 0
                         var currentColumn = 0
 
-                        val lines = Array(20) { _ -> ""}
+                        val lines = Array(20) { _ -> ""}.toMutableList()
+                        lines[0] = "select * from foo"
+                        lines[1] = "  where foo = 12"
+                        lines[2] = "    and blah = 56;"
+
+                        lines.forEach { println(it) }
+                        repeat(lines.size) { terminal.puts(Capability.cursor_up) }
+                        terminal.flush()
 
                         while(true) {
                             val result = editReader.readBinding(map, null, true)
@@ -329,38 +336,48 @@ class DomainEditor(private val terminal: Terminal,
                                     // TODO - prevent cursor exceeding line length
                                     if (currentColumn > line.length) {
                                         print("\u001B[0G")
-                                        print("\u001B[${line.length}G")
+                                        print("\u001B[${line.length + 1}G")
                                         currentColumn = line.length
                                     }
                                 }
 
-                                "down" -> if (currentLine < maxLine && lines[currentLine].isNotEmpty()) {
-                                    terminal.puts(Capability.cursor_down)
+                                "down" -> if ((currentLine < lines.filter { it.isNotEmpty() }.size - 1) && lines[currentLine].isNotEmpty()) {
                                     currentLine++
-                                    val line = lines[currentLine]
-//                                    if (currentColumn > line.length) {
-//                                        print("\u001B[0G")
-//                                        print("\u001B[${line.length}G")
-//                                        currentColumn = line.length
-//                                    }
+                                    terminal.puts(Capability.cursor_down)
+                                    // Moving the cursor down resets the location to the start of the line so ensure
+                                    // it stays in the same column as before, or at the end of the line, whichever is
+                                    // the lower value.
+                                    currentColumn = min(currentColumn, lines[currentLine].length)
+                                    for (i in 0 until currentColumn) { terminal.puts(Capability.cursor_right) }
+                                    terminal.flush()
                                 }
 
                                 "left" -> if (currentColumn > minColumn) {
-//                                    terminal.puts(Capability.cursor_left)
+                                    terminal.puts(Capability.cursor_left)
                                     currentColumn--
                                 }
                                 "right" -> if (currentColumn < maxColumn && currentColumn < lines[currentLine].length) {
-//                                    terminal.puts(Capability.cursor_right)
+                                    terminal.puts(Capability.cursor_right)
                                     currentColumn++
                                 }
                                 "insert" -> {
                                     if (currentColumn < maxColumn) {
                                         val line = lines[currentLine]
-                                        // TODO - at this point we need to consider where we are in the string
                                         if (currentColumn == line.length) {
                                             lines[currentLine] = line + editReader.lastBinding
                                             print(editReader.lastBinding)
                                             currentColumn++
+                                        }
+                                        else {
+                                            val charsRemaining = line.substring(currentColumn).length
+                                            lines[currentLine] = line.substring(0, currentColumn) +
+                                                editReader.lastBinding +
+                                                line.substring(currentColumn)
+                                            print(editReader.lastBinding)
+                                            print(line.substring(currentColumn))
+                                            currentColumn++
+                                            for (i in 0 until charsRemaining) { terminal.puts(Capability.cursor_left) }
+                                            terminal.flush()
                                         }
                                     }
                                     else if (currentLine < maxLine) {
@@ -379,7 +396,7 @@ class DomainEditor(private val terminal: Terminal,
                                 "delete" -> {
                                     val line = lines[currentLine]
                                     if (line.isNotEmpty()) {
-                                        lines[currentLine] = line.removeRange(currentColumn - 1, currentColumn)
+                                        if (line.isNotEmpty()) lines[currentLine] = line.removeRange(currentColumn - 1, currentColumn)
                                         terminal.puts(Capability.cursor_left)
                                         terminal.puts(Capability.delete_character)
                                         currentColumn--
