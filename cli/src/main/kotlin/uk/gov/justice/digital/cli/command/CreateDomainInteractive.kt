@@ -55,6 +55,7 @@ data class Field(val name: String,
                  val margin: Int = name.length): Element {
 
     override val canSelect = true
+    // TODO - handle value length exceeding available width
     override fun render(width: Int): String {
         val formattedName = String.format("%-${margin}s",  name)
         val padding = " ".repeat(width - margin - value.length - 6)
@@ -63,13 +64,28 @@ data class Field(val name: String,
 
     }
 }
+data class MultiLineField(val name: String,
+                          val value: String,
+                          val selected: Boolean = false,
+                          val margin: Int = name.length): Element {
+    override val canSelect = true
+    // TODO - handle value length exceeding available width
+    override fun render(width: Int): String {
+        val formattedName = String.format("%-${margin}s",  name)
+        val firstLineOfValue = value.split("\n").firstOrNull()?.take(width - margin - 6) ?: ""
+        val padding = " ".repeat(width - margin - firstLineOfValue.length - 6)
+        return if (selected) "@|bold  $formattedName |@│ @|underline $firstLineOfValue$padding |@ "
+        else "@|bold,faint  $formattedName |@│ $firstLineOfValue$padding  "
+
+    }
+}
 
 data class Heading(val heading: String, val color: String, val backgroundColor: String? = null): Element {
     override val canSelect = false
     override fun render(width: Int): String {
         val bgString = backgroundColor?.let { ",bg($it)" } ?: ""
-        val padding = " ".repeat(width - heading.length - 1)
-        return "@|fg($color)$bgString,bold  $heading$padding|@"
+        val padding = " ".repeat(max(width - heading.length - 1, 0))
+        return "@|fg($color)$bgString,bold  ${heading.take(width - 1)}$padding|@"
     }
 }
 
@@ -126,7 +142,7 @@ class DomainEditor(private val terminal: Terminal,
         Field("Author", ""),
         Field("Primary Key", ""),
         Field("Sources", ""),
-        Field("Spark Query", ""),
+        MultiLineField("Spark Query", ""),
         Blank(),
         Heading("keys │ ↑ move up │ ↓ move down │ enter to edit │ s to Save │ q to Quit ", "black", "white")
     )
@@ -142,6 +158,11 @@ class DomainEditor(private val terminal: Terminal,
                     is Blank -> element
                     is Heading -> element
                     is Field -> element.copy(
+                        selected = selected,
+                        margin = inputFieldMargin ,
+                        value = if (selected && input != null) input else element.value
+                    )
+                    is MultiLineField -> element.copy(
                         selected = selected,
                         margin = inputFieldMargin ,
                         value = if (selected && input != null) input else element.value
@@ -171,6 +192,11 @@ class DomainEditor(private val terminal: Terminal,
                                 selected = selected,
                                 margin = inputFieldMargin,
                                 value = if (selected && input != null) input else element.value
+                        )
+                        is MultiLineField -> element.copy(
+                            selected = selected,
+                            margin = inputFieldMargin,
+                            value = if (selected && input != null) input else element.value
                         )
                     }
                 }
@@ -273,42 +299,40 @@ class DomainEditor(private val terminal: Terminal,
                 }
                 Operation.UP -> updatePositionAndRefreshDisplay(-1)
                 Operation.DOWN -> updatePositionAndRefreshDisplay(1)
-                // TODO - can we add ESC to abort editing?
                 Operation.EDIT -> {
                     // TODO - provide a method to get the current input field or null?
                     val selectedElementIndex = selectableElementIndexes[selectedField]
-                    val selectedElement = pageElements[selectedElementIndex] as? Field
+                    val selectedElement = pageElements[selectedElementIndex]
 
-                    if (selectedElement?.name == "Spark Query") {
+                    if (selectedElement is MultiLineField) {
                         // TODO - move these into the editor
                         showCursor()
-                        terminal.flush()
                         clearDisplay()
+                        terminal.flush()
 
-                        // TODO - pass in multiline
-                        val input = MultilineEditor(terminal, session, "Edit Spark Query").run()
+                        val input = MultilineEditor(terminal, session, "Editing Spark Query").run(selectedElement.value)
                         updateDisplay(input)
                     }
-                    else {
+                    else if (selectedElement is Field) {
+                        // TODO - update status line to say " editing <fieldname> | press enter to save and exit
                         disableRawMode()
 
-                        val inputLength = selectedElement?.value?.length ?: 0
+                        val inputLength = selectedElement.value.length
 
                         // Move the cursor to the start of the value string before we accept input since it will be in the
                         // wrong place if we already have a value (we default to placing the cursor at the end of the string).
                         moveCursorLeft(inputLength)
 
-                        // TODO - can we support multiline input?
                         val lineReader = LineReaderBuilder.builder()
                             .terminal(this.terminal)
                             .build()
 
-                        // TODO - this code is a bit messy - provide helper methods
-                        val currentValue = selectedElement?.value ?: ""
+                        // TODO - consider providing a helper method if this is done elsewhere
+                        val currentValue = selectedElement.value ?: ""
 
                         // Since we need to set the prompt to a single space we need to shift the cursor left on char before
                         // we accept user input otherwise the cursor will not be properly aligned.
-                        terminal.puts(Capability.cursor_left)
+                        moveCursorLeft(1)
                         // Now make the cursor visible
                         showCursor()
 

@@ -5,7 +5,12 @@ import org.jline.keymap.KeyMap
 import org.jline.terminal.Terminal
 import org.jline.utils.InfoCmp
 import uk.gov.justice.digital.cli.session.ConsoleSession
+import java.lang.Math.max
+import kotlin.math.min
 
+// TODO
+//  o tab key
+//  o ctrl-S to exit with changes
 class MultilineEditor(private val terminal: Terminal,
                       private val session: ConsoleSession,
                       private val heading: String) {
@@ -28,6 +33,8 @@ class MultilineEditor(private val terminal: Terminal,
         map.bind("left", "\u001B[D", "j")
         map.bind("enter", "\r")
         map.bind("delete", "\b")
+        map.bind("escape", "\u001B")
+        map.bind("accept", KeyMap.ctrl('S'))
 
         for (i in 32..255) {
             // Only bind if the char is not DEL (ASCII 127)
@@ -36,14 +43,20 @@ class MultilineEditor(private val terminal: Terminal,
         }
 
         val minLine = 0
-        val maxLine = 20
+        val maxLine = 20 // TODO - make this dynamic?
         val minColumn = 0
-        val maxColumn = 79
+        val maxColumn = terminal.width - 1
 
         var currentLine = 0
         var currentColumn = 0
 
         val lines = Array(20) { _ -> ""}.toMutableList()
+        // Populate lines with existing data where defined
+        text?.let {
+            text.split("\n")
+                .withIndex()
+                .forEach { lines[it.index] = it.value }
+        }
 
         lines.forEach { println(it) }
         repeat(lines.size) { terminal.puts(InfoCmp.Capability.cursor_up) }
@@ -51,8 +64,8 @@ class MultilineEditor(private val terminal: Terminal,
 
         print("\u001B7") // Save cursor pos
         print("\u001B[23;0H")
-        val statusLine = "keys │ ↑ move up │ ↓ move down │ ← move left │ → move right │ CTRL-S save and exit │ ESC exit"
-        val statusPadding = " ".repeat(terminal.width - statusLine.length - 1)
+        val statusLine = "keys │ ↑ move up │ ↓ move down │ ← move left │ → move right │ CTRL-S save and exit │ ESC exit".take(78)
+        val statusPadding = " ".repeat(terminal.width - min(statusLine.length, terminal.width) - 1)
         print(session.toAnsi("@|fg(black),bg(white),bold  $statusLine$statusPadding|@"))
         print("\u001B8") // restore saved cursor pos
         terminal.flush()
@@ -142,11 +155,13 @@ class MultilineEditor(private val terminal: Terminal,
                         }
                     }
                 }
+                "escape" -> return text ?: ""
+                "accept" -> break
             }
             terminal.flush()
         }
         terminal.attributes = originalAttributes
-        return lines.joinToString("\n")
+        return lines.filter { it.isNotEmpty() }.joinToString("\n")
     }
 
 }
