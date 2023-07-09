@@ -7,11 +7,16 @@ import org.jline.terminal.Size
 import org.jline.terminal.Terminal
 import org.jline.utils.Display
 import org.jline.utils.InfoCmp
+import uk.gov.justice.digital.cli.client.BadRequestException
+import uk.gov.justice.digital.cli.client.ConflictException
+import uk.gov.justice.digital.cli.service.DomainService
 import uk.gov.justice.digital.cli.session.ConsoleSession
+import uk.gov.justice.digital.model.*
 import kotlin.math.max
 
 class DomainEditor(private val terminal: Terminal,
-                   private val session: ConsoleSession) {
+                   private val session: ConsoleSession,
+                   private val service: DomainService) {
 
     private val KEY_READER_TIMEOUT_MS = 250L
 
@@ -76,6 +81,7 @@ class DomainEditor(private val terminal: Terminal,
 
         val selectedElementIndex = selectableElementIndexes[selectedField]
 
+        // TODO - review this and use index accessor
         pageElements = pageElements
             .withIndex()
             .map { item ->
@@ -139,10 +145,10 @@ class DomainEditor(private val terminal: Terminal,
         terminal.flush()
     }
 
-    // TODO - this is a resize event - we don't refresh the display since this would cause an open text editor session
-    //        to abort
     private fun handleSignal(signal: Terminal.Signal) {
         terminalSize.copy(terminal.size)
+        // TODO - calling updateDisplay here in response to a resize will abort an open TextEditor session
+        updateDisplay()
     }
 
     // Allow ctrl-c to interrupt the command.
@@ -197,6 +203,10 @@ class DomainEditor(private val terminal: Terminal,
                     if (selectedElement is MultiLineField) handleMultiLineFieldEdit(selectedElement)
                     else if (selectedElement is Field) handleFieldEdit(selectedElement)
                 }
+                Operation.SAVE -> {
+                    // a result of true indicates success so quit the loop if true
+                    if (handleSave()) break
+                }
                 else -> {
                     /* Do nothing on unhandled input */
                 }
@@ -226,19 +236,22 @@ class DomainEditor(private val terminal: Terminal,
         updateDisplay(input)
     }
 
-    private fun handleFieldEdit(selectedElement: Field) {
-        // TODO - update status line to say " editing <fieldname> | press enter to save and exit
-        disableRawMode()
-
-        // Update status line
+    private fun updateStatusLine(status: String) {
         print("\u001B7")        // Save cursor pos
         print("\u001B[23;0H")   // Jump to start of status line
-        // Display 'editing' message
-        val status = "Editing ${selectedElement.name.lowercase()} │ press enter to save changes"
+
         val padding = " ".repeat(terminal.width - status.length - 2)
+
         print(session.toAnsi("@|fg(black),bg(white),bold  $status$padding|@"))
         print("\u001B8") // restore saved cursor pos
+
         terminal.flush()
+    }
+
+    private fun handleFieldEdit(selectedElement: Field) {
+        disableRawMode()
+
+        updateStatusLine("Editing ${selectedElement.name.lowercase()} │ press enter to save changes")
 
         val inputLength = selectedElement.value.length
 
@@ -266,6 +279,68 @@ class DomainEditor(private val terminal: Terminal,
         enableRawMode()
         updateDisplay(input)
     }
+
+    private fun handleSave(): Boolean {
+        updateStatusLine("Saving domain...")
+
+        // TODO - consider adding a type attribute to Field and MultilineField
+        val newDomain = WriteableDomain(
+            name = pageElements[5].fieldValue(),
+            description = pageElements[6].fieldValue(),
+            location = pageElements[7].fieldValue(),
+            owner = pageElements[8].fieldValue(),
+            author = pageElements[9].fieldValue(),
+            version = "1",
+            tags = emptyMap(), // TODO - support tags
+            // TODO - for now we are supporting a single table
+            tables = listOf(
+               Table(
+                   name = pageElements[13].fieldValue(),
+                   description = pageElements[14].fieldValue(),
+                   location = pageElements[15].fieldValue(),
+                   owner = pageElements[16].fieldValue(),
+                   author = pageElements[17].fieldValue(),
+                   version = "", // TODO - what do we set this to
+                   tags = emptyMap(), // TODO - support tags
+                   primaryKey = pageElements[18].fieldValue(),
+                   transform = Transform(
+                       sources = pageElements[19].fieldValue().split(","), // We assume csv values
+                       viewText = pageElements[20].multiLineFieldValue()
+                   ),
+                   mapping = Mapping("") // TODO - is this a sensible default?
+               )
+            )
+        )
+
+        val lineReader = LineReaderBuilder.builder()
+            .terminal(this.terminal)
+            .build()
+
+        try {
+            val result = service.createDomain(newDomain)
+            updateStatusLine("Domain created successfully with id: $result - press enter to continue")
+            lineReader.readLine()
+            return true
+        }
+        catch (brx: BadRequestException) {
+            updateStatusLine("Created failed. Check that all data has been provided. Press enter to return to editor")
+            lineReader.readLine()
+            return false
+        }
+        catch (cx: ConflictException) {
+            updateStatusLine("This domain name is already in use. Press enter to return to editor")
+            lineReader.readLine()
+            return false
+        }
+        catch (ex: Exception) {
+            updateStatusLine("Created failed due to unexpected error. Press enter to return to editor")
+            lineReader.readLine()
+            return false
+        }
+    }
+
+    private fun Element.fieldValue(): String = (this as Field).value
+    private fun Element.multiLineFieldValue(): String = (this as MultiLineField).value
 
     private fun handleExit() {
         // TODO - are you sure prompt

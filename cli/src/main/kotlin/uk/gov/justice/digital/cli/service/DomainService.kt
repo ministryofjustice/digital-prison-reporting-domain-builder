@@ -26,10 +26,12 @@ class DomainService(private val client: DomainClient) {
 
     fun getDomains(name: String, status: Status? = null): Array<Domain> = client.getDomains(name, status)
 
+    fun createDomain(domain: WriteableDomain): String = client.createDomain(domain)
+
     fun createDomain(domain: String): String {
         try {
             val writeableDomain = objectMapper.readValue(domain, WriteableDomain::class.java)
-            return client.createDomain(writeableDomain!!)
+            return createDomain(writeableDomain!!)
         }
         catch (jpx: JsonParseException) {
             val location = jpx.location

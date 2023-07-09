@@ -20,7 +20,8 @@ class CreateDomainInteractive(private val service: DomainService) : Runnable {
     // TODO - revise to pass in the session only
     private val editor: DomainEditor by lazy {
         DomainEditor(parent.getInteractiveSession().terminal(),
-                     parent.getInteractiveSession())
+                     parent.getInteractiveSession(),
+                     service)
     }
 
     override fun run() {
