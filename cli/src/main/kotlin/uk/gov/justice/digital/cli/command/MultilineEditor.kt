@@ -5,12 +5,10 @@ import org.jline.keymap.KeyMap
 import org.jline.terminal.Terminal
 import org.jline.utils.InfoCmp
 import uk.gov.justice.digital.cli.session.ConsoleSession
-import java.lang.Math.max
 import kotlin.math.min
 
 // TODO
 //  o tab key
-//  o ctrl-S to exit with changes
 class MultilineEditor(private val terminal: Terminal,
                       private val session: ConsoleSession,
                       private val heading: String) {
@@ -26,6 +24,7 @@ class MultilineEditor(private val terminal: Terminal,
 
         val editReader = BindingReader(terminal.reader())
 
+        // TODO - define an enum
         val map = KeyMap<String>()
         map.bind("up", "\u001B[A", "k")
         map.bind("down", "\u001B[B", "j")
@@ -41,6 +40,9 @@ class MultilineEditor(private val terminal: Terminal,
             if (i != 127) map.bind("insert", Character.toString(i))
             else map.bind("delete", Character.toString(i))
         }
+
+        // Also bind the tab character to insert
+        map.bind("insert", Character.toString(9))
 
         val minLine = 0
         val maxLine = 20 // TODO - make this dynamic?
@@ -78,7 +80,6 @@ class MultilineEditor(private val terminal: Terminal,
                     currentLine--
                     val line = lines[currentLine]
 
-                    // TODO - prevent cursor exceeding line length
                     if (currentColumn > line.length) {
                         print("\u001B[0G")
                         print("\u001B[${line.length + 1}G")
@@ -106,30 +107,34 @@ class MultilineEditor(private val terminal: Terminal,
                     currentColumn++
                 }
                 "insert" -> {
-                    if (currentColumn < maxColumn) {
-                        val line = lines[currentLine]
-                        if (currentColumn == line.length) {
-                            lines[currentLine] = line + editReader.lastBinding
-                            print(editReader.lastBinding)
-                            currentColumn++
+                    // Remap tab to spaces
+                    val input = if (editReader.lastBinding == "\t") "    " else editReader.lastBinding
+                    input.forEach { c ->
+                        if (currentColumn < maxColumn) {
+                            val line = lines[currentLine]
+                            if (currentColumn == line.length) {
+                                lines[currentLine] = line + c
+                                print(c)
+                                currentColumn++
+                            } else {
+                                val charsRemaining = line.substring(currentColumn).length
+                                lines[currentLine] = line.substring(0, currentColumn) +
+                                    c +
+                                    line.substring(currentColumn)
+                                print(c)
+                                print(line.substring(currentColumn))
+                                currentColumn++
+                                for (i in 0 until charsRemaining) {
+                                    terminal.puts(InfoCmp.Capability.cursor_left)
+                                }
+                                terminal.flush()
+                            }
+                        } else if (currentLine < maxLine) {
+                            terminal.puts(InfoCmp.Capability.cursor_down)
+                            print("\r")
+                            currentColumn = 0
+                            currentLine++
                         }
-                        else {
-                            val charsRemaining = line.substring(currentColumn).length
-                            lines[currentLine] = line.substring(0, currentColumn) +
-                                editReader.lastBinding +
-                                line.substring(currentColumn)
-                            print(editReader.lastBinding)
-                            print(line.substring(currentColumn))
-                            currentColumn++
-                            for (i in 0 until charsRemaining) { terminal.puts(InfoCmp.Capability.cursor_left) }
-                            terminal.flush()
-                        }
-                    }
-                    else if (currentLine < maxLine) {
-                        terminal.puts(InfoCmp.Capability.cursor_down)
-                        print("\r")
-                        currentColumn = 0
-                        currentLine++
                     }
                 }
                 "enter" -> if (currentLine < maxLine) {
