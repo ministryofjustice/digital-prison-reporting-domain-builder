@@ -4,11 +4,10 @@ import org.jline.keymap.BindingReader
 import org.jline.keymap.KeyMap
 import org.jline.terminal.Terminal
 import org.jline.utils.InfoCmp
+import uk.gov.justice.digital.cli.command.MultilineEditor.Operation.*
 import uk.gov.justice.digital.cli.session.ConsoleSession
 import kotlin.math.min
 
-// TODO
-//  o tab key
 class MultilineEditor(private val terminal: Terminal,
                       private val session: ConsoleSession,
                       private val heading: String) {
@@ -17,6 +16,10 @@ class MultilineEditor(private val terminal: Terminal,
 
         val originalAttributes = terminal.enterRawMode()
 
+        terminal.puts(InfoCmp.Capability.cursor_visible)
+        terminal.puts(InfoCmp.Capability.clear_screen)
+        terminal.flush()
+
         val padding = " ".repeat(terminal.width - heading.length - 1)
         println()
         println(session.toAnsi("@|fg(black),bg(cyan),bold  $heading$padding|@"))
@@ -24,25 +27,8 @@ class MultilineEditor(private val terminal: Terminal,
 
         val editReader = BindingReader(terminal.reader())
 
-        // TODO - define an enum
-        val map = KeyMap<String>()
-        map.bind("up", "\u001B[A", "k")
-        map.bind("down", "\u001B[B", "j")
-        map.bind("right", "\u001B[C", "j")
-        map.bind("left", "\u001B[D", "j")
-        map.bind("enter", "\r")
-        map.bind("delete", "\b")
-        map.bind("escape", "\u001B")
-        map.bind("accept", KeyMap.ctrl('S'))
+        val map = bindKeys()
 
-        for (i in 32..255) {
-            // Only bind if the char is not DEL (ASCII 127)
-            if (i != 127) map.bind("insert", Character.toString(i))
-            else map.bind("delete", Character.toString(i))
-        }
-
-        // Also bind the tab character to insert
-        map.bind("insert", Character.toString(9))
 
         val minLine = 0
         val maxLine = 20 // TODO - make this dynamic?
@@ -73,9 +59,8 @@ class MultilineEditor(private val terminal: Terminal,
         terminal.flush()
 
         while(true) {
-            val result = editReader.readBinding(map, null, true)
-            when (result) {
-                "up" -> if (currentLine > minLine) {
+            when (editReader.readBinding(map, null, true)) {
+                UP -> if (currentLine > minLine) {
                     terminal.puts(InfoCmp.Capability.cursor_up)
                     currentLine--
                     val line = lines[currentLine]
@@ -87,26 +72,30 @@ class MultilineEditor(private val terminal: Terminal,
                     }
                 }
 
-                "down" -> if ((currentLine < lines.filter { it.isNotEmpty() }.size - 1) && lines[currentLine].isNotEmpty()) {
+                DOWN -> if ((currentLine < lines.filter { it.isNotEmpty() }.size - 1) && lines[currentLine].isNotEmpty()) {
                     currentLine++
                     terminal.puts(InfoCmp.Capability.cursor_down)
                     // Moving the cursor down resets the location to the start of the line so ensure
                     // it stays in the same column as before, or at the end of the line, whichever is
                     // the lower value.
                     currentColumn = Integer.min(currentColumn, lines[currentLine].length)
-                    for (i in 0 until currentColumn) { terminal.puts(InfoCmp.Capability.cursor_right) }
+                    for (i in 0 until currentColumn) {
+                        terminal.puts(InfoCmp.Capability.cursor_right)
+                    }
                     terminal.flush()
                 }
 
-                "left" -> if (currentColumn > minColumn) {
+                LEFT -> if (currentColumn > minColumn) {
                     terminal.puts(InfoCmp.Capability.cursor_left)
                     currentColumn--
                 }
-                "right" -> if (currentColumn < maxColumn && currentColumn < lines[currentLine].length) {
+
+                RIGHT -> if (currentColumn < maxColumn && currentColumn < lines[currentLine].length) {
                     terminal.puts(InfoCmp.Capability.cursor_right)
                     currentColumn++
                 }
-                "insert" -> {
+
+                INSERT -> {
                     // Remap tab to spaces
                     val input = if (editReader.lastBinding == "\t") "    " else editReader.lastBinding
                     input.forEach { c ->
@@ -137,36 +126,74 @@ class MultilineEditor(private val terminal: Terminal,
                         }
                     }
                 }
-                "enter" -> if (currentLine < maxLine) {
+
+                ENTER -> if (currentLine < maxLine) {
                     terminal.puts(InfoCmp.Capability.cursor_down)
                     print("\r")
                     currentColumn = 0
                     currentLine++
                 }
-                "delete" -> {
+
+                DELETE -> {
                     val line = lines[currentLine]
                     if (line.isNotEmpty()) {
                         if (line.isNotEmpty()) lines[currentLine] = line.removeRange(currentColumn - 1, currentColumn)
                         terminal.puts(InfoCmp.Capability.cursor_left)
                         terminal.puts(InfoCmp.Capability.delete_character)
                         currentColumn--
-                    }
-                    else if (currentLine > minLine) {
+                    } else if (currentLine > minLine) {
                         currentLine--
                         terminal.puts(InfoCmp.Capability.cursor_up)
-                        for(i in 0 until lines[currentLine].length) {
+                        for (i in 0 until lines[currentLine].length) {
                             terminal.puts(InfoCmp.Capability.cursor_right)
                             currentColumn++
                         }
                     }
                 }
-                "escape" -> return text ?: ""
-                "accept" -> break
+
+                EXIT -> return text ?: ""
+                ACCEPT -> break
+                else -> { /* no-op */ }
             }
             terminal.flush()
         }
         terminal.attributes = originalAttributes
         return lines.filter { it.isNotEmpty() }.joinToString("\n")
+    }
+
+    enum class Operation {
+        UP,
+        DOWN,
+        RIGHT,
+        LEFT,
+        INSERT,
+        ENTER,
+        DELETE,
+        EXIT,
+        ACCEPT,
+    }
+
+    private fun bindKeys(): KeyMap<Operation> {
+        val map = KeyMap<Operation>()
+        map.bind(UP, "\u001B[A")
+        map.bind(DOWN, "\u001B[B")
+        map.bind(RIGHT, "\u001B[C")
+        map.bind(LEFT, "\u001B[D")
+        map.bind(ENTER, "\r")
+        map.bind(DELETE, "\b")
+        map.bind(EXIT, "\u001B")
+        map.bind(ACCEPT, KeyMap.ctrl('S'))
+
+        // Allow user to enter characters which are passed to the insert handler.
+        for (i in 32..255) {
+            // Only bind to insert if the char is not DEL (ASCII 127)
+            if (i != 127) map.bind(INSERT, Character.toString(i))
+            else map.bind(DELETE, Character.toString(i))
+        }
+
+        // Also bind the tab character to insert
+        map.bind(INSERT, Character.toString(9))
+        return map
     }
 
 }

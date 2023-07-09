@@ -89,8 +89,7 @@ data class Heading(val heading: String, val color: String, val backgroundColor: 
     }
 }
 
-// This is modelled after the Less command which shows how we can take over the console and handle user key presses
-// directly.
+// TODO - extract this
 class DomainEditor(private val terminal: Terminal,
                    private val session: ConsoleSession) {
 
@@ -119,8 +118,6 @@ class DomainEditor(private val terminal: Terminal,
     private val maxPosition = selectableElementIndexes.size - 1
 
     // TODO - tags, allow key value pair entry / deletion
-    // TODO - the following fits into an 80 x 24 window - if more entries are required we will need to handle this
-    //        by defining a window or offset to only show those values that fit as the user moves up and down.
     private fun emptyPageElements() = listOf(
         Blank(),
         Heading("Create New Domain", "black", "green"),
@@ -146,30 +143,6 @@ class DomainEditor(private val terminal: Terminal,
         Blank(),
         Heading("keys │ ↑ move up │ ↓ move down │ enter to edit │ s to Save │ q to Quit ", "black", "white")
     )
-
-    // TODO - try to integrate this if possible?
-    private fun updateSelectedElement(input: String?) {
-        val selectedElementIndex = selectableElementIndexes[selectedField]
-        pageElements = pageElements
-            .withIndex()
-            .map { item ->
-                val selected = item.index == selectedElementIndex
-                when(val element = item.value) {
-                    is Blank -> element
-                    is Heading -> element
-                    is Field -> element.copy(
-                        selected = selected,
-                        margin = inputFieldMargin ,
-                        value = if (selected && input != null) input else element.value
-                    )
-                    is MultiLineField -> element.copy(
-                        selected = selected,
-                        margin = inputFieldMargin ,
-                        value = if (selected && input != null) input else element.value
-                    )
-                }
-            }
-    }
 
     private fun updateDisplay(input: String? = null) {
         val width = terminalSize.columns
@@ -284,66 +257,22 @@ class DomainEditor(private val terminal: Terminal,
 
         updateDisplay()
 
-        var continueRunning = true
-
-        do {
+        while(true) {
             checkInterrupted()
 
             when (bindingReader.readBinding(keys, null, true)) {
                 Operation.EXIT -> {
-                    // TODO - are you sure prompt
-                    continueRunning = false
-                    clearDisplay()
-                    showCursor()
-                    disableRawMode()
+                    handleExit()
+                    break
                 }
                 Operation.UP -> updatePositionAndRefreshDisplay(-1)
                 Operation.DOWN -> updatePositionAndRefreshDisplay(1)
                 Operation.EDIT -> {
-                    // TODO - provide a method to get the current input field or null?
                     val selectedElementIndex = selectableElementIndexes[selectedField]
                     val selectedElement = pageElements[selectedElementIndex]
 
-                    if (selectedElement is MultiLineField) {
-                        // TODO - move these into the editor
-                        showCursor()
-                        clearDisplay()
-                        terminal.flush()
-
-                        val input = MultilineEditor(terminal, session, "Editing Spark Query").run(selectedElement.value)
-                        updateDisplay(input)
-                    }
-                    else if (selectedElement is Field) {
-                        // TODO - update status line to say " editing <fieldname> | press enter to save and exit
-                        disableRawMode()
-
-                        val inputLength = selectedElement.value.length
-
-                        // Move the cursor to the start of the value string before we accept input since it will be in the
-                        // wrong place if we already have a value (we default to placing the cursor at the end of the string).
-                        moveCursorLeft(inputLength)
-
-                        val lineReader = LineReaderBuilder.builder()
-                            .terminal(this.terminal)
-                            .build()
-
-                        // TODO - consider providing a helper method if this is done elsewhere
-                        val currentValue = selectedElement.value ?: ""
-
-                        // Since we need to set the prompt to a single space we need to shift the cursor left on char before
-                        // we accept user input otherwise the cursor will not be properly aligned.
-                        moveCursorLeft(1)
-                        // Now make the cursor visible
-                        showCursor()
-
-                        val input = lineReader.readLine(" ", null, currentValue)
-
-                        // Hide the cursor again as soon as the user has hit enter.
-                        hideCursor()
-
-                        enableRawMode()
-                        updateDisplay(input)
-                    }
+                    if (selectedElement is MultiLineField) handleMultiLineFieldEdit(selectedElement)
+                    else if (selectedElement is Field) handleFieldEdit(selectedElement)
                 }
                 else -> {
                     /* Do nothing on unhandled input */
@@ -351,7 +280,7 @@ class DomainEditor(private val terminal: Terminal,
             }
 
 
-        } while (continueRunning)
+        }
     }
 
     private fun showCursor() = terminal.puts(Capability.cursor_visible)
@@ -360,7 +289,6 @@ class DomainEditor(private val terminal: Terminal,
 
     private fun updatePositionAndRefreshDisplay(i: Int) {
         // Ensure the updated value remains within the bounds minPosition < position < maxPosition
-        // TODO - check kotlin syntax - does it provide anything to express this?
         val newPosition = min(maxPosition, max(minPosition, selectedField + i))
         // Only update the display if the position has changed
         if (newPosition != selectedField) {
@@ -369,23 +297,68 @@ class DomainEditor(private val terminal: Terminal,
         }
     }
 
-    private fun bindKeys(): KeyMap<Operation> {
-        val map = KeyMap<Operation>()
-        map.bind(Operation.EXIT, "q")
-        map.bind(Operation.UP, "\u001B[A", "k")
-        map.bind(Operation.DOWN, "\u001B[B", "j")
-        map.bind(Operation.EDIT, "\r")
-        return map
+    private fun handleMultiLineFieldEdit(selectedElement: MultiLineField) {
+        val input = MultilineEditor(terminal, session, "Editing Spark Query")
+            .run(selectedElement.value)
+        updateDisplay(input)
+    }
+
+    private fun handleFieldEdit(selectedElement: Field) {
+        // TODO - update status line to say " editing <fieldname> | press enter to save and exit
+        disableRawMode()
+
+        val inputLength = selectedElement.value.length
+
+        // Move the cursor to the start of the value string before we accept input since it will be in the
+        // wrong place if we already have a value (we default to placing the cursor at the end of the string).
+        moveCursorLeft(inputLength)
+
+        val lineReader = LineReaderBuilder.builder()
+            .terminal(this.terminal)
+            .build()
+
+        val currentValue = selectedElement.value
+
+        // Since we need to set the prompt to a single space we need to shift the cursor left on char before
+        // we accept user input otherwise the cursor will not be properly aligned.
+        moveCursorLeft(1)
+        // Now make the cursor visible
+        showCursor()
+
+        val input = lineReader.readLine(" ", null, currentValue)
+
+        // Hide the cursor again as soon as the user has hit enter.
+        hideCursor()
+
+        enableRawMode()
+        updateDisplay(input)
+    }
+
+    private fun handleExit() {
+        // TODO - are you sure prompt
+        clearDisplay()
+        showCursor()
+        disableRawMode()
     }
 
     private enum class Operation {
-        // General
         EXIT,
-        // Motion
         UP,
         DOWN,
-        // Editing
-        EDIT
+        EDIT,
+        SAVE
     }
+
+    private fun bindKeys(): KeyMap<Operation> {
+        val map = KeyMap<Operation>()
+        map.bind(Operation.EXIT, "\u001B")
+        map.bind(Operation.UP, "\u001B[A", "k")
+        map.bind(Operation.DOWN, "\u001B[B", "j")
+        map.bind(Operation.EDIT, "\r")
+        map.bind(Operation.SAVE, KeyMap.ctrl('S'))
+
+        return map
+    }
+
 
 }
