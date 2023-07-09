@@ -4,8 +4,8 @@ import jakarta.inject.Singleton
 import picocli.CommandLine.Command
 import picocli.CommandLine.ParentCommand
 import uk.gov.justice.digital.cli.DomainBuilder
+import uk.gov.justice.digital.cli.editor.DomainEditor
 import uk.gov.justice.digital.cli.service.DomainService
-import kotlin.math.max
 
 @Singleton
 @Command(

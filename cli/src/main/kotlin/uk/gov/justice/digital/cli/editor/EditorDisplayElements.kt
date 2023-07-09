@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.cli.command
+package uk.gov.justice.digital.cli.editor
 
 import kotlin.math.max
 
