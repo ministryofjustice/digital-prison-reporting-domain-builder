@@ -10,9 +10,10 @@ import org.jline.utils.InfoCmp
 import uk.gov.justice.digital.cli.session.ConsoleSession
 import kotlin.math.max
 
-// TODO - extract this
 class DomainEditor(private val terminal: Terminal,
                    private val session: ConsoleSession) {
+
+    private val KEY_READER_TIMEOUT_MS = 250L
 
     private val bindingReader: BindingReader = BindingReader(terminal.reader())
     private val terminalSize: Size = Size()
@@ -62,7 +63,7 @@ class DomainEditor(private val terminal: Terminal,
         Field("Sources", ""),
         MultiLineField("Spark Query", ""),
         Blank(),
-        Heading("keys │ ↑ move up │ ↓ move down │ enter to edit │ s to Save │ q to Quit ", "black", "white")
+        Heading("keys │ ↑ move up │ ↓ move down │ CTRL-s save │ ESC quit │ press enter to edit", "black", "white")
     )
 
     private fun updateDisplay(input: String? = null) {
@@ -138,9 +139,10 @@ class DomainEditor(private val terminal: Terminal,
         terminal.flush()
     }
 
+    // TODO - this is a resize event - we don't refresh the display since this would cause an open text editor session
+    //        to abort
     private fun handleSignal(signal: Terminal.Signal) {
         terminalSize.copy(terminal.size)
-        updateDisplay()
     }
 
     // Allow ctrl-c to interrupt the command.
@@ -219,7 +221,7 @@ class DomainEditor(private val terminal: Terminal,
     }
 
     private fun handleMultiLineFieldEdit(selectedElement: MultiLineField) {
-        val input = MultilineEditor(terminal, session, "Editing Spark Query")
+        val input = TextEditor(terminal, session, "Editing Spark Query")
             .run(selectedElement.value)
         updateDisplay(input)
     }
@@ -227,6 +229,16 @@ class DomainEditor(private val terminal: Terminal,
     private fun handleFieldEdit(selectedElement: Field) {
         // TODO - update status line to say " editing <fieldname> | press enter to save and exit
         disableRawMode()
+
+        // Update status line
+        print("\u001B7")        // Save cursor pos
+        print("\u001B[23;0H")   // Jump to start of status line
+        // Display 'editing' message
+        val status = "Editing ${selectedElement.name.lowercase()} │ press enter to save changes"
+        val padding = " ".repeat(terminal.width - status.length - 2)
+        print(session.toAnsi("@|fg(black),bg(white),bold  $status$padding|@"))
+        print("\u001B8") // restore saved cursor pos
+        terminal.flush()
 
         val inputLength = selectedElement.value.length
 
@@ -272,11 +284,15 @@ class DomainEditor(private val terminal: Terminal,
 
     private fun bindKeys(): KeyMap<Operation> {
         val map = KeyMap<Operation>()
+
         map.bind(Operation.EXIT, "\u001B")
         map.bind(Operation.UP, "\u001B[A", "k")
         map.bind(Operation.DOWN, "\u001B[B", "j")
         map.bind(Operation.EDIT, "\r")
         map.bind(Operation.SAVE, KeyMap.ctrl('S'))
+
+        // Set a shorter timeout for ambiguous keys so hitting ESC to exit is more responsive
+        map.ambiguousTimeout = KEY_READER_TIMEOUT_MS
 
         return map
     }

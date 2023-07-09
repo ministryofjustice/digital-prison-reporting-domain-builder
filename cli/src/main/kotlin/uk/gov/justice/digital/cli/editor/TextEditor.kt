@@ -4,13 +4,15 @@ import org.jline.keymap.BindingReader
 import org.jline.keymap.KeyMap
 import org.jline.terminal.Terminal
 import org.jline.utils.InfoCmp
-import uk.gov.justice.digital.cli.editor.MultilineEditor.Operation.*
+import uk.gov.justice.digital.cli.editor.TextEditor.Operation.*
 import uk.gov.justice.digital.cli.session.ConsoleSession
 import kotlin.math.min
 
-class MultilineEditor(private val terminal: Terminal,
-                      private val session: ConsoleSession,
-                      private val heading: String) {
+class TextEditor(private val terminal: Terminal,
+                 private val session: ConsoleSession,
+                 private val heading: String) {
+
+    private val KEY_READER_TIMEOUT_MS = 250L
 
     fun run(text: String? = null): String {
 
@@ -52,7 +54,8 @@ class MultilineEditor(private val terminal: Terminal,
 
         print("\u001B7") // Save cursor pos
         print("\u001B[23;0H")
-        val statusLine = "keys │ ↑ move up │ ↓ move down │ ← move left │ → move right │ CTRL-S save and exit │ ESC exit".take(78)
+        val statusLine = "keys │ ↑ move up │ ↓ move down │ ← move left │ → move right │ CTRL-S save │ ESC exit"
+            .take(terminal.width - 2)
         val statusPadding = " ".repeat(terminal.width - min(statusLine.length, terminal.width) - 1)
         print(session.toAnsi("@|fg(black),bg(white),bold  $statusLine$statusPadding|@"))
         print("\u001B8") // restore saved cursor pos
@@ -193,6 +196,10 @@ class MultilineEditor(private val terminal: Terminal,
 
         // Also bind the tab character to insert
         map.bind(INSERT, Character.toString(9))
+
+        // Set a shorter timeout for ambiguous keys so hitting ESC to exit is more responsive
+        map.ambiguousTimeout = KEY_READER_TIMEOUT_MS
+
         return map
     }
 
