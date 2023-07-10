@@ -207,9 +207,7 @@ class DomainEditor(private val terminal: Terminal,
                     // a result of true indicates success so quit the loop if true
                     if (handleSave()) break
                 }
-                else -> {
-                    /* Do nothing on unhandled input */
-                }
+                else -> { /* No-Op */ }
             }
 
 
@@ -281,16 +279,16 @@ class DomainEditor(private val terminal: Terminal,
     }
 
     private fun handleSave(): Boolean {
+
         updateStatusLine("Saving domain...")
 
-        // TODO - consider adding a type attribute to Field and MultilineField
         val newDomain = WriteableDomain(
             name = pageElements[5].fieldValue(),
             description = pageElements[6].fieldValue(),
             location = pageElements[7].fieldValue(),
             owner = pageElements[8].fieldValue(),
             author = pageElements[9].fieldValue(),
-            version = "1",
+            version = "1.0.0",
             tags = emptyMap(), // TODO - support tags
             // TODO - for now we are supporting a single table
             tables = listOf(
@@ -300,17 +298,19 @@ class DomainEditor(private val terminal: Terminal,
                    location = pageElements[15].fieldValue(),
                    owner = pageElements[16].fieldValue(),
                    author = pageElements[17].fieldValue(),
-                   version = "", // TODO - what do we set this to
+                   version = "1.0.0",
                    tags = emptyMap(), // TODO - support tags
                    primaryKey = pageElements[18].fieldValue(),
                    transform = Transform(
                        sources = pageElements[19].fieldValue().split(","), // We assume csv values
                        viewText = pageElements[20].multiLineFieldValue()
                    ),
-                   mapping = Mapping("") // TODO - is this a sensible default?
+                   mapping = Mapping("")
                )
             )
         )
+
+        disableRawMode()
 
         val lineReader = LineReaderBuilder.builder()
             .terminal(this.terminal)
@@ -336,6 +336,10 @@ class DomainEditor(private val terminal: Terminal,
             updateStatusLine("Created failed due to unexpected error. Press enter to return to editor")
             lineReader.readLine()
             return false
+        }
+        finally {
+            enableRawMode()
+            updateDisplay()
         }
     }
 
