@@ -88,23 +88,24 @@ class ViewDomain(private val service: DomainService) : Runnable {
         val heading = listOf(
             "@|cyan,bold Domain '${domain.name}' with status ${domain.status}|@\n",
             """
-               @|bold Name        |@| ${domain.name} 
-               @|bold Status      |@| ${domain.status.name.lowercase()}
-               @|bold Description |@| ${domain.description}
-               @|bold Owner       |@| ${domain.owner}
-               @|bold Author      |@| ${domain.author}
+               @|bold Name        |@│ ${domain.name} 
+               @|bold Status      |@│ ${domain.status.name.lowercase()}
+               @|bold Description |@│ ${domain.description}
+               @|bold Owner       |@│ ${domain.owner}
+               @|bold Author      |@│ ${domain.author}
             """.trimIndent(),
             "\n@|yellow,bold Tables in this domain|@\n"
         )
         val tableData =
+            // TODO - tidy up display of multiline SQL queries
             domain
                 .tables
                 .map {
                     """
-                        @|bold Table       |@| ${it.name}
-                        @|bold Description |@| ${it.description}
-                        @|bold Sources     |@| ${it.transform.sources.joinToString()}
-                        @|bold Query       |@| ${it.transform.viewText}
+                        @|bold Table       |@│ ${it.name}
+                        @|bold Description |@│ ${it.description}
+                        @|bold Sources     |@│ ${it.transform.sources.joinToString()}
+                        @|bold Query       |@│ ${it.transform.viewText}
                         
                     """.trimIndent()
             }

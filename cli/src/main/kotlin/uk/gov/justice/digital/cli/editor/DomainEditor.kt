@@ -237,13 +237,13 @@ class DomainEditor(private val terminal: Terminal,
         updateDisplay(input)
     }
 
-    private fun updateStatusLine(status: String) {
+    private fun updateStatusLine(status: String, fgColor: String = "black", bgColor: String = "white") {
         print("\u001B7")        // Save cursor pos
         print("\u001B[23;0H")   // Jump to start of status line
 
         val padding = " ".repeat(terminal.width - status.length - 2)
 
-        print(session.toAnsi("@|fg(black),bg(white),bold  $status$padding|@"))
+        print(session.toAnsi("@|fg($fgColor),bg($bgColor),bold  $status$padding|@"))
         print("\u001B8") // restore saved cursor pos
 
         terminal.flush()
@@ -283,7 +283,7 @@ class DomainEditor(private val terminal: Terminal,
 
     private fun handleSave(): Boolean {
 
-        updateStatusLine("Saving domain...")
+        updateStatusLine("Saving domain...", bgColor = "yellow")
 
         val newDomain = WriteableDomain(
             name = pageElements[5].fieldValue(),
@@ -321,28 +321,22 @@ class DomainEditor(private val terminal: Terminal,
 
         try {
             service.createDomain(newDomain)
-            updateStatusLine("Domain created successfully │ press enter to continue")
+            updateStatusLine("Domain created successfully │ Press enter to continue", bgColor = "green")
             lineReader.readLine()
             return true
         }
         catch (brx: BadRequestException) {
-            updateStatusLine("Created failed. Check that all data has been provided │ Press enter to return to editor")
-            println(brx.message)
-            brx.printStackTrace()
+            updateStatusLine("Create failed - Check that all data has been provided │ Press enter to return to editor", bgColor = "red", fgColor = "white")
             lineReader.readLine()
             return false
         }
         catch (cx: ConflictException) {
-            updateStatusLine("This domain name is already in use │ Press enter to return to editor")
-            println(cx.message)
-            cx.printStackTrace()
+            updateStatusLine("This domain name is already in use │ Press enter to return to editor", bgColor = "red", fgColor = "white")
             lineReader.readLine()
             return false
         }
         catch (ex: Exception) {
-            updateStatusLine("Created failed due to unexpected error │ Press enter to return to editor")
-            println(ex.message)
-            ex.printStackTrace()
+            updateStatusLine("Create failed due to unexpected error │ Press enter to return to continue", bgColor = "red", fgColor = "white")
             lineReader.readLine()
             return false
         }
@@ -356,7 +350,6 @@ class DomainEditor(private val terminal: Terminal,
     private fun Element.multiLineFieldValue(): String = (this as MultiLineField).value
 
     private fun handleExit() {
-        // TODO - are you sure prompt
         clearDisplay()
         showCursor()
         disableRawMode()

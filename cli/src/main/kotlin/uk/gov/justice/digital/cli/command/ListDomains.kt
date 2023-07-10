@@ -57,7 +57,7 @@ class ListDomains(private val service: DomainService) : Runnable {
         val dataRows = data.map {
             String.format(
                 "| %-${nameWidth}s | %-${statusWidth}s | %-${descriptionWidth}s |", it.name, it.status, it.description) }
-        val footer = listOf("$tableBorder\n")
+        val footer = listOf("$tableBorder\n\n")
 
         return listOf(heading, dataRows, footer)
             .flatten()
