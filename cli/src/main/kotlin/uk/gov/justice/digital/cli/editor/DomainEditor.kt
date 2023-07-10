@@ -82,7 +82,7 @@ class DomainEditor(private val session: InteractiveSession, private val service:
 
         val selectedElementIndex = selectableElementIndexes[selectedField]
 
-        // TODO - review this and use index accessor
+        // Update page element state
         pageElements = pageElements
             .withIndex()
             .map { item ->
