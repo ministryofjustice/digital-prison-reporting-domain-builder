@@ -7,10 +7,9 @@ import uk.gov.justice.digital.cli.DomainBuilder
 import uk.gov.justice.digital.cli.editor.DomainEditor
 import uk.gov.justice.digital.cli.service.DomainService
 
-// TODO - this should only come into play when we are in an interactive session
 @Singleton
 @Command(
-        name = "create-interactive",
+        name = "create",
         description = ["Create a new domain"],
 )
 class CreateDomainInteractive(private val service: DomainService) : Runnable {

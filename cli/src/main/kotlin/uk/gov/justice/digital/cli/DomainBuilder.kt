@@ -12,6 +12,7 @@ import uk.gov.justice.digital.cli.command.ViewDomain
 import uk.gov.justice.digital.cli.session.BatchSession
 import uk.gov.justice.digital.cli.session.InteractiveSession
 import uk.gov.justice.digital.cli.command.CreateDomainInteractive
+import kotlin.system.exitProcess
 
 @Command(
     name = "domain-builder",
@@ -65,7 +66,10 @@ class DomainBuilder(
 
     fun getInteractiveSession(): InteractiveSession {
         if (isInteractive) return interactiveSession
-        else throw IllegalStateException("Cannot get interactive session. Current session is not interactive")
+        else {
+            println("\nThis command is only available when run interactively\n")
+            exitProcess(1)
+        }
     }
 
     companion object {
