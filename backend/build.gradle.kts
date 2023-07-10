@@ -1,8 +1,8 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-  id("org.jetbrains.kotlin.jvm") version "1.8.10"
-  id("io.micronaut.minimal.application") version "3.7.7"
+  id("org.jetbrains.kotlin.jvm") version "1.8.21"
+  id("io.micronaut.minimal.application") version "3.7.10"
   id("kotlin-kapt")
   id("com.github.johnrengelman.shadow") version "8.1.1"
 }
@@ -12,11 +12,11 @@ repositories {
 }
 
 micronaut {
-  version.set("3.8.8")
+  version.set("3.9.4")
 }
 
 // TODO - review this - better way to set versions?
-val kotlinVersion = "1.8.10"
+val kotlinVersion = "1.8.21"
 val ktormVersion = "3.6.0"
 val testContainersVersion = "1.18.0"
 
@@ -51,9 +51,9 @@ dependencies {
   kapt("io.micronaut:micronaut-inject-java")
   kapt("io.micronaut:micronaut-http-validation")
 
-  kapt("io.micronaut.serde:micronaut-serde-processor:1.5.2")
-  runtimeOnly("io.micronaut.serde:micronaut-serde-jackson:1.5.2")
-  implementation("io.micronaut.serde:micronaut-serde-api:1.5.2")
+  kapt("io.micronaut.serde:micronaut-serde-processor:1.5.3")
+  runtimeOnly("io.micronaut.serde:micronaut-serde-jackson:1.5.3")
+  implementation("io.micronaut.serde:micronaut-serde-api:1.5.3")
 
   kaptTest("io.micronaut:micronaut-inject-java")
   kaptTest("io.micronaut:micronaut-http-validation")
