@@ -1,5 +1,5 @@
 plugins {
-  id("org.jetbrains.kotlin.jvm") version "1.8.10"
+  id("org.jetbrains.kotlin.jvm") version "1.8.21"
   id("io.micronaut.minimal.library") version "3.7.10"
   id("kotlin-kapt")
   id("java-test-fixtures")

@@ -1,7 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-  id("org.jetbrains.kotlin.jvm") version "1.8.10"
+  id("org.jetbrains.kotlin.jvm") version "1.8.21"
   id("io.micronaut.minimal.application") version "3.7.10"
   id("kotlin-kapt")
   id("com.github.johnrengelman.shadow") version "7.1.2"
@@ -15,7 +15,7 @@ micronaut {
   version.set("3.9.4")
 }
 
-val kotlinVersion = "1.8.10"
+val kotlinVersion = "1.8.21"
 
 dependencies {
   compileOnly("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")

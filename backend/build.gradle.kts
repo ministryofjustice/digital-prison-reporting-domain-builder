@@ -1,7 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-  id("org.jetbrains.kotlin.jvm") version "1.8.10"
+  id("org.jetbrains.kotlin.jvm") version "1.8.21"
   id("io.micronaut.minimal.application") version "3.7.10"
   id("kotlin-kapt")
   id("com.github.johnrengelman.shadow") version "8.1.1"
@@ -16,7 +16,7 @@ micronaut {
 }
 
 // TODO - review this - better way to set versions?
-val kotlinVersion = "1.8.10"
+val kotlinVersion = "1.8.21"
 val ktormVersion = "3.6.0"
 val testContainersVersion = "1.18.0"
 
