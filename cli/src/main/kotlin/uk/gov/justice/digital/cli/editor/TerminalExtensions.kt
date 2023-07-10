@@ -18,13 +18,27 @@ fun Terminal.moveCursorRight(columns: Int) = applyAction(Capability.cursor_right
 
 fun Terminal.applyAction(action: Capability, count: Int = 1) {
     for (i in 1..count) { this.puts(action) }
+    this.flush()
 }
 
-fun Terminal.moveCursorTo(line: Int, column: Int) = print("\u001B[$line;${column}H")
+fun Terminal.moveCursorTo(line: Int, column: Int) {
+    print("\u001B[$line;${column}H")
+    this.flush()
+}
 
 fun Terminal.clearDisplay() {
     this.puts(Capability.clear_screen)
     this.flush()
+}
+
+fun Terminal.clearLine() {
+    print("\u001B[2K")
+    this.flush()
+}
+
+fun Terminal.bell() {
+    this.puts(Capability.bell)
+//    terminal.flush()
 }
 
 fun Terminal.saveCursorPosition() = print("\u001B7")

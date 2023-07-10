@@ -4,6 +4,7 @@ import org.jline.keymap.BindingReader
 import org.jline.keymap.KeyMap
 import org.jline.terminal.Terminal
 import org.jline.utils.InfoCmp
+import org.jline.utils.InfoCmp.Capability
 import uk.gov.justice.digital.cli.editor.TextEditor.Operation.*
 import uk.gov.justice.digital.cli.session.ConsoleSession
 import kotlin.math.min
@@ -32,6 +33,7 @@ class TextEditor(private val terminal: Terminal,
 
         val map = bindKeys()
 
+        val lineOffset = 4 // Top three lines of the screen are not editable
         val minLine = 0
         val maxLine = 20 // TODO - make this dynamic?
         val minColumn = 0
@@ -82,13 +84,10 @@ class TextEditor(private val terminal: Terminal,
                 DOWN -> if ((currentLine < lines.filter { it.isNotEmpty() }.size - 1) && lines[currentLine].isNotEmpty()) {
                     currentLine++
                     terminal.moveCursorDown(1)
-                    // Moving the cursor down resets the location to the start of the line so ensure
-                    // it stays in the same column as before, or at the end of the line, whichever is
-                    // the lower value.
+                    terminal.flush()
+                    // When moving from a longer line to a shorter line ensure the cursor is at the end of the line.
                     currentColumn = Integer.min(currentColumn, lines[currentLine].length)
-                    for (i in 0 until currentColumn) {
-                        terminal.moveCursorRight(1)
-                    }
+                    terminal.moveCursorTo(currentLine + lineOffset, currentColumn)
                     terminal.flush()
                 }
 
@@ -145,28 +144,44 @@ class TextEditor(private val terminal: Terminal,
 
                 DELETE -> {
                     val line = lines[currentLine]
-                    if (line.isNotEmpty()) {
-                        if (line.isNotEmpty()) lines[currentLine] = line.removeRange(currentColumn - 1, currentColumn)
+
+                    if (line.isNotEmpty() && currentColumn > 0) {
+                        lines[currentLine] = line.removeRange(currentColumn - 1, currentColumn)
                         terminal.moveCursorLeft(1)
-                        terminal.puts(InfoCmp.Capability.delete_character)
+                        terminal.puts(Capability.delete_character)
                         currentColumn--
                     } else if (currentLine > minLine) {
-                        currentLine--
-                        terminal.moveCursorUp(1)
-                        for (i in 0 until lines[currentLine].length) {
-                            terminal.moveCursorRight(1)
-                            currentColumn++
+                        // Only allow the text on the current line to be moved to the line above if there is space.
+                        if (line.length + lines[currentLine-1].length < terminal.width) {
+                            // Clear the current line since the contents will be moved up to the end of line above.
+                            lines[currentLine] = ""
+                            terminal.clearLine()
+
+                            currentLine--
+
+                            // Move the cursor up to the end of the line above.
+                            terminal.moveCursorUp(1)
+                            terminal.moveCursorRight(lines[currentLine].length)
+                            currentColumn = lines[currentLine].length
+
+                            // Print the contents of the line we started on and move the cursor back to where it was...
+                            print(line)
+                            terminal.moveCursorLeft(line.length)
+                            // ...and append the original line to the end of the current line.
+                            lines[currentLine] = lines[currentLine] + line
                         }
+                        else terminal.bell() // Cannot much current line content to line above - not enough space.
                     }
                 }
-
                 EXIT -> return text ?: ""
                 ACCEPT -> break
-                else -> { /* no-op */ }
+                else -> terminal.bell()
             }
             terminal.flush()
         }
+
         terminal.attributes = originalAttributes
+
         return lines.filter { it.isNotEmpty() }.joinToString("\n")
     }
 
