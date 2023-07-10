@@ -209,9 +209,12 @@ class DomainEditor(private val terminal: Terminal,
                 }
                 else -> { /* No-Op */ }
             }
-
-
         }
+
+        clearDisplay()
+        showCursor()
+        terminal.flush()
+        disableRawMode()
     }
 
     private fun showCursor() = terminal.puts(InfoCmp.Capability.cursor_visible)
@@ -305,7 +308,7 @@ class DomainEditor(private val terminal: Terminal,
                        sources = pageElements[19].fieldValue().split(","), // We assume csv values
                        viewText = pageElements[20].multiLineFieldValue()
                    ),
-                   mapping = Mapping("")
+                   mapping = Mapping("Should this be optional instead?")
                )
             )
         )
@@ -317,23 +320,29 @@ class DomainEditor(private val terminal: Terminal,
             .build()
 
         try {
-            val result = service.createDomain(newDomain)
-            updateStatusLine("Domain created successfully with id: $result - press enter to continue")
+            service.createDomain(newDomain)
+            updateStatusLine("Domain created successfully │ press enter to continue")
             lineReader.readLine()
             return true
         }
         catch (brx: BadRequestException) {
-            updateStatusLine("Created failed. Check that all data has been provided. Press enter to return to editor")
+            updateStatusLine("Created failed. Check that all data has been provided │ Press enter to return to editor")
+            println(brx.message)
+            brx.printStackTrace()
             lineReader.readLine()
             return false
         }
         catch (cx: ConflictException) {
-            updateStatusLine("This domain name is already in use. Press enter to return to editor")
+            updateStatusLine("This domain name is already in use │ Press enter to return to editor")
+            println(cx.message)
+            cx.printStackTrace()
             lineReader.readLine()
             return false
         }
         catch (ex: Exception) {
-            updateStatusLine("Created failed due to unexpected error. Press enter to return to editor")
+            updateStatusLine("Created failed due to unexpected error │ Press enter to return to editor")
+            println(ex.message)
+            ex.printStackTrace()
             lineReader.readLine()
             return false
         }
