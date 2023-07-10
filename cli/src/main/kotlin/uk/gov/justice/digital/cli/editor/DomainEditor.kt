@@ -6,12 +6,14 @@ import org.jline.reader.LineReaderBuilder
 import org.jline.terminal.Size
 import org.jline.terminal.Terminal
 import org.jline.utils.Display
-import org.jline.utils.InfoCmp
 import uk.gov.justice.digital.cli.client.BadRequestException
 import uk.gov.justice.digital.cli.client.ConflictException
 import uk.gov.justice.digital.cli.service.DomainService
 import uk.gov.justice.digital.cli.session.ConsoleSession
-import uk.gov.justice.digital.model.*
+import uk.gov.justice.digital.model.Mapping
+import uk.gov.justice.digital.model.Table
+import uk.gov.justice.digital.model.Transform
+import uk.gov.justice.digital.model.WriteableDomain
 import kotlin.math.max
 
 class DomainEditor(private val terminal: Terminal,
@@ -75,9 +77,9 @@ class DomainEditor(private val terminal: Terminal,
         val width = terminalSize.columns
 
         // By default hide the cursor until the user enters edit mode
-        hideCursor()
+        terminal.hideCursor()
 
-        moveCursorToHome()
+        terminal.moveCursorToHome()
 
         val selectedElementIndex = selectableElementIndexes[selectedField]
 
@@ -108,42 +110,17 @@ class DomainEditor(private val terminal: Terminal,
             else println()
         }
 
-        // Reset cursor position and move to the currently selected element
-        terminal.puts(InfoCmp.Capability.cursor_home)
+        terminal.moveCursorToHome()
 
         val selectedElement = pageElements[selectedElementIndex]
         val inputLength = if (selectedElement is Field) selectedElement.value.length else 0
 
-        moveCursorTo(selectedElementIndex, inputLength + 15)
+        terminal.moveCursorTo(selectedElementIndex, inputLength + 15)
 
         terminal.flush()
     }
 
-    private fun moveCursorToHome() {
-        terminal.puts(InfoCmp.Capability.cursor_home)
-        terminal.flush()
-    }
 
-    private fun moveCursorTo(line: Int, column: Int) {
-        moveCursorToHome()
-        // TODO - try escape codes with parameters again. Should be possible to include the number of moves in a
-        //        single code e.g. ESC[12A but it's not worked so far hence the loops below.
-        moveCursorDown(line)
-        moveCursorRight(column)
-    }
-
-    private fun moveCursorDown(lines: Int) = applyAction(InfoCmp.Capability.cursor_down, lines)
-    private fun moveCursorRight(columns: Int) = applyAction(InfoCmp.Capability.cursor_right, columns)
-    private fun moveCursorLeft(columns: Int) = applyAction(InfoCmp.Capability.cursor_left, columns)
-
-    private fun applyAction(action: InfoCmp.Capability, count: Int = 1) {
-        for (i in 1..count) { terminal.puts(action) }
-    }
-
-    private fun clearDisplay() {
-        terminal.puts(InfoCmp.Capability.clear_screen)
-        terminal.flush()
-    }
 
     private fun handleSignal(signal: Terminal.Signal) {
         terminalSize.copy(terminal.size)
@@ -174,7 +151,7 @@ class DomainEditor(private val terminal: Terminal,
 
     fun run() {
         resetState()
-        clearDisplay()
+        terminal.clearDisplay()
 
         val keys = bindKeys()
 
@@ -211,15 +188,12 @@ class DomainEditor(private val terminal: Terminal,
             }
         }
 
-        clearDisplay()
-        showCursor()
+        terminal.clearDisplay()
+        terminal.showCursor()
         terminal.flush()
         disableRawMode()
     }
 
-    private fun showCursor() = terminal.puts(InfoCmp.Capability.cursor_visible)
-
-    private fun hideCursor() = terminal.puts(InfoCmp.Capability.cursor_invisible)
 
     private fun updatePositionAndRefreshDisplay(i: Int) {
         // Ensure the updated value remains within the bounds minPosition < position < maxPosition
@@ -238,14 +212,14 @@ class DomainEditor(private val terminal: Terminal,
     }
 
     private fun updateStatusLine(status: String, fgColor: String = "black", bgColor: String = "white") {
-        print("\u001B7")        // Save cursor pos
-        print("\u001B[23;0H")   // Jump to start of status line
+        terminal.saveCursorPosition()
+        terminal.moveCursorTo(23, 0) // Start of status line
 
         val padding = " ".repeat(terminal.width - status.length - 2)
 
         print(session.toAnsi("@|fg($fgColor),bg($bgColor),bold  $status$padding|@"))
-        print("\u001B8") // restore saved cursor pos
 
+        terminal.restoreSavedCursorPosition()
         terminal.flush()
     }
 
@@ -258,7 +232,7 @@ class DomainEditor(private val terminal: Terminal,
 
         // Move the cursor to the start of the value string before we accept input since it will be in the
         // wrong place if we already have a value (we default to placing the cursor at the end of the string).
-        moveCursorLeft(inputLength)
+        terminal.moveCursorLeft(inputLength)
 
         val lineReader = LineReaderBuilder.builder()
             .terminal(this.terminal)
@@ -268,14 +242,14 @@ class DomainEditor(private val terminal: Terminal,
 
         // Since we need to set the prompt to a single space we need to shift the cursor left on char before
         // we accept user input otherwise the cursor will not be properly aligned.
-        moveCursorLeft(1)
+        terminal.moveCursorLeft(1)
         // Now make the cursor visible
-        showCursor()
+        terminal.showCursor()
 
         val input = lineReader.readLine(" ", null, currentValue)
 
         // Hide the cursor again as soon as the user has hit enter.
-        hideCursor()
+        terminal.hideCursor()
 
         enableRawMode()
         updateDisplay(input)
@@ -350,8 +324,8 @@ class DomainEditor(private val terminal: Terminal,
     private fun Element.multiLineFieldValue(): String = (this as MultiLineField).value
 
     private fun handleExit() {
-        clearDisplay()
-        showCursor()
+        terminal.clearDisplay()
+        terminal.showCursor()
         disableRawMode()
     }
 

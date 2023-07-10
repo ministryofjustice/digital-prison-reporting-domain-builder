@@ -18,8 +18,9 @@ class TextEditor(private val terminal: Terminal,
 
         val originalAttributes = terminal.enterRawMode()
 
-        terminal.puts(InfoCmp.Capability.cursor_visible)
-        terminal.puts(InfoCmp.Capability.clear_screen)
+        terminal.showCursor()
+        terminal.clearDisplay()
+
         terminal.flush()
 
         val padding = " ".repeat(terminal.width - heading.length - 1)
@@ -30,7 +31,6 @@ class TextEditor(private val terminal: Terminal,
         val editReader = BindingReader(terminal.reader())
 
         val map = bindKeys()
-
 
         val minLine = 0
         val maxLine = 20 // TODO - make this dynamic?
@@ -49,22 +49,26 @@ class TextEditor(private val terminal: Terminal,
         }
 
         lines.forEach { println(it) }
-        repeat(lines.size) { terminal.puts(InfoCmp.Capability.cursor_up) }
+
+        terminal.moveCursorUp(lines.size)
+
         terminal.flush()
 
-        print("\u001B7") // Save cursor pos
-        print("\u001B[23;0H")
+        terminal.saveCursorPosition()
+        terminal.moveCursorTo(23, 0)
+
         val statusLine = "keys │ ↑ move up │ ↓ move down │ ← move left │ → move right │ CTRL-S save │ ESC exit"
             .take(terminal.width - 2)
         val statusPadding = " ".repeat(terminal.width - min(statusLine.length, terminal.width) - 1)
         print(session.toAnsi("@|fg(black),bg(white),bold  $statusLine$statusPadding|@"))
-        print("\u001B8") // restore saved cursor pos
+
+        terminal.restoreSavedCursorPosition()
         terminal.flush()
 
         while(true) {
             when (editReader.readBinding(map, null, true)) {
                 UP -> if (currentLine > minLine) {
-                    terminal.puts(InfoCmp.Capability.cursor_up)
+                    terminal.moveCursorUp(1)
                     currentLine--
                     val line = lines[currentLine]
 
@@ -77,24 +81,24 @@ class TextEditor(private val terminal: Terminal,
 
                 DOWN -> if ((currentLine < lines.filter { it.isNotEmpty() }.size - 1) && lines[currentLine].isNotEmpty()) {
                     currentLine++
-                    terminal.puts(InfoCmp.Capability.cursor_down)
+                    terminal.moveCursorDown(1)
                     // Moving the cursor down resets the location to the start of the line so ensure
                     // it stays in the same column as before, or at the end of the line, whichever is
                     // the lower value.
                     currentColumn = Integer.min(currentColumn, lines[currentLine].length)
                     for (i in 0 until currentColumn) {
-                        terminal.puts(InfoCmp.Capability.cursor_right)
+                        terminal.moveCursorRight(1)
                     }
                     terminal.flush()
                 }
 
                 LEFT -> if (currentColumn > minColumn) {
-                    terminal.puts(InfoCmp.Capability.cursor_left)
+                    terminal.moveCursorLeft(1)
                     currentColumn--
                 }
 
                 RIGHT -> if (currentColumn < maxColumn && currentColumn < lines[currentLine].length) {
-                    terminal.puts(InfoCmp.Capability.cursor_right)
+                    terminal.moveCursorRight(1)
                     currentColumn++
                 }
 
@@ -116,13 +120,15 @@ class TextEditor(private val terminal: Terminal,
                                 print(c)
                                 print(line.substring(currentColumn))
                                 currentColumn++
+
                                 for (i in 0 until charsRemaining) {
-                                    terminal.puts(InfoCmp.Capability.cursor_left)
+                                    terminal.moveCursorLeft(1)
                                 }
+
                                 terminal.flush()
                             }
                         } else if (currentLine < maxLine) {
-                            terminal.puts(InfoCmp.Capability.cursor_down)
+                            terminal.moveCursorDown(1)
                             print("\r")
                             currentColumn = 0
                             currentLine++
@@ -131,7 +137,7 @@ class TextEditor(private val terminal: Terminal,
                 }
 
                 ENTER -> if (currentLine < maxLine) {
-                    terminal.puts(InfoCmp.Capability.cursor_down)
+                    terminal.moveCursorDown(1)
                     print("\r")
                     currentColumn = 0
                     currentLine++
@@ -141,14 +147,14 @@ class TextEditor(private val terminal: Terminal,
                     val line = lines[currentLine]
                     if (line.isNotEmpty()) {
                         if (line.isNotEmpty()) lines[currentLine] = line.removeRange(currentColumn - 1, currentColumn)
-                        terminal.puts(InfoCmp.Capability.cursor_left)
+                        terminal.moveCursorLeft(1)
                         terminal.puts(InfoCmp.Capability.delete_character)
                         currentColumn--
                     } else if (currentLine > minLine) {
                         currentLine--
-                        terminal.puts(InfoCmp.Capability.cursor_up)
+                        terminal.moveCursorUp(1)
                         for (i in 0 until lines[currentLine].length) {
-                            terminal.puts(InfoCmp.Capability.cursor_right)
+                            terminal.moveCursorRight(1)
                             currentColumn++
                         }
                     }
