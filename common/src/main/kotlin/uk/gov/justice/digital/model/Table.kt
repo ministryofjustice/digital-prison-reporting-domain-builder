@@ -7,14 +7,14 @@ import io.micronaut.serde.annotation.Serdeable
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Table(
     val name: String,
-    val description: String,
-    val version: String,
-    val location: String,
+    val description: String?,
+    val version: String?,
+    val location: String?,
     val tags: Map<String, String> = emptyMap(),
-    val owner: String,
-    val author: String,
+    val owner: String?,
+    val author: String?,
     val primaryKey: String,
     val transform: Transform,
-    val mapping: Mapping,
+    val mapping: Mapping?,
     val violations: List<Violation> = emptyList()
 )

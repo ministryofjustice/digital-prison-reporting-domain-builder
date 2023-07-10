@@ -34,18 +34,18 @@ class RepositoryBackedDomainService(
 
     override fun createDomain(domain: WriteableDomain): UUID =
         domain
-            .validateSql { it.mapping.viewText }
+            .validateSql { it.mapping?.viewText }
             .validateSql { it.transform.viewText }
             .let { repository.createDomain(it) }
 
-    private fun validateDomainSql(domain: WriteableDomain, getSqlFromTable: (Table) -> String): WriteableDomain =
+    private fun validateDomainSql(domain: WriteableDomain, getSqlFromTable: (Table) -> String?): WriteableDomain =
         domain.tables
-            .map(getSqlFromTable)
+            .mapNotNull(getSqlFromTable)
             .map { sqlValidator.validate(it) }
             .filterIsInstance<InvalidSparkSqlResult>()
             .firstOrNull()?.let { throw InvalidSparkSqlException(it) } ?: domain
 
-    private fun WriteableDomain.validateSql(getSqlFromTable: (Table) -> String): WriteableDomain =
+    private fun WriteableDomain.validateSql(getSqlFromTable: (Table) -> String?): WriteableDomain =
         validateDomainSql(this, getSqlFromTable)
 
 }

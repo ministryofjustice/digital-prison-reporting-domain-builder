@@ -122,9 +122,12 @@ class DomainEditor(private val session: InteractiveSession, private val service:
 
 
     private fun handleSignal(signal: Terminal.Signal) {
-        terminalSize.copy(terminal.size)
-        // TODO - calling updateDisplay here in response to a resize will abort an open TextEditor session
-        updateDisplay()
+        // Ensure that we only react to the expected signal.
+        if (signal == Terminal.Signal.WINCH) {
+            terminalSize.copy(terminal.size)
+            // TODO - calling updateDisplay here in response to a resize will abort an open TextEditor session
+            updateDisplay()
+        }
     }
 
     // Allow ctrl-c to interrupt the command.
