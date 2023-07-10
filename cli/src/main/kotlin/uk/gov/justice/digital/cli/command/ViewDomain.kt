@@ -97,18 +97,20 @@ class ViewDomain(private val service: DomainService) : Runnable {
             "\n@|yellow,bold Tables in this domain|@\n"
         )
         val tableData =
-            // TODO - tidy up display of multiline SQL queries
             domain
                 .tables
-                .map {
-                    """
-                        @|bold Table       |@│ ${it.name}
-                        @|bold Description |@│ ${it.description}
-                        @|bold Sources     |@│ ${it.transform.sources.joinToString()}
-                        @|bold Query       |@│ ${it.transform.viewText}
-                        
+                .map {table ->
+                    val formattedTableFields = """
+                        @|bold Table       |@│ ${table.name}
+                        @|bold Description |@│ ${table.description}
+                        @|bold Sources     |@│ ${table.transform.sources.joinToString()}
                     """.trimIndent()
-            }
+
+                    val formattedQueryString = "\n@|bold Query       |@│ " +
+                        table.transform.viewText.split("\n").joinToString("\n@|bold             |@│")
+
+                    "$formattedTableFields$formattedQueryString\n"
+                }
 
         return listOf(heading, tableData)
             .flatten()

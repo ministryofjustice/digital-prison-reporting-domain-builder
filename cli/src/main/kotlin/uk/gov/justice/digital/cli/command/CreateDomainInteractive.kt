@@ -7,6 +7,7 @@ import uk.gov.justice.digital.cli.DomainBuilder
 import uk.gov.justice.digital.cli.editor.DomainEditor
 import uk.gov.justice.digital.cli.service.DomainService
 
+// TODO - this should only come into play when we are in an interactive session
 @Singleton
 @Command(
         name = "create-interactive",
@@ -17,11 +18,8 @@ class CreateDomainInteractive(private val service: DomainService) : Runnable {
     @ParentCommand
     lateinit var parent: DomainBuilder
 
-    // TODO - revise to pass in the session only
     private val editor: DomainEditor by lazy {
-        DomainEditor(parent.getInteractiveSession().terminal(),
-                     parent.getInteractiveSession(),
-                     service)
+        DomainEditor(parent.getInteractiveSession(), service)
     }
 
     override fun run() {

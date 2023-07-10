@@ -9,18 +9,18 @@ import org.jline.utils.Display
 import uk.gov.justice.digital.cli.client.BadRequestException
 import uk.gov.justice.digital.cli.client.ConflictException
 import uk.gov.justice.digital.cli.service.DomainService
-import uk.gov.justice.digital.cli.session.ConsoleSession
+import uk.gov.justice.digital.cli.session.InteractiveSession
 import uk.gov.justice.digital.model.Mapping
 import uk.gov.justice.digital.model.Table
 import uk.gov.justice.digital.model.Transform
 import uk.gov.justice.digital.model.WriteableDomain
 import kotlin.math.max
 
-class DomainEditor(private val terminal: Terminal,
-                   private val session: ConsoleSession,
-                   private val service: DomainService) {
+class DomainEditor(private val session: InteractiveSession, private val service: DomainService) {
 
-    private val KEY_READER_TIMEOUT_MS = 250L
+    private val keyReaderTimeout = 250L
+
+    private val terminal = session.terminal()
 
     private val bindingReader: BindingReader = BindingReader(terminal.reader())
     private val terminalSize: Size = Size()
@@ -46,7 +46,6 @@ class DomainEditor(private val terminal: Terminal,
     private val minPosition = 0
     private val maxPosition = selectableElementIndexes.size - 1
 
-    // TODO - tags, allow key value pair entry / deletion
     private fun emptyPageElements() = listOf(
         Blank(),
         Heading("Create New Domain", "black", "green"),
@@ -184,7 +183,7 @@ class DomainEditor(private val terminal: Terminal,
                     // a result of true indicates success so quit the loop if true
                     if (handleSave()) break
                 }
-                else -> { /* No-Op */ }
+                else -> terminal.bell()
             }
         }
 
@@ -206,8 +205,7 @@ class DomainEditor(private val terminal: Terminal,
     }
 
     private fun handleMultiLineFieldEdit(selectedElement: MultiLineField) {
-        val input = TextEditor(terminal, session, "Editing Spark Query")
-            .run(selectedElement.value)
+        val input = TextEditor(session, "Editing Spark SQL Query").run(selectedElement.value)
         updateDisplay(input)
     }
 
@@ -267,7 +265,7 @@ class DomainEditor(private val terminal: Terminal,
             author = pageElements[9].fieldValue(),
             version = "1.0.0",
             tags = emptyMap(), // TODO - support tags
-            // TODO - for now we are supporting a single table
+            // TODO - for now we only support a single table
             tables = listOf(
                Table(
                    name = pageElements[13].fieldValue(),
@@ -300,16 +298,21 @@ class DomainEditor(private val terminal: Terminal,
             return true
         }
         catch (brx: BadRequestException) {
+            terminal.bell()
             updateStatusLine("Create failed - Check that all data has been provided │ Press enter to return to editor", bgColor = "red", fgColor = "white")
             lineReader.readLine()
             return false
         }
         catch (cx: ConflictException) {
+            terminal.bell()
+            updateStatusLine("Create failed - Check that all data has been provided │ Press enter to return to editor", bgColor = "red", fgColor = "white")
             updateStatusLine("This domain name is already in use │ Press enter to return to editor", bgColor = "red", fgColor = "white")
             lineReader.readLine()
             return false
         }
         catch (ex: Exception) {
+            terminal.bell()
+            updateStatusLine("Create failed - Check that all data has been provided │ Press enter to return to editor", bgColor = "red", fgColor = "white")
             updateStatusLine("Create failed due to unexpected error │ Press enter to return to continue", bgColor = "red", fgColor = "white")
             lineReader.readLine()
             return false
@@ -347,10 +350,9 @@ class DomainEditor(private val terminal: Terminal,
         map.bind(Operation.SAVE, KeyMap.ctrl('S'))
 
         // Set a shorter timeout for ambiguous keys so hitting ESC to exit is more responsive
-        map.ambiguousTimeout = KEY_READER_TIMEOUT_MS
+        map.ambiguousTimeout = keyReaderTimeout
 
         return map
     }
-
 
 }

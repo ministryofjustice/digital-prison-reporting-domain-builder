@@ -32,7 +32,7 @@ class CreateDomainTest {
 
         val domainPath = "/domain/12345"
 
-        every { mockDomainService.createDomain(any()) } answers { domainPath }
+        every { mockDomainService.createDomain(any<String>()) } answers { domainPath }
 
         val capturedOutput = captureCommandOutput()
 
@@ -52,7 +52,7 @@ class CreateDomainTest {
 
         File(validFilename).writeText(DomainJsonResources.invalidDomain, UTF_8)
 
-        every { mockDomainService.createDomain(any()) } throws(
+        every { mockDomainService.createDomain(any<String>()) } throws(
             JsonParsingFailedException(
                 "Unexpected character ('s' (code 115)): was expecting double-quote to start field name on line: 11 at column: 4",
                 RuntimeException("Json parsing failed")

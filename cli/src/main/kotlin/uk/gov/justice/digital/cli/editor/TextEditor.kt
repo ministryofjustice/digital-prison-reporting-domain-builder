@@ -2,18 +2,16 @@ package uk.gov.justice.digital.cli.editor
 
 import org.jline.keymap.BindingReader
 import org.jline.keymap.KeyMap
-import org.jline.terminal.Terminal
-import org.jline.utils.InfoCmp
 import org.jline.utils.InfoCmp.Capability
 import uk.gov.justice.digital.cli.editor.TextEditor.Operation.*
-import uk.gov.justice.digital.cli.session.ConsoleSession
+import uk.gov.justice.digital.cli.session.InteractiveSession
 import kotlin.math.min
 
-class TextEditor(private val terminal: Terminal,
-                 private val session: ConsoleSession,
-                 private val heading: String) {
+class TextEditor(private val session: InteractiveSession, private val heading: String) {
 
-    private val KEY_READER_TIMEOUT_MS = 250L
+    private val keyReaderTimeout = 250L
+
+    private val terminal = session.terminal()
 
     fun run(text: String? = null): String {
 
@@ -35,14 +33,14 @@ class TextEditor(private val terminal: Terminal,
 
         val lineOffset = 4 // Top three lines of the screen are not editable
         val minLine = 0
-        val maxLine = 20 // TODO - make this dynamic?
+        val maxLine = 20
         val minColumn = 0
         val maxColumn = terminal.width - 1
 
         var currentLine = 0
         var currentColumn = 0
 
-        val lines = Array(20) { _ -> ""}.toMutableList()
+        val lines = Array(20) { _ -> "" }.toMutableList()
         // Populate lines with existing data where defined
         text?.let {
             text.split("\n")
@@ -219,7 +217,7 @@ class TextEditor(private val terminal: Terminal,
         map.bind(INSERT, Character.toString(9))
 
         // Set a shorter timeout for ambiguous keys so hitting ESC to exit is more responsive
-        map.ambiguousTimeout = KEY_READER_TIMEOUT_MS
+        map.ambiguousTimeout = keyReaderTimeout
 
         return map
     }
