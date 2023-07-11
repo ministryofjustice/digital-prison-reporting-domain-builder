@@ -10,7 +10,6 @@ import uk.gov.justice.digital.cli.client.BadRequestException
 import uk.gov.justice.digital.cli.client.ConflictException
 import uk.gov.justice.digital.cli.service.DomainService
 import uk.gov.justice.digital.cli.session.InteractiveSession
-import uk.gov.justice.digital.model.Mapping
 import uk.gov.justice.digital.model.Table
 import uk.gov.justice.digital.model.Transform
 import uk.gov.justice.digital.model.WriteableDomain
@@ -165,35 +164,58 @@ class DomainEditor(private val session: InteractiveSession, private val service:
 
         updateDisplay()
 
-        while(true) {
-            checkInterrupted()
+        try {
+            while (true) {
+                checkInterrupted()
 
-            when (bindingReader.readBinding(keys, null, true)) {
-                Operation.EXIT -> {
-                    handleExit()
-                    break
-                }
-                Operation.UP -> updatePositionAndRefreshDisplay(-1)
-                Operation.DOWN -> updatePositionAndRefreshDisplay(1)
-                Operation.EDIT -> {
-                    val selectedElementIndex = selectableElementIndexes[selectedField]
-                    val selectedElement = pageElements[selectedElementIndex]
+                when (bindingReader.readBinding(keys, null, true)) {
+                    Operation.EXIT -> {
+                        handleExit()
+                        break
+                    }
 
-                    if (selectedElement is MultiLineField) handleMultiLineFieldEdit(selectedElement)
-                    else if (selectedElement is Field) handleFieldEdit(selectedElement)
+                    Operation.UP -> updatePositionAndRefreshDisplay(-1)
+                    Operation.DOWN -> updatePositionAndRefreshDisplay(1)
+                    Operation.EDIT -> {
+                        val selectedElementIndex = selectableElementIndexes[selectedField]
+                        val selectedElement = pageElements[selectedElementIndex]
+
+                        if (selectedElement is MultiLineField) handleMultiLineFieldEdit(selectedElement)
+                        else if (selectedElement is Field) handleFieldEdit(selectedElement)
+                    }
+
+                    Operation.SAVE -> {
+                        // a result of true indicates success so quit the loop if true
+                        if (handleSave()) break
+                    }
+
+                    else -> terminal.bell()
                 }
-                Operation.SAVE -> {
-                    // a result of true indicates success so quit the loop if true
-                    if (handleSave()) break
-                }
-                else -> terminal.bell()
             }
         }
-
-        terminal.clearDisplay()
-        terminal.showCursor()
-        terminal.flush()
-        disableRawMode()
+        catch (ex: Exception) {
+            terminal.clearDisplay()
+            terminal.bell()
+            println("")
+            println(session.toAnsi("@|bold,red The domain editor encountered an unexpected error|@"))
+            println("")
+            println(session.toAnsi("@|bold,white Error details|@"))
+            println()
+            println(ex)
+            ex.stackTrace
+                .take(5)
+                .forEach { println(session.toAnsi("@|faint $it|@")) }
+            disableRawMode()
+            println()
+            print("Press enter to return to the domain builder ")
+            lineReader().readLine()
+        }
+        finally {
+            terminal.clearDisplay()
+            terminal.showCursor()
+            terminal.flush()
+            disableRawMode()
+        }
     }
 
 
@@ -216,7 +238,7 @@ class DomainEditor(private val session: InteractiveSession, private val service:
         terminal.saveCursorPosition()
         terminal.moveCursorTo(23, 0) // Start of status line
 
-        val padding = " ".repeat(terminal.width - status.length - 2)
+        val padding = " ".repeat(max(2, terminal.width - status.length) - 2)
 
         print(session.toAnsi("@|fg($fgColor),bg($bgColor),bold  $status$padding|@"))
 
@@ -234,10 +256,6 @@ class DomainEditor(private val session: InteractiveSession, private val service:
         // wrong place if we already have a value (we default to placing the cursor at the end of the string).
         terminal.moveCursorLeft(inputLength)
 
-        val lineReader = LineReaderBuilder.builder()
-            .terminal(this.terminal)
-            .build()
-
         val currentValue = selectedElement.value
 
         terminal.showCursor()
@@ -245,7 +263,7 @@ class DomainEditor(private val session: InteractiveSession, private val service:
 
         disableRawMode()
 
-        val input = lineReader.readLine(" ", null, currentValue)
+        val input = lineReader().readLine(" ", null, currentValue)
 
         enableRawMode()
 
@@ -259,14 +277,15 @@ class DomainEditor(private val session: InteractiveSession, private val service:
 
         updateStatusLine("Saving domain...", bgColor = "yellow")
 
+        val defaultVersion = "1.0.0"
+
         val newDomain = WriteableDomain(
             name = pageElements[5].fieldValue(),
             description = pageElements[6].fieldValue(),
             location = pageElements[7].fieldValue(),
             owner = pageElements[8].fieldValue(),
             author = pageElements[9].fieldValue(),
-            version = "1.0.0",
-            tags = emptyMap(), // TODO - support tags
+            version = defaultVersion,
             // TODO - for now we only support a single table
             tables = listOf(
                Table(
@@ -275,54 +294,56 @@ class DomainEditor(private val session: InteractiveSession, private val service:
                    location = pageElements[15].fieldValue(),
                    owner = pageElements[16].fieldValue(),
                    author = pageElements[17].fieldValue(),
-                   version = "1.0.0",
-                   tags = emptyMap(), // TODO - support tags
+                   version = defaultVersion,
                    primaryKey = pageElements[18].fieldValue(),
                    transform = Transform(
                        sources = pageElements[19].fieldValue().split(","), // We assume csv values
                        viewText = pageElements[20].multiLineFieldValue()
                    ),
-                   mapping = Mapping("Should this be optional instead?")
+                   mapping = null, // Mapping is not currently supported
                )
             )
         )
 
         disableRawMode()
 
-        val lineReader = LineReaderBuilder.builder()
-            .terminal(this.terminal)
-            .build()
-
         try {
             service.createDomain(newDomain)
-            updateStatusLine("Domain created successfully │ Press enter to continue", bgColor = "green")
-            lineReader.readLine()
+            showStatusLinePrompt("Domain created successfully", isError = false)
             return true
         }
         catch (brx: BadRequestException) {
-            terminal.bell()
-            updateStatusLine("Create failed - Check that all data has been provided │ Press enter to return to editor", bgColor = "red", fgColor = "white")
-            lineReader.readLine()
+            showStatusLinePrompt("Create failed - Check that all data has been provided", isError = true)
             return false
         }
         catch (cx: ConflictException) {
-            terminal.bell()
-            updateStatusLine("Create failed - Check that all data has been provided │ Press enter to return to editor", bgColor = "red", fgColor = "white")
-            updateStatusLine("This domain name is already in use │ Press enter to return to editor", bgColor = "red", fgColor = "white")
-            lineReader.readLine()
+            showStatusLinePrompt("This domain name is already in use", isError = true)
             return false
         }
         catch (ex: Exception) {
-            terminal.bell()
-            updateStatusLine("Create failed - Check that all data has been provided │ Press enter to return to editor", bgColor = "red", fgColor = "white")
-            updateStatusLine("Create failed due to unexpected error │ Press enter to return to continue", bgColor = "red", fgColor = "white")
-            lineReader.readLine()
+            showStatusLinePrompt("Create failed due to an unexpected error", isError = true)
             return false
         }
         finally {
             enableRawMode()
             updateDisplay()
         }
+    }
+
+    private fun lineReader() =
+        LineReaderBuilder.builder()
+            .terminal(this.terminal)
+            .build()
+
+    private fun showStatusLinePrompt(message: String, isError: Boolean) {
+        if (isError) {
+            terminal.bell()
+            updateStatusLine("$message │ Press enter to return to editor", bgColor = "red", fgColor = "white")
+        }
+        else updateStatusLine("$message │ Press enter to continue", bgColor = "green")
+
+        // Block until user has pressed enter
+        lineReader().readLine()
     }
 
     private fun Element.fieldValue(): String = (this as Field).value
