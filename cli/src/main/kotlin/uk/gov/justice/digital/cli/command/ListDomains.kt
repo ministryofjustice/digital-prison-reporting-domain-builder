@@ -44,7 +44,7 @@ class ListDomains(private val service: DomainService) : Runnable {
         // Format name and description widths dynamically
         val nameWidth = data.maxOf { it.name.length }.let { if (it > defaultNameWidth) it else defaultNameWidth }
         val statusWidth = data.maxOf { it.status.name.length }.let { if (it > defaultStatusWidth) it else defaultStatusWidth }
-        val descriptionWidth = data.maxOf { it.description.length }.let { if (it > defaultDescriptionWidth) it else defaultDescriptionWidth }
+        val descriptionWidth = data.maxOf { it.description?.length ?: 0 }.let { if (it > defaultDescriptionWidth) it else defaultDescriptionWidth }
 
         val tableBorder = tableRowBorder(nameWidth, statusWidth, descriptionWidth)
 
@@ -57,7 +57,7 @@ class ListDomains(private val service: DomainService) : Runnable {
         val dataRows = data.map {
             String.format(
                 "| %-${nameWidth}s | %-${statusWidth}s | %-${descriptionWidth}s |", it.name, it.status, it.description) }
-        val footer = listOf("$tableBorder\n")
+        val footer = listOf("$tableBorder\n\n")
 
         return listOf(heading, dataRows, footer)
             .flatten()

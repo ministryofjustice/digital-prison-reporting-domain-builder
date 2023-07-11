@@ -11,6 +11,8 @@ import uk.gov.justice.digital.cli.command.ListDomains
 import uk.gov.justice.digital.cli.command.ViewDomain
 import uk.gov.justice.digital.cli.session.BatchSession
 import uk.gov.justice.digital.cli.session.InteractiveSession
+import uk.gov.justice.digital.cli.command.CreateDomainInteractive
+import kotlin.system.exitProcess
 
 @Command(
     name = "domain-builder",
@@ -18,6 +20,7 @@ import uk.gov.justice.digital.cli.session.InteractiveSession
         ListDomains::class,
         ViewDomain::class,
         CreateDomain::class,
+        CreateDomainInteractive::class,
     ],
 )
 @Singleton
@@ -59,6 +62,14 @@ class DomainBuilder(
     fun print(s: String) {
         if (isInteractive) interactiveSession.print(s)
         else batchSession.print(s)
+    }
+
+    fun getInteractiveSession(): InteractiveSession {
+        if (isInteractive) return interactiveSession
+        else {
+            println("\nThis command is only available when run interactively\n")
+            exitProcess(1)
+        }
     }
 
     companion object {

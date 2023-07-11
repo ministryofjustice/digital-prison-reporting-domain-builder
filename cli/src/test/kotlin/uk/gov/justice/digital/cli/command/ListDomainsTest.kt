@@ -41,6 +41,7 @@ class ListDomainsTest {
             | Domain 3 | DRAFT  | Yet another domain |
             +----------+--------+--------------------+
     
+    
 """.trimIndent()
 
         assertEquals(expectedOutput, capturedOutput.joinToString(""))

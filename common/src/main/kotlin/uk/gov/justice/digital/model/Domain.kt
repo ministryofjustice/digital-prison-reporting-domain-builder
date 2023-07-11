@@ -10,12 +10,12 @@ import java.util.*
 data class Domain(
         val id: UUID,
         val name: String,
-        val description: String,
-        val version: String,
-        val location: String,
+        val description: String?,
+        val version: String?,
+        val location: String?,
         val tags: Map<String, String> = emptyMap(),
-        val owner: String,
-        val author: String,
+        val owner: String?,
+        val author: String?,
         val tables: List<Table> = emptyList(),
         // The following fields are domain builder specific and can be omitted from the published domain.
         val status: Status = Status.DRAFT,

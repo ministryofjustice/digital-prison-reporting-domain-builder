@@ -12,7 +12,7 @@ import kotlin.text.Charsets.UTF_8
 
 @Singleton
 @Command(
-    name = "create",
+    name = "create-from-json",
     description = ["Create a domain from a JSON definition"]
 )
 class CreateDomain(private val service: DomainService) : Runnable {
