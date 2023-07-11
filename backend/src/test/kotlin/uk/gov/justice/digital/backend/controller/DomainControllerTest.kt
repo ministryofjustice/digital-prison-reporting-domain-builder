@@ -22,8 +22,10 @@ import uk.gov.justice.digital.backend.repository.DuplicateKeyException
 import uk.gov.justice.digital.backend.service.DomainService
 import uk.gov.justice.digital.backend.service.InvalidSparkSqlException
 import uk.gov.justice.digital.backend.validator.InvalidSparkSqlResult
+import uk.gov.justice.digital.headers.Header.Companion.API_KEY_HEADER_NAME
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
+import uk.gov.justice.digital.test.Fixtures.TEST_API_KEY
 import uk.gov.justice.digital.test.Fixtures.domain1
 import uk.gov.justice.digital.test.Fixtures.domains
 import uk.gov.justice.digital.test.Fixtures.writeableDomain
@@ -215,7 +217,11 @@ class DomainControllerTest {
     private fun get(location: String): HttpResponse<String> =
         client
             .toBlocking()
-            .exchange(HttpRequest.GET<String>(location), String::class.java)
+            .exchange(
+                HttpRequest.GET<String>(location)
+                    .header(API_KEY_HEADER_NAME, TEST_API_KEY),
+                String::class.java
+            )
 
     private fun post(location: String, requestBody: String): HttpResponse<String> =
         client
@@ -224,6 +230,7 @@ class DomainControllerTest {
                 HttpRequest
                     .POST(location, requestBody)
                     .contentType(MediaType.APPLICATION_JSON_TYPE)
+                    .header(API_KEY_HEADER_NAME, TEST_API_KEY)
             )
 
     private fun getAndCatchResponseException(location: String) =

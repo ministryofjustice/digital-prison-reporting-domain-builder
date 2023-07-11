@@ -20,6 +20,8 @@ import uk.gov.justice.digital.headers.Header.Companion.API_KEY_HEADER_NAME
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.model.WriteableDomain
+import uk.gov.justice.digital.test.Fixtures
+import uk.gov.justice.digital.test.Fixtures.TEST_API_KEY
 import uk.gov.justice.digital.test.Fixtures.domain1
 import uk.gov.justice.digital.test.Fixtures.domain2
 import uk.gov.justice.digital.test.Fixtures.domains
@@ -197,7 +199,6 @@ class BlockingDomainClientTest {
     companion object {
 
         const val FIXED_UUID = "af66d434-9ea3-4aae-a7ea-044d3c6d2d40"
-        const val TEST_API_KEY = "test-api-key"
 
         const val TEST_SCENARIO = "test.scenario"
 

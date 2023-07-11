@@ -1,8 +1,10 @@
 package uk.gov.justice.digital.backend.filter
 
 import io.micronaut.http.HttpRequest
+import io.micronaut.http.HttpStatus
 import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.annotation.Client
+import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.runtime.server.EmbeddedServer
 import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
@@ -11,17 +13,13 @@ import io.mockk.mockk
 import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertDoesNotThrow
 import uk.gov.justice.digital.backend.service.DomainService
 import uk.gov.justice.digital.headers.ApiKeyHeader
-import uk.gov.justice.digital.headers.Header
-import uk.gov.justice.digital.headers.SessionIdHeader
-import uk.gov.justice.digital.headers.TraceIdHeader
 import uk.gov.justice.digital.test.Fixtures
 import java.util.*
 
 @MicronautTest
-class TraceIdFilterTest {
+class ApiKeyFilterTest {
 
     @Inject
     private lateinit var server: EmbeddedServer
@@ -38,15 +36,10 @@ class TraceIdFilterTest {
     fun getMockDomainService() = mockDomainService
 
     @Test
-    fun `request with trace and session IDs should result in a response with the same trace headers`() {
+    fun `request with a valid api key should be successful`() {
         every { mockDomainService.getDomains(any()) } returns emptyList()
 
-        val traceId = TraceIdHeader()
-        val sessionId = SessionIdHeader()
-
         val request = HttpRequest.GET<String>("/domain")
-            .header(traceId.name, traceId.value)
-            .header(sessionId.name, sessionId.value)
             .header(apiKeyHeader.name, apiKeyHeader.value)
 
         val response =
@@ -54,25 +47,38 @@ class TraceIdFilterTest {
                 .toBlocking()
                 .exchange(request, String::class.java)
 
-        assertEquals(traceId.value, response.header(traceId.name))
-        assertEquals(sessionId.value, response.header(sessionId.name))
+        assertEquals(response.status, HttpStatus.OK)
     }
 
     @Test
-    fun `request with no trace IDs should result in a response with a traceId header`() {
+    fun `request with an invalid api key value should return unauthorized`() {
         every { mockDomainService.getDomains(any()) } returns emptyList()
 
         val request = HttpRequest.GET<String>("/domain")
-            .header(apiKeyHeader.name, apiKeyHeader.value)
+            .header(apiKeyHeader.name, "this api key is not valid")
 
-        val response =
+        val result = assertThrows(HttpClientResponseException::class.java) {
             client
                 .toBlocking()
                 .exchange(request, String::class.java)
+        }
 
-        assertNotNull(response.header(Header.TRACE_ID_HEADER_NAME))
-        assertDoesNotThrow { UUID.fromString(response.header(Header.TRACE_ID_HEADER_NAME)) }
-        assertNull(response.header(Header.SESSION_ID_HEADER_NAME))
+        assertEquals(result.status, HttpStatus.UNAUTHORIZED)
+    }
+
+    @Test
+    fun `request with no api key header should return unauthorized`() {
+        every { mockDomainService.getDomains(any()) } returns emptyList()
+
+        val request = HttpRequest.GET<String>("/domain")
+
+        val result = assertThrows(HttpClientResponseException::class.java) {
+            client
+                .toBlocking()
+                .exchange(request, String::class.java)
+        }
+
+        assertEquals(result.status, HttpStatus.UNAUTHORIZED)
     }
 
 }
