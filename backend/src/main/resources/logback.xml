@@ -8,18 +8,8 @@
        </encoder>
    </appender>
 
-  <appender name="CLOUDWATCH" class="io.micronaut.aws.cloudwatch.logging.CloudWatchLoggingAppender">
-        <appender-ref ref="CONSOLE"/>
-        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
-            <layout class="ch.qos.logback.contrib.json.classic.JsonLayout">
-                <jsonFormatter class="io.micronaut.aws.cloudwatch.logging.CloudWatchJsonFormatter" />
-            </layout>
-        </encoder>
-    </appender>
-
-    <!-- when running locally set to CONSOLE to see MDC values -->
     <root level="INFO">
-      <appender-ref ref="CLOUDWATCH" />
+      <appender-ref ref="CONSOLE" />
     </root>
 
 </configuration>
