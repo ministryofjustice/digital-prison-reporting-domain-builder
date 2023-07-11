@@ -114,7 +114,7 @@ class DomainEditor(private val session: InteractiveSession, private val service:
         val selectedElement = pageElements[selectedElementIndex]
         val inputLength = if (selectedElement is Field) selectedElement.value.length else 0
 
-        terminal.moveCursorTo(selectedElementIndex, inputLength + 15)
+        terminal.moveCursorTo(selectedElementIndex + 1, inputLength + 15)
 
         terminal.flush()
     }
@@ -225,7 +225,6 @@ class DomainEditor(private val session: InteractiveSession, private val service:
     }
 
     private fun handleFieldEdit(selectedElement: Field) {
-        disableRawMode()
 
         updateStatusLine("Editing ${selectedElement.name.lowercase()} │ press enter to save changes")
 
@@ -241,18 +240,18 @@ class DomainEditor(private val session: InteractiveSession, private val service:
 
         val currentValue = selectedElement.value
 
-        // Since we need to set the prompt to a single space we need to shift the cursor left on char before
-        // we accept user input otherwise the cursor will not be properly aligned.
-        terminal.moveCursorLeft(1)
-        // Now make the cursor visible
         terminal.showCursor()
+        terminal.flush()
+
+        disableRawMode()
 
         val input = lineReader.readLine(" ", null, currentValue)
+
+        enableRawMode()
 
         // Hide the cursor again as soon as the user has hit enter.
         terminal.hideCursor()
 
-        enableRawMode()
         updateDisplay(input)
     }
 
