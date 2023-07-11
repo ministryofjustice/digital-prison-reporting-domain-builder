@@ -2,7 +2,6 @@ package uk.gov.justice.digital.cli.client
 
 import io.micronaut.context.ApplicationContext
 import io.micronaut.context.annotation.Requires
-import io.micronaut.core.type.Headers
 import io.micronaut.http.HttpHeaders.USER_AGENT
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
@@ -15,11 +14,9 @@ import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
-import uk.gov.justice.digital.cli.client.BadRequestException
 import uk.gov.justice.digital.cli.client.BlockingDomainClient
-import uk.gov.justice.digital.cli.client.ConflictException
-import uk.gov.justice.digital.cli.client.UnexpectedResponseException
 import uk.gov.justice.digital.headers.Header
+import uk.gov.justice.digital.headers.Header.Companion.API_KEY_HEADER_NAME
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.model.WriteableDomain
@@ -28,7 +25,6 @@ import uk.gov.justice.digital.test.Fixtures.domain2
 import uk.gov.justice.digital.test.Fixtures.domains
 import uk.gov.justice.digital.test.Fixtures.writeableDomain
 import java.net.URI
-import java.net.http.HttpHeaders
 
 @MicronautTest(rebuildContext = true)
 class BlockingDomainClientTest {
@@ -161,13 +157,17 @@ class BlockingDomainClientTest {
     class VerifyHeadersController {
         @Post("/domain")
         fun createDomain(request: HttpRequest<WriteableDomain>): HttpResponse<Unit> {
+
             val headers = request.headers
 
             val traceId = headers.get(Header.TRACE_ID_HEADER_NAME)
             val sessionId = headers.get(Header.SESSION_ID_HEADER_NAME)
             val userAgent = headers.get(USER_AGENT)
+            val apiKey = headers.get(API_KEY_HEADER_NAME)
 
             val uuidLength = 36
+
+            assertEquals(apiKey, TEST_API_KEY)
             assertEquals(uuidLength, traceId?.length)
             assertEquals(uuidLength, sessionId?.length)
             assertEquals(userAgent, "domain-builder-cli/v0.0.1")
@@ -188,6 +188,7 @@ class BlockingDomainClientTest {
         val serverInstance = ApplicationContext.run(EmbeddedServer::class.java, mapOf(TEST_SCENARIO to scenario))
         // Ensure the client is correctly configured
         System.setProperty("http.client.url", "http://localhost:${serverInstance.port}")
+        System.setProperty("http.client.apiKey", TEST_API_KEY)
         // Update configuration with embedded server port
         serverInstance.applicationContext.environment.refresh()
         return serverInstance
@@ -196,6 +197,7 @@ class BlockingDomainClientTest {
     companion object {
 
         const val FIXED_UUID = "af66d434-9ea3-4aae-a7ea-044d3c6d2d40"
+        const val TEST_API_KEY = "test-api-key"
 
         const val TEST_SCENARIO = "test.scenario"
 

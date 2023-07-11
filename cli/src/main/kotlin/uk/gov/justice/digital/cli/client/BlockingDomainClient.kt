@@ -11,6 +11,7 @@ import io.micronaut.http.uri.UriBuilder
 import io.micronaut.serde.ObjectMapper
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
+import uk.gov.justice.digital.headers.ApiKeyHeader
 import uk.gov.justice.digital.headers.Header
 import uk.gov.justice.digital.headers.SessionIdHeader
 import uk.gov.justice.digital.headers.TraceIdHeader
@@ -26,7 +27,6 @@ import java.net.http.HttpResponse
 import java.time.Duration
 import java.util.*
 
-// TODO - trace and session ID header filter
 interface DomainClient {
     fun getDomains(): Array<Domain>
     fun getDomains(name: String, status: Status? = null): Array<Domain>
@@ -46,6 +46,9 @@ class BlockingDomainClient : DomainClient {
 
     @Value("\${http.client.url}")
     private lateinit var baseUrl: String
+
+    @Value("\${http.client.apiKey}")
+    private lateinit var apiKey: String
 
     private val domainResource by lazy {
         UriBuilder.of("$baseUrl/domain").build()
@@ -74,6 +77,7 @@ class BlockingDomainClient : DomainClient {
             .header(USER_AGENT, "domain-builder-cli/v0.0.1")
             .withCustomHeader(TraceIdHeader())
             .withCustomHeader(SessionIdHeader.instance)
+            .withCustomHeader(ApiKeyHeader(apiKey))
             .timeout(REQUEST_TIMEOUT)
 
     private fun HttpRequest.Builder.withCustomHeader(header: Header) = this.header(header.name, header.value)
