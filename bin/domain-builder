@@ -33,6 +33,16 @@ fi
 
 show_ok "domain-builder will use api: $DOMAIN_API_URL"
 
+# Check that the DOMAIN_API_KEY is set on the environment.
+# See also backend/src/main/resources/application.yml which references this
+# variable for the configuration property http.client.apiKey
+if [ -z "$DOMAIN_API_KEY" ]
+then
+  show_fail_and_exit "DOMAIN_API_KEY not set on environment" "Ensure DOMAIN_API_KEY is set on the environment for both the cli and backend"
+fi
+
+show_ok "domain-builder api key is set"
+
 show_wait "Testing $DOMAIN_API_URL..."
 
 if curl $DOMAIN_API_URL &> /dev/null

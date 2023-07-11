@@ -1,3 +1,4 @@
 http:
   client:
     url: ${DOMAIN_API_URL}
+    apiKey: ${DOMAIN_API_KEY}
