@@ -9,6 +9,7 @@ interface Header {
     companion object {
         const val TRACE_ID_HEADER_NAME = "x-dpr-trace-id"
         const val SESSION_ID_HEADER_NAME = "x-dpr-session-id"
+        const val API_KEY_HEADER_NAME = "x-dpr-api-key"
     }
 }
 
@@ -24,4 +25,10 @@ class SessionIdHeader(override val value: String = UUID.randomUUID().toString())
         // A single instance available for the duration of a session to be used where a session ID header is required.
         val instance = SessionIdHeader()
     }
+}
+
+// API Key header. Set by frontend clients on all requests to the backend which validates the secret key.
+// This is an interim measure until we integrate with auth.
+class ApiKeyHeader(override val value: String): Header {
+    override val name = Header.API_KEY_HEADER_NAME
 }

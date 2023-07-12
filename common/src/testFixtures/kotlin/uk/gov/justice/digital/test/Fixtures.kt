@@ -5,6 +5,8 @@ import java.util.*
 
 object Fixtures {
 
+    val TEST_API_KEY = "test-api-key"
+
     val EMAIL = "someone@example.com"
 
     val tags = mapOf(

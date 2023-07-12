@@ -15,6 +15,11 @@ jar_path="$script_dir/../build/libs/domain-builder-backend-api-*-all.jar"
 
 source "$script_dir/../bin/lib/script-helpers"
 
+# Configure api key for local development. This *must* be the same as that set
+# up for the domain-builder otherwise all requests will fail with a HTTP 401.
+# See bin/domain-builder
+export DOMAIN_API_KEY="local-development-key"
+
 function check_postgres_running {
   if docker info &> /dev/null && docker ps | grep -E "postgres.*Up.*5432" &> /dev/null
   then
@@ -58,7 +63,7 @@ check_postgres_running
 build_backend
 check_jar_exists
 echo
-show_heading "Starting backend API on http://localhost:8080" 
+show_heading "Starting backend API on http://localhost:8080 with local dev api key" 
 echo
 echo "[Press CTRL-C to exit]"
 echo
