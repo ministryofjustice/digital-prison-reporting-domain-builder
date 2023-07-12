@@ -38,7 +38,8 @@ show_ok "domain-builder will use api: $DOMAIN_API_URL"
 # variable for the configuration property http.client.apiKey
 if [ -z "$DOMAIN_API_KEY" ]
 then
-  show_fail_and_exit "DOMAIN_API_KEY not set on environment" "Ensure DOMAIN_API_KEY is set on the environment for both the cli and backend"
+  show_info "DOMAIN_API_KEY not set on environment. Falling back to local dev key."
+  export DOMAIN_API_KEY="local-development-key"
 fi
 
 show_ok "domain-builder api key is set"

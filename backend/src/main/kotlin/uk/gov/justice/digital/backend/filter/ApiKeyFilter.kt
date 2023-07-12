@@ -9,6 +9,7 @@ import io.micronaut.http.annotation.Filter
 import io.micronaut.http.annotation.Filter.MATCH_ALL_PATTERN
 import io.micronaut.http.filter.HttpServerFilter
 import io.micronaut.http.filter.ServerFilterChain
+import io.micronaut.http.filter.ServerFilterPhase
 import org.reactivestreams.Publisher
 import org.slf4j.LoggerFactory
 import uk.gov.justice.digital.headers.Header.Companion.API_KEY_HEADER_NAME
@@ -16,6 +17,8 @@ import java.util.function.Function
 
 @Filter(MATCH_ALL_PATTERN)
 class ApiKeyFilter : HttpServerFilter {
+
+    override fun getOrder(): Int = ServerFilterPhase.SECURITY.after()
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -33,7 +36,7 @@ class ApiKeyFilter : HttpServerFilter {
             Publishers.map(chain?.proceed(request), Function.identity())
         }
         else {
-            logger.warn("Incoming request has an invalid {} header with value '{}'", API_KEY_HEADER_NAME, apiKey)
+            logger.warn("Incoming request has an invalid or missing {} header", API_KEY_HEADER_NAME)
             Publishers.just(HttpResponse.unauthorized<Unit>())
         }
     }
