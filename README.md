@@ -77,8 +77,9 @@ While the API is running it will log to `stdout`.
 #### [domain-builder](bin/domain-builder)
 
 Launches the domain-builder CLI frontend in
- - interactive mode if no arguments are specified
- - batch mode if arguments are specified which runs the command and exits
+
+- interactive mode if no arguments are specified
+- batch mode if arguments are specified which runs the command and exits
 
 Usage
 
