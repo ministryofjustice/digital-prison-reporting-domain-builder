@@ -134,7 +134,7 @@ class InteractiveSession: ConsoleSession {
             
             Type @|bold exit|@ to exit the domain builder.
             
-            Press the @|bold TAB ->||@ key to view available commands or autocomplete commands as you type.
+            Press the @|bold TAB ->||@ key to view available commands or autocomplete as you type.
             
             
         """.trimIndent()

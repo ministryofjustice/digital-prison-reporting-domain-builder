@@ -53,4 +53,15 @@ else
   show_fail_and_exit "Backend API is not available     " "Run bin/run-backend to start Backend API"
 fi
 
-java -jar ./build/libs/domain-builder-cli-frontend-*-all.jar $@
+# If no args are specified launch interactive domain builder session otherwise
+# pass any args to the domain builder in batch mode.
+if [ $# -eq 0 ]
+then
+  show_info "No arguments specified - launching interactive session"
+  args="-i --enable-ansi"
+else
+  show_info "Arguments were specified - launching batch session"
+  args=$@
+fi
+
+java -jar ./build/libs/domain-builder-cli-frontend-*-all.jar $args
