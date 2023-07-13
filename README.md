@@ -74,46 +74,33 @@ By default the backend will run on `localhost:8080`.
 
 While the API is running it will log to `stdout`.
 
-#### [domain-builder-interactive](bin/domain-builder-interactive)
+#### [domain-builder](bin/domain-builder)
 
-Launches the domain-builder CLI frontend in interactive mode.
+Launches the domain-builder CLI frontend in
+ - interactive mode if no arguments are specified
+ - batch mode if arguments are specified which runs the command and exits
 
 Usage
 
 ```shell
-    ./bin/domain-builder-interactive
-```
+    # launch interactive session
+    ./bin/domain-builder
 
-By default the CLI frontend will attempt to connect to `http://localhost:8080`
+    # launch batch session for a single command
+    ./bin/domain-builder list
+```
 
 When in interactive mode, use the `help` command to see what commands are available. These will mirror the commands
 available in the batch mode domain-builder command (see below).
 
-The interactive also provides a built in `less` implementation which is enabled when the output exceeds the size of
-the terminal.
-
-#### [domain-builder](bin/domain-builder)
-
-Launches the domain-builder CLI in 'batch' mode.
-
-Usage
+The batch mode invovcation can also be used to show the available commands as follows
 
 ```shell
-    # See available options and commands
     ./bin/domain-builder --help
-
-    # Get help for a specific command
-    ./bin/domain-builder list --help
-
-    # List all domains
-    ./bin/domain-builder list
-
-    # View a specific domain by name
-    ./bin/domain-builder view -n Some Domain
 ```
 
-Additional options are provided to enable ANSI color output and interactive mode, which are enabled by the
-`domain-builder-interactive` script.
+The interactive also provides a built in `less` implementation which is enabled when the output exceeds the size of
+the terminal.
 
 #### [push-backend-jar](bin/push-backend-jar)
 
@@ -181,9 +168,9 @@ Use the following commands to bring up the backend services
 You can then launch the cli in interactive or batch mode e.g.
 
 ```shell
-    bin/domain-builder-interactive
+    bin/domain-builder
     # or
-    bin/domain-builder view -n domain-name
+    bin/domain-builder view -n domain-name -s DRAFT
 ```
 
 ## Testing
@@ -241,6 +228,7 @@ The following environment variables are referenced in the backend
 [application.yml](backend/src/main/resources/application.yml). No default values are provided in the main
 configuration so the backend will fail if any of these variables are _not_ set on the environment.
 
+- `DOMAIN_API_KEY`
 - `POSTGRES_HOST`
 - `POSTGRES_PORT`
 - `POSTGRES_DB_NAME`
@@ -254,8 +242,17 @@ configuration so the backend will fail if any of these variables are _not_ set o
 The following environment variable is reference in the cli [application.yml](cli/src/main/resources/application.yml).
 
 - `DOMAIN_API_URL`
+- `DOMAIN_API_KEY`
 
 For local usage this is set to `http://localhost:8080`
+
+#### The API Key
+
+This value must be set to a some shared secret which can then be passed to the backend and CLI frontend.
+
+If the CLI uses the wrong API Key the backend will respond with a `HTTP 401 Unauthorized` response.
+
+For local development the scripts ensure the api key is set to a common value.
 
 ## Deployment
 
