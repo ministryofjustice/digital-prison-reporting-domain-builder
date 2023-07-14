@@ -68,7 +68,7 @@ class DomainEditor(private val session: InteractiveSession, private val service:
         Field("Sources", ""),
         MultiLineField("Spark Query", ""),
         Blank(),
-        Heading("keys │ ↑ move up │ ↓ move down │ CTRL-s save │ ESC quit │ press enter to edit", "black", "white")
+        Heading("keys │ ↑ move up │ ↓ move down │ CTRL-W save │ ESC quit │ press enter to edit", "black", "white")
     )
 
     private fun updateDisplay(input: String? = null) {
@@ -370,7 +370,7 @@ class DomainEditor(private val session: InteractiveSession, private val service:
         map.bind(Operation.UP, "\u001B[A", "k")
         map.bind(Operation.DOWN, "\u001B[B", "j")
         map.bind(Operation.EDIT, "\r")
-        map.bind(Operation.SAVE, KeyMap.ctrl('S'))
+        map.bind(Operation.SAVE, KeyMap.ctrl('W'))
 
         // Set a shorter timeout for ambiguous keys so hitting ESC to exit is more responsive
         map.ambiguousTimeout = keyReaderTimeout

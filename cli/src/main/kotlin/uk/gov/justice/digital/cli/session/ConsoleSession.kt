@@ -17,6 +17,7 @@ import org.jline.terminal.TerminalBuilder
 import org.jline.widget.AutosuggestionWidgets
 import picocli.CommandLine
 import picocli.shell.jline3.PicocliCommands
+import uk.gov.justice.digital.headers.SessionIdHeader
 import java.io.ByteArrayInputStream
 
 interface ConsoleSession {
@@ -117,7 +118,8 @@ class InteractiveSession: ConsoleSession {
     companion object {
         private const val prompt = "domain-builder> "
         private const val tabCompletionMaxCandidates = 50
-        private val historyFileLocation = "${System.getProperty("user.home")}/.domain-builder_history"
+        // Create a unique history file in /tmp per session - and use the session ID to identify it.
+        private val historyFileLocation = "${System.getProperty("java.io.tmpdir")}/domain-builder-session-${SessionIdHeader.instance.value}.history"
         private const val historySize = 100
 
         private val launchText = """
