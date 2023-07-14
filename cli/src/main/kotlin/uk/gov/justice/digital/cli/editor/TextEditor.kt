@@ -42,8 +42,9 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
         val originalAttributes = terminal.enterRawMode()
 
         terminal.showCursor()
-        terminal.clearDisplay()
+        terminal.flush()
 
+        terminal.clearDisplay()
         terminal.flush()
 
         val padding = " ".repeat(terminal.width - heading.length - 1)
@@ -72,12 +73,13 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
         terminal.saveCursorPosition()
         terminal.moveCursorTo(23, 0)
 
-        val statusLine = "keys │ ↑ move up │ ↓ move down │ ← move left │ → move right │ CTRL-S save │ ESC exit"
+        val statusLine = "keys │ ↑ move up │ ↓ move down │ ← move left │ → move right │ CTRL-W save │ ESC exit"
             .take(terminal.width - 2)
-        val statusPadding = " ".repeat(terminal.width - min(statusLine.length, terminal.width - 1))
+        val statusPadding = " ".repeat(terminal.width - min(statusLine.length, terminal.width) - 1)
         print(session.toAnsi("@|fg(black),bg(white),bold  $statusLine$statusPadding|@"))
 
         terminal.restoreSavedCursorPosition()
+        terminal.showCursor()
         terminal.flush()
 
         while(true) {
@@ -241,7 +243,7 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
         map.bind(ENTER, "\r")
         map.bind(DELETE, "\b")
         map.bind(EXIT, "\u001B")
-        map.bind(ACCEPT, KeyMap.ctrl('S'))
+        map.bind(ACCEPT, KeyMap.ctrl('W'))
 
         // Allow user to enter characters which are passed to the insert handler.
         for (i in 32..255) {

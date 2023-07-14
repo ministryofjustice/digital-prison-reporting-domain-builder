@@ -3,8 +3,8 @@ package uk.gov.justice.digital.cli.editor
 import org.jline.terminal.Terminal
 import org.jline.utils.InfoCmp.Capability
 
-fun Terminal.hideCursor() = this.puts(Capability.cursor_invisible)
-fun Terminal.showCursor() = this.puts(Capability.cursor_visible)
+fun Terminal.hideCursor() = print("\u001B[?25l")
+fun Terminal.showCursor() = print("\u001B[?25h")
 
 fun Terminal.moveCursorToHome() {
     this.puts(Capability.cursor_home)
@@ -38,7 +38,7 @@ fun Terminal.clearLine() {
 
 fun Terminal.bell() {
     this.puts(Capability.bell)
-//    terminal.flush()
+    this.flush()
 }
 
 fun Terminal.saveCursorPosition() = print("\u001B7")
