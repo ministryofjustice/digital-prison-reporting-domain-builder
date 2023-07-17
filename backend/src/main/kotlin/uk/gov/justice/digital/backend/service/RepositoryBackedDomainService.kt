@@ -10,12 +10,6 @@ import uk.gov.justice.digital.model.Table
 import uk.gov.justice.digital.model.WriteableDomain
 import java.util.*
 
-interface DomainService {
-    fun getDomains(name: String? = null, status: Status? = null): List<Domain>
-    fun getDomain(id: UUID): Domain?
-    fun createDomain(domain: WriteableDomain): UUID
-}
-
 /**
  * Service that will handle calls to the backend database.
  *
