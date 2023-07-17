@@ -4,6 +4,11 @@ datasources:
     username: "${POSTGRES_USERNAME:postgres}"
     password: "${POSTGRES_PASSWORD:postgres}"
     driverClassName: "org.postgresql.Driver"
+  preview:
+    url: "jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5436}/${POSTGRES_DB_NAME:test_domains}"
+    username: "${POSTGRES_USERNAME:postgres}"
+    password: "${POSTGRES_PASSWORD:postgres}"
+    driverClassName: "org.postgresql.Driver"
 
 flyway:
   datasources:
