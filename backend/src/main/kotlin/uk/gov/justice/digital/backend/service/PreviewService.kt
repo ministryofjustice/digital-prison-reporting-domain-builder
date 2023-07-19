@@ -10,7 +10,11 @@ class PreviewService(@Named("preview") private val dataSource: DataSource) {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    fun preview(sql: String): List<Map<String, String>> {
+    fun preview(domainId: String, limit: Int): List<Map<String, String>> {
+        return emptyList()
+    }
+
+    private fun preview(sql: String): List<Map<String, String>> {
         logger.info("Executing query: {}", sql)
         val startTime = System.currentTimeMillis()
         val statement = dataSource.connection.createStatement()
@@ -19,10 +23,10 @@ class PreviewService(@Named("preview") private val dataSource: DataSource) {
         logger.info("Query executed successfully in {}ms", duration)
 
         val metadata = resultSet.metaData
-        val columns = metadata.columnCount
+        val columnCount = metadata.columnCount
 
         // Column names start from 1
-        val columnNames = (1..columns)
+        val columnNames = (1..columnCount)
             .map { metadata.getColumnName(it) }
 
         val result = mutableListOf<Map<String, String>>()
