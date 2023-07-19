@@ -5,14 +5,15 @@ datasources:
     password: "${POSTGRES_PASSWORD}"
     driverClassName: "org.postgresql.Driver"
   preview:
-    url: "jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB_NAME}"
-    username: "${POSTGRES_USERNAME}"
-    password: "${POSTGRES_PASSWORD}"
-    driverClassName: "org.postgresql.Driver"
+    url: "jdbc:athena:curated"
+    driverClassName: "io.burt.athena.AthenaDriver"
+    connectionProperties: "region=eu-west-2;workGroup=primary;outputLocation=s3://dpr-357-athena-test"
 
 flyway:
   datasources:
     default:
+      enabled: false
+    preview:
       enabled: false
 
 endpoints:
