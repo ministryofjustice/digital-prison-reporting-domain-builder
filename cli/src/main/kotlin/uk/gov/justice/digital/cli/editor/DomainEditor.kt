@@ -307,6 +307,8 @@ class DomainEditor(private val session: InteractiveSession, private val service:
 
         disableRawMode()
 
+        println("Sending: $newDomain")
+
         try {
             service.createDomain(newDomain)
             showStatusLinePrompt("Domain created successfully", isError = false)
