@@ -40,10 +40,11 @@ class RepositoryBackedDomainService(
 
     private fun validateDomainSql(domain: WriteableDomain, getSqlFromTable: (Table) -> String?): WriteableDomain =
         domain.tables
-            .mapNotNull(getSqlFromTable)
-            .map { sqlValidator.validate(it) }
-            .filterIsInstance<InvalidSparkSqlResult>()
-            .firstOrNull()?.let { throw InvalidSparkSqlException(it) } ?: domain
+            ?.mapNotNull(getSqlFromTable)
+            ?.map { sqlValidator.validate(it) }
+            ?.filterIsInstance<InvalidSparkSqlResult>()
+            ?.firstOrNull()
+            ?.let { throw InvalidSparkSqlException(it) } ?: domain
 
     private fun WriteableDomain.validateSql(getSqlFromTable: (Table) -> String?): WriteableDomain =
         validateDomainSql(this, getSqlFromTable)

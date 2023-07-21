@@ -286,6 +286,7 @@ class DomainEditor(private val session: InteractiveSession, private val service:
             owner = pageElements[8].fieldValue(),
             author = pageElements[9].fieldValue(),
             version = defaultVersion,
+            tags = null, // tags not currently supported
             // TODO - for now we only support a single table
             tables = listOf(
                Table(
@@ -301,6 +302,8 @@ class DomainEditor(private val session: InteractiveSession, private val service:
                        viewText = pageElements[20].multiLineFieldValue()
                    ),
                    mapping = null, // Mapping is not currently supported
+                   tags = null, // Tags not currently supported
+                   violations = null, // Violations not currently supported
                )
             )
         )
