@@ -39,12 +39,9 @@ dependencies {
   implementation("jakarta.annotation:jakarta.annotation-api")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
 
-  // AWS Athena JDBC driver. Only available as a direct jar download.
-  // TODO - remove this if the io.burt driver proves to work fine
-  // implementation(files("lib/AthenaJDBC42-2.0.36.1001.jar"))
-
   compileOnly("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
   compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
+
   implementation("org.ktorm:ktorm-core:$ktormVersion")
   implementation("org.ktorm:ktorm-jackson:$ktormVersion")
 
