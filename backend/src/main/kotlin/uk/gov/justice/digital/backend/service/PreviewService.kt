@@ -1,16 +1,14 @@
 package uk.gov.justice.digital.backend.service
 
-import jakarta.inject.Named
 import jakarta.inject.Singleton
 import org.slf4j.LoggerFactory
+import uk.gov.justice.digital.backend.client.preview.PreviewClient
 import uk.gov.justice.digital.backend.repository.DomainRepository
 import uk.gov.justice.digital.model.Status
-import javax.sql.DataSource
 
 @Singleton
-// TODO - wrap the data source to provide a simpler API
 // TODO - impose upper bound on limit
-class PreviewService(@Named("preview") private val previewDataSource: DataSource,
+class PreviewService(private val client: PreviewClient,
                      private val repository: DomainRepository) {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -26,35 +24,14 @@ class PreviewService(@Named("preview") private val previewDataSource: DataSource
 
         // TODO - right now we only handle single table domains so we just preview the first table where present.
         return domain.tables
-            .firstOrNull()
+            ?.firstOrNull()
             ?.let { preview(it.transform.viewText, limit )}
-            ?: throw NoTablesInDomainException("No tables found in domain with name: $domainName stauts: $status")
+            ?: throw NoTablesInDomainException("No tables found in domain with name: $domainName status: $status")
     }
 
-    // TODO - this should be moved into another class
     private fun preview(sql: String, limit: Int): List<Map<String, String>> {
-        // TODO - add limit clause to query string
-        logger.info("Executing query: {}", sql)
-        val startTime = System.currentTimeMillis()
-        val statement = previewDataSource.connection.createStatement()
-        val resultSet = statement.executeQuery(sql)
-        val duration = System.currentTimeMillis() - startTime
-        logger.info("Query executed successfully in {}ms", duration)
-
-        val metadata = resultSet.metaData
-        val columnCount = metadata.columnCount
-
-        // Column names start from 1
-        val columnNames = (1..columnCount)
-            .map { metadata.getColumnName(it) }
-
-        val result = mutableListOf<Map<String, String>>()
-
-        while(resultSet.next()) {
-            result.add( columnNames.associateWith { resultSet.getString(it) } )
-        }
-
-        return result
+        // TODO - handle setting limit
+        return client.runQuery(sql)
     }
 
 }

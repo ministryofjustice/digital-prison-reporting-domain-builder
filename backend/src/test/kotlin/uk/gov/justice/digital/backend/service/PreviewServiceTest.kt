@@ -12,6 +12,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
+import uk.gov.justice.digital.backend.client.preview.AthenaPreviewClient
 import uk.gov.justice.digital.backend.repository.DomainRepository
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
@@ -55,7 +56,8 @@ class PreviewServiceTest {
 
     private val mockRepository = mockk<DomainRepository>()
 
-    private val underTest by lazy { PreviewService(dataSource, mockRepository) }
+    // TODO - move this testing into the AthenaPreviewClient
+    private val underTest by lazy { PreviewService(AthenaPreviewClient(dataSource), mockRepository) }
 
     @Test
     fun `it should execute the query and return the results for a valid request`() {
