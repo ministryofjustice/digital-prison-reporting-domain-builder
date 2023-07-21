@@ -31,6 +31,8 @@ class AthenaPreviewClient(@Named("preview") private val previewDataSource: DataS
             result.add( columnNames.associateWith { resultSet.getString(it) } )
         }
 
+        logger.info("Query returned {} row{}", result.size, if (result.size != 1) "s" else "")
+
         return result
     }
 
