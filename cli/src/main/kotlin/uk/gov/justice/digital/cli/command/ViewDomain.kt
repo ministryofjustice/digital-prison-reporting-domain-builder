@@ -99,7 +99,7 @@ class ViewDomain(private val service: DomainService) : Runnable {
         val tableData =
             domain
                 .tables
-                .map {table ->
+                ?.map {table ->
                     val formattedTableFields = """
                         @|bold Table       |@│ ${table.name}
                         @|bold Description |@│ ${table.description}
@@ -110,7 +110,7 @@ class ViewDomain(private val service: DomainService) : Runnable {
                         table.transform.viewText.split("\n").joinToString("\n@|bold             |@│")
 
                     "$formattedTableFields$formattedQueryString\n"
-                }
+                } ?: emptyList()
 
         return listOf(heading, tableData)
             .flatten()

@@ -10,11 +10,11 @@ data class Table(
     val description: String?,
     val version: String?,
     val location: String?,
-    val tags: Map<String, String> = emptyMap(),
+    val tags: Map<String, String>?,
     val owner: String?,
     val author: String?,
     val primaryKey: String,
     val transform: Transform,
     val mapping: Mapping?,
-    val violations: List<Violation> = emptyList()
+    val violations: List<Violation>?
 )
