@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.backend.converter
 
 import jakarta.inject.Singleton
+import kotlin.math.min
 
 /**
  * Class encapsulating the logic that ensures a domain query will run against the target data source when running a
@@ -12,17 +13,16 @@ import jakarta.inject.Singleton
 class DomainToPreviewQueryConverter {
 
     fun convertQuery(query: String, limit: Int): String {
-        val cleanedQuery = query.replace("\n", "").trim()
-        val queryTerms =
-            cleanedQuery
-                .split(" ")
-                .filter { it.isNotEmpty() }
+        val convertedQuery =
+            query.replace("\n", "").trim()                   // Strip newlines
+                .split(" ")                                  //  and split string on spaces
+                .filter { it.isNotEmpty() }                  //  and remove empty strings
+                .joinToString(" ") { convertTableNames(it) } //  and convert table names where found then combine into a single string
+                .split("=")                                  // Now split on any equality tests which may not be space delimited
+                .joinToString("=") { convertTableNames(it) } //  and convert table names where found and combine into a single string
 
-        return queryTerms
-            .joinToString(" ") { convertTableNames(it) } + " limit $limit"
+        return convertedQuery.withLimitClause(limit)
     }
-
-    private val sourceNamePrefix = "^\\w+\\$InputSourceDelimiter\\w+.*$".toRegex()
 
     private fun convertTableNames(term: String): String {
         // We assume a naming convention of sourceName + InputSourceDelimiter [ + tableName + . + fieldName ]
@@ -33,8 +33,21 @@ class DomainToPreviewQueryConverter {
         // yielding the following strings
         //      nomis_offenders
         //      nomis_offenders.id
-        return if (sourceNamePrefix.matches(term)) term.replaceFirst(InputSourceDelimiter, OutputSourceDelimiter)
+        return if (tableNameRegex.matches(term)) term.replaceFirst(InputSourceDelimiter, OutputSourceDelimiter)
         else term
+    }
+
+    private fun String.withLimitClause(limit: Int): String {
+        val limitClauseRegex = "^.*(LIMIT\\s*)(\\d+).*$".toRegex(RegexOption.IGNORE_CASE)
+        return if (limitClauseRegex.matches(this)) {
+            // TODO - refactor with let since this returns a nullable match result
+            val matchResult = limitClauseRegex.matchEntire(this)
+            val (limitKeyword, limitValue) = matchResult!!.destructured
+            val validatedLimitValue = min(limitValue.toInt(), limit)
+            val newLimitClause = "$limitKeyword$validatedLimitValue"
+            return this.replace("$limitKeyword$limitValue", newLimitClause)
+        }
+        else "$this limit $limit"
     }
 
     companion object {
