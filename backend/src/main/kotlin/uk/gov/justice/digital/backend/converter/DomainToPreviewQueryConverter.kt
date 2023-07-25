@@ -15,7 +15,7 @@ class DomainToPreviewQueryConverter {
 
     @Value("\${preview.inputSourceDelimiter")
     private val inputSourceDelimiter = "."
-    
+
     @Value("\${preview.outputSourceDelimiter")
     private val outputSourceDelimiter = "_"
 

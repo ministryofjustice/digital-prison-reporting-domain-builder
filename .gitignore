@@ -13,6 +13,7 @@ terraform.tfstate
 *.class
 
 # Package files
+*.jar
 #Ignore Wrapper
 !/gradle/wrapper/*.jar
 

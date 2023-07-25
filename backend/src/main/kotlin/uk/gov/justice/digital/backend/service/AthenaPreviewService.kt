@@ -7,8 +7,16 @@ import uk.gov.justice.digital.backend.repository.DomainRepository
 import uk.gov.justice.digital.model.Status
 import kotlin.math.min
 
+interface PreviewService {
+    fun preview(domainName: String, status: Status?, limit: Int): List<Map<String, String>>
+
+    companion object {
+        const val MaximumLimit = 100
+    }
+}
+
 @Singleton
-class PreviewService(private val client: PreviewClient,
+class AthenaPreviewService(private val client: PreviewClient,
                      private val repository: DomainRepository,
                      private val converter: DomainToPreviewQueryConverter) {
 
@@ -21,7 +29,7 @@ class PreviewService(private val client: PreviewClient,
             throw MultipleDomainsFoundException("More than one matching domain for name: $domainName status: $status")
         else domains.first()
 
-        // TODO - right now we only handle single table domains so we just preview the first table where present.
+        // TODO - only domains with a single table are supported
         return domain.tables
             ?.firstOrNull()
             ?.let { preview(it.transform.viewText, limit )}
@@ -29,13 +37,10 @@ class PreviewService(private val client: PreviewClient,
     }
 
     private fun preview(sql: String, limit: Int): List<Map<String, String>> {
-        val convertedQuery = converter.convertQuery(sql, min(limit, MaximumLimit))
+        val convertedQuery = converter.convertQuery(sql, min(limit, PreviewService.MaximumLimit))
         return client.runQuery(convertedQuery)
     }
 
-    companion object {
-        const val MaximumLimit = 100 // TODO - make this configurable?
-    }
 
 }
 

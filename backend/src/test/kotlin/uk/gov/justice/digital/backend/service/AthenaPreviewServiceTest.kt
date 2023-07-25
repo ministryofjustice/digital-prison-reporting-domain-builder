@@ -17,13 +17,13 @@ import uk.gov.justice.digital.test.Fixtures.domain1
 import uk.gov.justice.digital.test.Fixtures.domain2
 import uk.gov.justice.digital.test.Fixtures.table1
 
-class PreviewServiceTest {
+class AthenaPreviewServiceTest {
 
     private val mockRepository = mockk<DomainRepository>()
     private val mockClient = mockk<PreviewClient>()
     private val mockConverter = mockk<DomainToPreviewQueryConverter>()
 
-    private val underTest by lazy { PreviewService(mockClient, mockRepository, mockConverter) }
+    private val underTest by lazy { AthenaPreviewService(mockClient, mockRepository, mockConverter) }
 
     @Test
     fun `it should execute the query and return the results for a valid request`() {
