@@ -33,7 +33,6 @@ dependencies {
   implementation("io.micronaut:micronaut-runtime")
   implementation("io.micronaut:micronaut-validation")
 
-  implementation("com.amazonaws:aws-java-sdk-core:1.12.506")
   implementation("io.burt:athena-jdbc:0.4.0")
 
   implementation("jakarta.annotation:jakarta.annotation-api")
