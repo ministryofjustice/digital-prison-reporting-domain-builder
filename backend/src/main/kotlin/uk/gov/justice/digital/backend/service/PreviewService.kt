@@ -1,17 +1,16 @@
 package uk.gov.justice.digital.backend.service
 
 import jakarta.inject.Singleton
-import org.slf4j.LoggerFactory
 import uk.gov.justice.digital.backend.client.preview.PreviewClient
+import uk.gov.justice.digital.backend.converter.DomainToPreviewQueryConverter
 import uk.gov.justice.digital.backend.repository.DomainRepository
 import uk.gov.justice.digital.model.Status
+import kotlin.math.min
 
 @Singleton
-// TODO - impose upper bound on limit
 class PreviewService(private val client: PreviewClient,
-                     private val repository: DomainRepository) {
-
-    private val logger = LoggerFactory.getLogger(this::class.java)
+                     private val repository: DomainRepository,
+                     private val converter: DomainToPreviewQueryConverter) {
 
     fun preview(domainName: String, status: Status?, limit: Int): List<Map<String, String>> {
         val domains = repository.getDomains(domainName, status)
@@ -30,8 +29,12 @@ class PreviewService(private val client: PreviewClient,
     }
 
     private fun preview(sql: String, limit: Int): List<Map<String, String>> {
-        // TODO - handle setting limit
-        return client.runQuery(sql)
+        val convertedQuery = converter.convertQuery(sql, min(limit, MaximumLimit))
+        return client.runQuery(convertedQuery)
+    }
+
+    companion object {
+        const val MaximumLimit = 100 // TODO - make this configurable?
     }
 
 }
