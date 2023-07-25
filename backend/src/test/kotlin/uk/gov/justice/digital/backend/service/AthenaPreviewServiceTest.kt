@@ -87,12 +87,6 @@ class AthenaPreviewServiceTest {
     }
 
     @Test
-    fun `it should throw a MultipleDomainsFoundException if more than one matching domain is returned`() {
-        every { mockRepository.getDomains(any(), any()) } answers { listOf(domain1 ,domain2) }
-        assertThrows(MultipleDomainsFoundException::class.java) { underTest.preview("Test Domain", Status.DRAFT, 50) }
-    }
-
-    @Test
     fun `it should throw a NoTablesInDomainException if the domain has no tables defined`() {
         every { mockRepository.getDomains(any(), any()) } answers { listOf(domain1.withTables(emptyList())) }
         assertThrows(NoTablesInDomainException::class.java) { underTest.preview("Test Domain", Status.DRAFT, 50) }

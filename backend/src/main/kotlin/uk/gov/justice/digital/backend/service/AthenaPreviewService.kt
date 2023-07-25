@@ -8,7 +8,7 @@ import uk.gov.justice.digital.model.Status
 import kotlin.math.min
 
 interface PreviewService {
-    fun preview(domainName: String, status: Status?, limit: Int): List<Map<String, String>>
+    fun preview(domainName: String, status: Status, limit: Int): List<Map<String, String>>
 
     companion object {
         const val MaximumLimit = 100
@@ -20,14 +20,11 @@ class AthenaPreviewService(private val client: PreviewClient,
                      private val repository: DomainRepository,
                      private val converter: DomainToPreviewQueryConverter) {
 
-    fun preview(domainName: String, status: Status?, limit: Int): List<Map<String, String>> {
+    fun preview(domainName: String, status: Status, limit: Int): List<Map<String, String>> {
         val domains = repository.getDomains(domainName, status)
 
-        val domain = if (domains.isEmpty())
-            throw DomainNotFoundException("No domains found for name: $domainName status: $status")
-        else if (domains.size > 1)
-            throw MultipleDomainsFoundException("More than one matching domain for name: $domainName status: $status")
-        else domains.first()
+        val domain = domains.firstOrNull()
+            ?: throw DomainNotFoundException("No domains found for name: $domainName status: $status")
 
         // TODO - only domains with a single table are supported
         return domain.tables
@@ -46,5 +43,4 @@ class AthenaPreviewService(private val client: PreviewClient,
 
 sealed class PreviewServiceException(message: String, cause: Exception? = null) : RuntimeException(message, cause)
 class DomainNotFoundException(message: String) : PreviewServiceException(message)
-class MultipleDomainsFoundException(message: String) : PreviewServiceException(message)
 class NoTablesInDomainException(message: String) : PreviewServiceException(message)
