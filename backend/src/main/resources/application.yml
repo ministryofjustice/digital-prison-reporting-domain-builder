@@ -5,9 +5,9 @@ datasources:
     password: "${POSTGRES_PASSWORD}"
     driverClassName: "org.postgresql.Driver"
   preview:
-    url: "jdbc:athena:curated"
+    url: "jdbc:athena:${PREVIEW_DB_NAME}"
     driverClassName: "io.burt.athena.AthenaDriver"
-    connectionProperties: "region=eu-west-2;workGroup=primary;outputLocation=s3://dpr-357-athena-test"
+    connectionProperties: "region=eu-west-2;workGroup=${PREVIEW_WORKGROUP};outputLocation=${PREVIEW_S3_LOCATION}"
 
 flyway:
   datasources:

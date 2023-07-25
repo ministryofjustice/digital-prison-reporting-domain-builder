@@ -17,10 +17,10 @@ interface PreviewService {
 
 @Singleton
 class AthenaPreviewService(private val client: PreviewClient,
-                     private val repository: DomainRepository,
-                     private val converter: DomainToPreviewQueryConverter) {
+                           private val repository: DomainRepository,
+                           private val converter: DomainToPreviewQueryConverter): PreviewService {
 
-    fun preview(domainName: String, status: Status, limit: Int): List<Map<String, String>> {
+    override fun preview(domainName: String, status: Status, limit: Int): List<Map<String, String>> {
         val domains = repository.getDomains(domainName, status)
 
         val domain = domains.firstOrNull()
