@@ -37,23 +37,19 @@ class DomainToPreviewQueryConverter {
         else term
     }
 
-    private fun String.withLimitClause(limit: Int): String {
-        val limitClauseRegex = "^.*(LIMIT\\s*)(\\d+).*$".toRegex(RegexOption.IGNORE_CASE)
-        return if (limitClauseRegex.matches(this)) {
-            // TODO - refactor with let since this returns a nullable match result
-            val matchResult = limitClauseRegex.matchEntire(this)
-            val (limitKeyword, limitValue) = matchResult!!.destructured
+    private fun String.withLimitClause(limit: Int): String =
+        limitClauseRegex.matchEntire(this)?.let {
+            val (limitKeyword, limitValue) = it.destructured
             val validatedLimitValue = min(limitValue.toInt(), limit)
             val newLimitClause = "$limitKeyword$validatedLimitValue"
-            return this.replace("$limitKeyword$limitValue", newLimitClause)
-        }
-        else "$this limit $limit"
-    }
+            this.replace("$limitKeyword$limitValue", newLimitClause)
+        } ?: "$this limit $limit"
 
     companion object {
         // TODO - this will be the default if no value is found in config
         const val InputSourceDelimiter = "."
         const val OutputSourceDelimiter = "_"
         val tableNameRegex = "^\\w+\\$InputSourceDelimiter\\w+.*$".toRegex()
+        val limitClauseRegex = "^.*(LIMIT\\s*)(\\d+).*$".toRegex(RegexOption.IGNORE_CASE)
     }
 }
