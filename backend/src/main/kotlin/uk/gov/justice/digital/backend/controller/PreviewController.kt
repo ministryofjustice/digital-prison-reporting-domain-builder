@@ -6,6 +6,7 @@ import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Error
 import io.micronaut.http.annotation.Post
 import uk.gov.justice.digital.backend.service.DomainNotFoundException
+import uk.gov.justice.digital.backend.service.NoTablesInDomainException
 import uk.gov.justice.digital.backend.service.PreviewService
 import uk.gov.justice.digital.model.Status
 import java.util.*
@@ -19,5 +20,8 @@ class PreviewController(private val service: PreviewService) {
 
     @Error(exception = DomainNotFoundException::class)
     fun handleDomainNotFoundException(): HttpResponse<Unit> = HttpResponse.notFound()
+
+    @Error(exception = NoTablesInDomainException::class)
+    fun handleNoTablesInDomainException(): HttpResponse<Unit> = HttpResponse.unprocessableEntity()
 
 }
