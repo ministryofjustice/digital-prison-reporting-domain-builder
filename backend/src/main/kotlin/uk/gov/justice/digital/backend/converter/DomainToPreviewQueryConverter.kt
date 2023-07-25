@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.backend.converter
 
+import io.micronaut.context.annotation.Value
 import jakarta.inject.Singleton
 import kotlin.math.min
 
@@ -12,14 +13,24 @@ import kotlin.math.min
 @Singleton
 class DomainToPreviewQueryConverter {
 
+    @Value("\${preview.inputSourceDelimiter")
+    private val inputSourceDelimiter = "."
+    
+    @Value("\${preview.outputSourceDelimiter")
+    private val outputSourceDelimiter = "_"
+
+    private val tableNameRegex = "^\\w+\\$inputSourceDelimiter\\w+.*$".toRegex()
+    private val limitClauseRegex = "^.*(LIMIT\\s*)(\\d+).*$".toRegex(RegexOption.IGNORE_CASE)
+
     fun convertQuery(query: String, limit: Int): String {
         val convertedQuery =
-            query.replace("\n", "").trim()                   // Strip newlines
-                .split(" ")                                  //  and split string on spaces
-                .filter { it.isNotEmpty() }                  //  and remove empty strings
-                .joinToString(" ") { convertTableNames(it) } //  and convert table names where found then combine into a single string
-                .split("=")                                  // Now split on any equality tests which may not be space delimited
-                .joinToString("=") { convertTableNames(it) } //  and convert table names where found and combine into a single string
+            query.replace("\n", "")
+                .trim()
+                .split(" ")
+                .filter { it.isNotEmpty() }
+                .joinToString(" ") { convertTableNames(it) }
+                .split("=")
+                .joinToString("=") { convertTableNames(it) }
 
         return convertedQuery.withLimitClause(limit)
     }
@@ -29,11 +40,11 @@ class DomainToPreviewQueryConverter {
         // For example both of the following table names will require modification
         //      nomis.offenders
         //      nomis.offenders.id
-        // In both cases the first occurence of 'InputSourceDelimiter' will be replaced with OutputSourceDelimiter
+        // In both cases the first occurrence of 'InputSourceDelimiter' will be replaced with OutputSourceDelimiter
         // yielding the following strings
         //      nomis_offenders
         //      nomis_offenders.id
-        return if (tableNameRegex.matches(term)) term.replaceFirst(InputSourceDelimiter, OutputSourceDelimiter)
+        return if (tableNameRegex.matches(term)) term.replaceFirst(inputSourceDelimiter, outputSourceDelimiter)
         else term
     }
 
@@ -45,11 +56,4 @@ class DomainToPreviewQueryConverter {
             this.replace("$limitKeyword$limitValue", newLimitClause)
         } ?: "$this limit $limit"
 
-    companion object {
-        // TODO - this will be the default if no value is found in config
-        const val InputSourceDelimiter = "."
-        const val OutputSourceDelimiter = "_"
-        val tableNameRegex = "^\\w+\\$InputSourceDelimiter\\w+.*$".toRegex()
-        val limitClauseRegex = "^.*(LIMIT\\s*)(\\d+).*$".toRegex(RegexOption.IGNORE_CASE)
-    }
 }

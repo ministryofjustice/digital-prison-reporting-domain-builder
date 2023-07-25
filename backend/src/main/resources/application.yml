@@ -23,3 +23,9 @@ endpoints:
 
 auth:
   apiKey: ${DOMAIN_API_KEY}
+
+  preview:
+    # The delimiter used between the source name and table name e.g. nomis.offenders
+    inputSourceDelimiter: "."
+    # The delimiter to use instead (Athena table names are of the form source_table eg. nomis_offenders
+    outputSourceDelimiter: "_"
