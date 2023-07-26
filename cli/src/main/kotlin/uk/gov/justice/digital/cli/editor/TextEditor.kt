@@ -96,6 +96,15 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
                 ACCEPT  -> break
                 else    -> terminal.bell()
             }
+            // Temporary code to show cursor position etc
+            terminal.saveCursorPosition()
+            terminal.hideCursor()
+            terminal.moveCursorTo(23, 0)
+            val debugInfo = String.format("Position Info line: % 2d column: % 2d maxLine: % 2d maxColumn: % 3d", currentLine, currentColumn, maxLine, maxColumn)
+            val debugPadding = " ".repeat(terminal.width - min(debugInfo.length, terminal.width) - 1)
+            print(session.toAnsi("@|fg(black),bg(yellow),bold  $debugInfo$debugPadding|@"))
+            terminal.restoreSavedCursorPosition()
+            terminal.showCursor()
             terminal.flush()
         }
 
@@ -113,21 +122,20 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
 
             if (currentColumn > line.length) {
                 print("\u001B[0G")
-                print("\u001B[${line.length + 1}G")
+                print("\u001B[${line.length}G")
                 currentColumn = line.length
             }
         }
     }
 
     private fun handleDown() {
-        // TODO - can this be reduced to a predicate?
         if ((currentLine < lines.filter { it.isNotEmpty() }.size - 1) && lines[currentLine].isNotEmpty()) {
             currentLine++
             terminal.moveCursorDown(1)
             terminal.flush()
             // When moving from a longer line to a shorter line ensure the cursor is at the end of the line.
             currentColumn = Integer.min(currentColumn, lines[currentLine].length)
-            terminal.moveCursorTo(currentLine + lineOffset, currentColumn)
+            terminal.moveCursorTo(currentLine + lineOffset, currentColumn + 1)
             terminal.flush()
         }
     }
