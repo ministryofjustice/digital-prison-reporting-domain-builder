@@ -13,7 +13,7 @@ import kotlin.math.min
  * There are some limitations with regard to how text wrapping is handled as follows
  *   o pressing enter does not insert a new line or break the current line at the cursor location
  *   o deletion will only move any trailing text up to the next line if there is space for the entire string
- *   o maximum number of lines hardcoded to 20 lines (this can easily be made dynamic if required)
+ *   o maximum number of lines hardcoded to 18 lines (this can easily be made dynamic if required)
  */
 class TextEditor(private val session: InteractiveSession, private val heading: String) {
 
@@ -21,10 +21,11 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
 
     private val terminal = session.terminal()
 
+    // Editor bounds (except width) hard coded to fit within the constraints of a default 80 x 24 terminal session.
     private val lineOffset = 4 // Top three lines of the screen are not editable
     // Editor bounds. Can be made dynamic by taking width/height from the terminal.
     private val minLine = 0
-    private val maxLine = 20
+    private val maxLine = 18 // Top 4 and bottom 2 lines reserved for heading and status lines
     private val minColumn = 0
     private val maxColumn = terminal.width
 
@@ -168,7 +169,7 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
                     terminal.flush()
                 }
             }
-            else if (currentLine < maxLine) {
+            else if (currentLine < maxLine - 1) {
                 terminal.moveCursorDown(1)
                 print("\r")
                 currentLine++
@@ -182,11 +183,14 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
     }
 
     private fun handleEnter() {
-        if (currentLine < maxLine) {
+        if (currentLine < maxLine - 1) {
             terminal.moveCursorDown(1)
             print("\r")
             currentColumn = 0
             currentLine++
+        }
+        else {
+            terminal.bell()
         }
     }
 
