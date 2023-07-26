@@ -83,6 +83,9 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
         terminal.showCursor()
         terminal.flush()
 
+        // TODO - add lines visited accounting - enter increases by 1, line deletion decreases
+        //      - this then sets the bounds for up/down movement - without this things get messy when it comes to
+        //      - deletion of empty lines above text
         while(true) {
             when (editReader.readBinding(map, null, true)) {
                 UP      -> handleUp()
@@ -97,7 +100,7 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
                 else    -> terminal.bell()
             }
             terminal.flush()
-            
+
             // Temporary code to show cursor position etc
             terminal.saveCursorPosition()
             terminal.hideCursor()
@@ -117,21 +120,25 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
     }
 
     private fun handleUp() {
-        if (currentLine > minLine) {
+        if (onFirstLine()) terminal.bell()
+        else {
             terminal.moveCursorUp(1)
             currentLine--
             val line = lines[currentLine]
 
+            // When moving from a longer line to a short line ensure the cursor is at the end of the line
+            // TODO - use the down code
             if (currentColumn > line.length) {
                 print("\u001B[0G")
                 print("\u001B[${line.length}G")
-                currentColumn = line.length
+                currentColumn = line.length + 1
             }
         }
     }
 
     private fun handleDown() {
-        if ((currentLine < lines.filter { it.isNotEmpty() }.size - 1) && lines[currentLine].isNotEmpty()) {
+        if (onLastLine()) terminal.bell()
+        else {
             currentLine++
             terminal.moveCursorDown(1)
             terminal.flush()
@@ -162,41 +169,16 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
         // Remap tab to spaces
         val input = if (lastBinding == "\t") " ".repeat(tabLength) else lastBinding
         input.forEach { c ->
-            if (atEndOfLine() && canAddNewLine()) {
-                terminal.moveCursorDown(1)
-                print("\r")
-                currentLine++
-                lines[currentLine] = c + lines[currentLine]
-                print(lines[currentLine])
-                terminal.moveCursorLeft(lines[currentLine].length - 1)
-                terminal.flush()
-                currentColumn = 1
+            if (atEndOfLine()) {
+                if (canAddNewLine()) addNewLineStartingWithCharacter(c)
+                else terminal.bell()
             }
-            else if (!atEndOfLine()) {
-                val line = lines[currentLine]
-                if (atEndOfText()) {
-                    lines[currentLine] = line + c
-                    print(c)
-                    currentColumn++
-                }
-                else {
-                    val charsRemaining = line.substring(currentColumn).length
-                    lines[currentLine] = line.substring(0, currentColumn) +
-                        c +
-                        line.substring(currentColumn)
-                    print(c)
-                    print(line.substring(currentColumn))
-                    currentColumn++
-
-                    terminal.moveCursorLeft(charsRemaining)
-
-                    terminal.flush()
-                }
+            else {
+                if (atEndOfText()) appendCharacterToCurrentLine(c)
+                else insertCharacterAtCurrentPosition(c)
             }
-            else terminal.bell()
         }
     }
-
 
     private fun handleEnter() {
         if (canAddNewLine()) {
@@ -243,11 +225,41 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
         lines[currentLine] = lines[currentLine] + line
     }
 
+    private fun addNewLineStartingWithCharacter(c: Char) {
+        terminal.moveCursorDown(1)
+        print("\r")
+        currentLine++
+        lines[currentLine] = c + lines[currentLine]
+        print(lines[currentLine])
+        terminal.moveCursorLeft(lines[currentLine].length - 1)
+        terminal.flush()
+        currentColumn = 1
+    }
+
+    private fun appendCharacterToCurrentLine(c: Char) {
+        lines[currentLine] = lines[currentLine] + c
+        print(c)
+        currentColumn++
+    }
+
+    private fun insertCharacterAtCurrentPosition(c: Char) {
+        val line = lines[currentLine]
+        val charsRemaining = line.substring(currentColumn).length
+        lines[currentLine] = line.substring(0, currentColumn) +
+            c +
+            line.substring(currentColumn)
+        print(c)
+        print(line.substring(currentColumn))
+        currentColumn++
+
+        terminal.moveCursorLeft(charsRemaining)
+    }
+
     // Predicate methods defining various tests around the context of the lines array aka the buffer.
     private fun onFirstLine(): Boolean = currentLine == minLine
     private fun onLastLine(): Boolean = currentLine == maxLine - 1
     private fun atStartOfLine(): Boolean = currentColumn == 0
-    private fun atEndOfLine(): Boolean = currentColumn == maxColumn
+    private fun atEndOfLine(): Boolean = currentColumn == maxColumn - 1
     private fun atEndOfText(): Boolean = currentColumn == lines[currentLine].length
     // If the last line of the buffer contains text we cannot add anymore lines, therefore the buffer is full.
     private fun bufferIsFull(): Boolean = lines.last().isNotEmpty()
