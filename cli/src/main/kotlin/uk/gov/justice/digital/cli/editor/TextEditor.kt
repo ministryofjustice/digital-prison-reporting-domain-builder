@@ -96,6 +96,8 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
                 ACCEPT  -> break
                 else    -> terminal.bell()
             }
+            terminal.flush()
+            
             // Temporary code to show cursor position etc
             terminal.saveCursorPosition()
             terminal.hideCursor()
@@ -149,24 +151,35 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
     }
 
     private fun handleRight() {
-        if (currentColumn < maxColumn && currentColumn < lines[currentLine].length) {
+        if (atEndOfText() || atEndOfText()) terminal.bell()
+        else {
             terminal.moveCursorRight(1)
             currentColumn++
         }
-        else terminal.bell()
     }
 
     private fun handleInsert(lastBinding: String) {
         // Remap tab to spaces
         val input = if (lastBinding == "\t") " ".repeat(tabLength) else lastBinding
         input.forEach { c ->
-            if (currentColumn < maxColumn - 1) {
+            if (atEndOfLine() && canAddNewLine()) {
+                terminal.moveCursorDown(1)
+                print("\r")
+                currentLine++
+                lines[currentLine] = c + lines[currentLine]
+                print(lines[currentLine])
+                terminal.moveCursorLeft(lines[currentLine].length - 1)
+                terminal.flush()
+                currentColumn = 1
+            }
+            else if (!atEndOfLine()) {
                 val line = lines[currentLine]
-                if (currentColumn == line.length) {
+                if (atEndOfText()) {
                     lines[currentLine] = line + c
                     print(c)
                     currentColumn++
-                } else {
+                }
+                else {
                     val charsRemaining = line.substring(currentColumn).length
                     lines[currentLine] = line.substring(0, currentColumn) +
                         c +
@@ -179,16 +192,6 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
 
                     terminal.flush()
                 }
-            }
-            else if (canAddNewLine()) {
-                terminal.moveCursorDown(1)
-                print("\r")
-                currentLine++
-                lines[currentLine] = c + lines[currentLine]
-                print(lines[currentLine])
-                terminal.moveCursorLeft(lines[currentLine].length - 1)
-                terminal.flush()
-                currentColumn = 1
             }
             else terminal.bell()
         }
@@ -205,44 +208,52 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
         else terminal.bell()
     }
 
-    // TODO - test deletion logic
     private fun handleDelete() {
+        if (lines[currentLine].isNotEmpty() && !atStartOfLine()) deleteCharacterAtCurrentPosition()
+        else if (!onFirstLine() && currentLineCanFitOnLineAbove()) moveCurrentLineToEndOfPreviousLine()
+        else terminal.bell() // Cannot much current line content to line above - not enough space.
+    }
+
+    private fun deleteCharacterAtCurrentPosition() {
+        val line = lines[currentLine]
+        lines[currentLine] = line.removeRange(currentColumn - 1, currentColumn)
+        terminal.moveCursorLeft(1)
+        terminal.puts(Capability.delete_character)
+        currentColumn--
+    }
+
+    private fun moveCurrentLineToEndOfPreviousLine() {
         val line = lines[currentLine]
 
-        if (line.isNotEmpty() && currentColumn > 0) {
-            lines[currentLine] = line.removeRange(currentColumn - 1, currentColumn)
-            terminal.moveCursorLeft(1)
-            terminal.puts(Capability.delete_character)
-            currentColumn--
-        } else if (currentLine > minLine) {
-            // Only allow the text on the current line to be moved to the line above if there is space.
-            if (line.length + lines[currentLine-1].length < terminal.width) {
-                // Clear the current line since the contents will be moved up to the end of line above.
-                lines[currentLine] = ""
-                terminal.clearLine()
+        // Clear the current line since the contents will be moved up to the end of line above.
+        lines[currentLine] = ""
+        terminal.clearLine()
 
-                currentLine--
+        currentLine--
 
-                // Move the cursor up to the end of the line above.
-                terminal.moveCursorUp(1)
-                terminal.moveCursorRight(lines[currentLine].length)
-                currentColumn = lines[currentLine].length
+        // Move the cursor up to the end of the line above.
+        terminal.moveCursorUp(1)
+        terminal.moveCursorRight(lines[currentLine].length)
+        currentColumn = lines[currentLine].length
 
-                // Print the contents of the line we started on and move the cursor back to where it was...
-                print(line)
-                terminal.moveCursorLeft(line.length)
-                // ...and append the original line to the end of the current line.
-                lines[currentLine] = lines[currentLine] + line
-            }
-            else terminal.bell() // Cannot much current line content to line above - not enough space.
-        }
+        // Print the contents of the line we started on and move the cursor back to where it was...
+        print(line)
+        terminal.moveCursorLeft(line.length)
+        // ...and append the original line to the end of the current line.
+        lines[currentLine] = lines[currentLine] + line
     }
 
     // Predicate methods defining various tests around the context of the lines array aka the buffer.
+    private fun onFirstLine(): Boolean = currentLine == minLine
     private fun onLastLine(): Boolean = currentLine == maxLine - 1
+    private fun atStartOfLine(): Boolean = currentColumn == 0
+    private fun atEndOfLine(): Boolean = currentColumn == maxColumn
+    private fun atEndOfText(): Boolean = currentColumn == lines[currentLine].length
     // If the last line of the buffer contains text we cannot add anymore lines, therefore the buffer is full.
     private fun bufferIsFull(): Boolean = lines.last().isNotEmpty()
     private fun canAddNewLine(): Boolean = !onLastLine() && !bufferIsFull()
+    // Test whether the line above has space for the text remaining on the current line.
+    private fun currentLineCanFitOnLineAbove(): Boolean = lines[currentLine].length + lines[currentLine-1].length < terminal.width
 
     enum class Operation {
         UP,
