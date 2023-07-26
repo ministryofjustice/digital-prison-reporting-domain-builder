@@ -28,12 +28,17 @@ function show_wait() {
   echo -ne "\r[\033[1;90mBUSY\033[0m] $1"
 }
 
-run_with_local_postgres_config() {
+# Sets environment variables that are referenced in the backend application.yml.
+# The backend will not start without these being set.
+run_with_local_config() {
   POSTGRES_HOST="localhost" \
     POSTGRES_PORT="5432" \
     POSTGRES_DB_NAME="domain_builder" \
     POSTGRES_USERNAME="postgres" \
     POSTGRES_PASSWORD="postgres" \
+    PREVIEW_DB_NAME="curated" \
+    PREVIEW_WORKGROUP="primary" \
+    PREVIEW_S3_LOCATION="s3://dpr-357-athena-test" \
     $@
 }
 

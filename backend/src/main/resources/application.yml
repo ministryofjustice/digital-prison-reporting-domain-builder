@@ -4,10 +4,16 @@ datasources:
     username: "${POSTGRES_USERNAME}"
     password: "${POSTGRES_PASSWORD}"
     driverClassName: "org.postgresql.Driver"
+  preview:
+    url: "jdbc:athena:${PREVIEW_DB_NAME}"
+    driverClassName: "io.burt.athena.AthenaDriver"
+    connectionProperties: "region=eu-west-2;workGroup=${PREVIEW_WORKGROUP};outputLocation=${PREVIEW_S3_LOCATION}"
 
 flyway:
   datasources:
     default:
+      enabled: false
+    preview:
       enabled: false
 
 endpoints:
@@ -17,3 +23,9 @@ endpoints:
 
 auth:
   apiKey: ${DOMAIN_API_KEY}
+
+  preview:
+    # The delimiter used between the source name and table name e.g. nomis.offenders
+    inputSourceDelimiter: "."
+    # The delimiter to use instead (Athena table names are of the form source_table eg. nomis_offenders
+    outputSourceDelimiter: "_"

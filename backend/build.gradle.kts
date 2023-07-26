@@ -33,13 +33,14 @@ dependencies {
   implementation("io.micronaut:micronaut-runtime")
   implementation("io.micronaut:micronaut-validation")
 
-  implementation("io.micronaut.aws:micronaut-aws-cloudwatch-logging")
+  implementation("io.burt:athena-jdbc:0.4.0")
 
   implementation("jakarta.annotation:jakarta.annotation-api")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
 
   compileOnly("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
   compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
+
   implementation("org.ktorm:ktorm-core:$ktormVersion")
   implementation("org.ktorm:ktorm-jackson:$ktormVersion")
 

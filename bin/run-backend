@@ -68,4 +68,4 @@ echo
 echo "[Press CTRL-C to exit]"
 echo
 
-run_with_local_postgres_config "java -jar $jar_path"
+run_with_local_config "java -jar $jar_path"

@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.backend.filter
 
 import io.micronaut.core.async.publisher.Publishers
-import io.micronaut.core.type.Argument
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.MutableHttpResponse
 import io.micronaut.http.annotation.Filter
@@ -17,7 +16,7 @@ class RequestResponseLogger : HttpServerFilter {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    override fun getOrder(): Int = ServerFilterPhase.FIRST.before()
+    override fun getOrder(): Int = ServerFilterPhase.LAST.after()
 
     override fun doFilter(request: HttpRequest<*>?, chain: ServerFilterChain?): Publisher<MutableHttpResponse<*>> {
 
@@ -37,10 +36,9 @@ class RequestResponseLogger : HttpServerFilter {
 
     private val logResponse: (Long) -> (MutableHttpResponse<*>) -> MutableHttpResponse<*> = { startMs ->
         { response ->
-            logger.info("Returning response status:{} durationMs:{} contentLength:{} headers:{}",
+            logger.info("Returning response status:{} durationMs:{} headers: {}",
                 response.code(),
                 System.currentTimeMillis() - startMs,
-                response.getBody(Argument.ofTypeVariable(String::class.java, "body")).map { it.length }.orElse(0),
                 response.headers.joinToString { entry -> "${entry.key}=${entry.value}" },
             )
             response

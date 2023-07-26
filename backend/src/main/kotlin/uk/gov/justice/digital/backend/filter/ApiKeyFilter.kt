@@ -27,7 +27,6 @@ class ApiKeyFilter : HttpServerFilter {
 
     override fun doFilter(request: HttpRequest<*>?, chain: ServerFilterChain?): Publisher<MutableHttpResponse<*>> {
         val apiKeyIsValid = request?.headers?.get(API_KEY_HEADER_NAME)?.let {
-            logger.info("Checking key: $it")
             it == apiKey
         } ?: false
 
