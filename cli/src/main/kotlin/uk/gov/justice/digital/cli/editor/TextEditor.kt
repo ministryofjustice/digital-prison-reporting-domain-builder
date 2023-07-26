@@ -120,6 +120,7 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
     }
 
     private fun handleDown() {
+        // TODO - can this be reduced to a predicate?
         if ((currentLine < lines.filter { it.isNotEmpty() }.size - 1) && lines[currentLine].isNotEmpty()) {
             currentLine++
             terminal.moveCursorDown(1)
@@ -136,6 +137,7 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
             terminal.moveCursorLeft(1)
             currentColumn--
         }
+        else terminal.bell()
     }
 
     private fun handleRight() {
@@ -143,6 +145,7 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
             terminal.moveCursorRight(1)
             currentColumn++
         }
+        else terminal.bell()
     }
 
     private fun handleInsert(lastBinding: String) {
@@ -169,7 +172,7 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
                     terminal.flush()
                 }
             }
-            else if (currentLine < maxLine - 1) {
+            else if (canAddNewLine()) {
                 terminal.moveCursorDown(1)
                 print("\r")
                 currentLine++
@@ -179,21 +182,22 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
                 terminal.flush()
                 currentColumn = 1
             }
+            else terminal.bell()
         }
     }
 
+
     private fun handleEnter() {
-        if (currentLine < maxLine - 1) {
+        if (canAddNewLine()) {
             terminal.moveCursorDown(1)
             print("\r")
             currentColumn = 0
             currentLine++
         }
-        else {
-            terminal.bell()
-        }
+        else terminal.bell()
     }
 
+    // TODO - test deletion logic
     private fun handleDelete() {
         val line = lines[currentLine]
 
@@ -225,6 +229,12 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
             else terminal.bell() // Cannot much current line content to line above - not enough space.
         }
     }
+
+    // Predicate methods defining various tests around the context of the lines array aka the buffer.
+    private fun onLastLine(): Boolean = currentLine == maxLine - 1
+    // If the last line of the buffer contains text we cannot add anymore lines, therefore the buffer is full.
+    private fun bufferIsFull(): Boolean = lines.last().isNotEmpty()
+    private fun canAddNewLine(): Boolean = !onLastLine() && !bufferIsFull()
 
     enum class Operation {
         UP,
