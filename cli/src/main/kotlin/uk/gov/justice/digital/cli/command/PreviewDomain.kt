@@ -4,6 +4,7 @@ import jakarta.inject.Singleton
 import picocli.CommandLine
 import uk.gov.justice.digital.cli.DomainBuilder
 import uk.gov.justice.digital.cli.command.ExceptionHandler.runAndHandleExceptions
+import uk.gov.justice.digital.cli.service.DomainService
 import uk.gov.justice.digital.model.Status
 
 @Singleton
@@ -11,7 +12,7 @@ import uk.gov.justice.digital.model.Status
     name = "preview",
     description = ["Preview the data in a specific domain"]
 )
-class PreviewDomain : Runnable {
+class PreviewDomain(private val service: DomainService) : Runnable {
 
     @CommandLine.Option(
         names = ["-h", "--help"],
@@ -22,7 +23,7 @@ class PreviewDomain : Runnable {
     @CommandLine.Option(
         names = ["-n", "--name"],
         description = [
-            "the name of the domain to view",
+            "the name of the domain to preview",
         ],
         arity = "1..*",
         required = true,
@@ -33,7 +34,7 @@ class PreviewDomain : Runnable {
     @CommandLine.Option(
         names = ["-s", "--status"],
         description = [
-            "the status of the domain to view, either DRAFT or PUBLISHED"
+            "the status of the domain to preview, either DRAFT or PUBLISHED"
         ],
         arity = "1",
         required = true,
@@ -50,7 +51,9 @@ class PreviewDomain : Runnable {
 
     override fun run() =
         runAndHandleExceptions(parent) {
-            parent.print("TODO\n")
+            val result = service.previewDomain(domainName(), domainStatus)
+            // TODO - generate tabulated output
+            result.forEach { parent.print("$it\n") }
         }
 
 }

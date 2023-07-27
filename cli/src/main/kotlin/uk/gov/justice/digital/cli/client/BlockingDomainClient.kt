@@ -31,6 +31,7 @@ interface DomainClient {
     fun getDomains(): Array<Domain>
     fun getDomains(name: String, status: Status? = null): Array<Domain>
     fun createDomain(domain: WriteableDomain): String
+    fun previewDomain(name: String, status: Status): Array<Map<String, String>>
 }
 
 /**
@@ -51,6 +52,10 @@ class BlockingDomainClient : DomainClient {
     private lateinit var apiKey: String
 
     private val domainResource by lazy {
+        UriBuilder.of("$baseUrl/domain").build()
+    }
+
+    private val previewResource by lazy {
         UriBuilder.of("$baseUrl/domain").build()
     }
 
@@ -110,6 +115,10 @@ class BlockingDomainClient : DomainClient {
             BAD_REQUEST -> throw BadRequestException(createErrorMessageForBadRequest(response))
             else -> throw UnexpectedResponseException("Got unexpected response from server: $response")
         }
+    }
+
+    override fun previewDomain(name: String, status: Status): Array<Map<String, String>> {
+        TODO("Not yet implemented")
     }
 
     private fun <T> createErrorMessageForBadRequest(response: HttpResponse<T>) = response.headers()

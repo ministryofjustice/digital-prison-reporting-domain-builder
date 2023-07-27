@@ -45,6 +45,8 @@ class DomainService(private val client: DomainClient) {
         }
     }
 
+    fun previewDomain(name: String, status: Status): Array<Map<String, String>> = client.previewDomain(name, status)
+
 }
 
 sealed class DomainServiceException(message: String, cause: Exception? = null) : RuntimeException(message, cause)
