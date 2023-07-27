@@ -6,12 +6,9 @@ import jakarta.inject.Singleton
 import picocli.CommandLine
 import picocli.CommandLine.Command
 import picocli.CommandLine.Option
-import uk.gov.justice.digital.cli.command.CreateDomain
-import uk.gov.justice.digital.cli.command.ListDomains
-import uk.gov.justice.digital.cli.command.ViewDomain
+import uk.gov.justice.digital.cli.command.*
 import uk.gov.justice.digital.cli.session.BatchSession
 import uk.gov.justice.digital.cli.session.InteractiveSession
-import uk.gov.justice.digital.cli.command.CreateDomainInteractive
 import kotlin.system.exitProcess
 
 @Command(
@@ -21,6 +18,7 @@ import kotlin.system.exitProcess
         ViewDomain::class,
         CreateDomain::class,
         CreateDomainInteractive::class,
+        PreviewDomain::class,
     ],
 )
 @Singleton
