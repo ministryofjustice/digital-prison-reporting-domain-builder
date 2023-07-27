@@ -83,9 +83,6 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
         terminal.showCursor()
         terminal.flush()
 
-        // TODO - add lines visited accounting - enter increases by 1, line deletion decreases
-        //      - this then sets the bounds for up/down movement - without this things get messy when it comes to
-        //      - deletion of empty lines above text
         while(true) {
             when (editReader.readBinding(map, null, true)) {
                 UP      -> handleUp()
@@ -100,17 +97,6 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
                 else    -> terminal.bell()
             }
             terminal.flush()
-
-            // Temporary code to show cursor position etc
-            terminal.saveCursorPosition()
-            terminal.hideCursor()
-            terminal.moveCursorTo(23, 0)
-            val debugInfo = String.format("Position Info line: % 2d column: % 2d maxLine: % 2d maxColumn: % 3d", currentLine, currentColumn, maxLine, maxColumn)
-            val debugPadding = " ".repeat(terminal.width - min(debugInfo.length, terminal.width) - 1)
-            print(session.toAnsi("@|fg(black),bg(yellow),bold  $debugInfo$debugPadding|@"))
-            terminal.restoreSavedCursorPosition()
-            terminal.showCursor()
-            terminal.flush()
         }
 
         // Restore original terminal settings which will disable raw mode.
@@ -121,32 +107,19 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
 
     private fun handleUp() {
         if (onFirstLine()) terminal.bell()
-        else {
-            terminal.moveCursorUp(1)
-            currentLine--
-            val line = lines[currentLine]
-
-            // When moving from a longer line to a short line ensure the cursor is at the end of the line
-            // TODO - use the down code
-            if (currentColumn > line.length) {
-                print("\u001B[0G")
-                print("\u001B[${line.length}G")
-                currentColumn = line.length + 1
-            }
-        }
+        else handleVerticalMovement(-1)
     }
 
     private fun handleDown() {
-        if (onLastLine()) terminal.bell()
-        else {
-            currentLine++
-            terminal.moveCursorDown(1)
-            terminal.flush()
-            // When moving from a longer line to a shorter line ensure the cursor is at the end of the line.
-            currentColumn = Integer.min(currentColumn, lines[currentLine].length)
-            terminal.moveCursorTo(currentLine + lineOffset, currentColumn + 1)
-            terminal.flush()
-        }
+        if (onLastPopulatedLine()) terminal.bell()
+        else handleVerticalMovement(1)
+    }
+
+    private fun handleVerticalMovement(offset: Int) {
+        currentLine += offset
+        // When moving from a longer line to a shorter line, ensure the cursor is at the end of the shorter line.
+        currentColumn = Integer.min(currentColumn, lines[currentLine].length)
+        terminal.moveCursorTo(currentLine + lineOffset, currentColumn + 1)
     }
 
     private fun handleLeft() {
@@ -258,10 +231,11 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
     // Predicate methods defining various tests around the context of the lines array aka the buffer.
     private fun onFirstLine(): Boolean = currentLine == minLine
     private fun onLastLine(): Boolean = currentLine == maxLine - 1
+    private fun onLastPopulatedLine(): Boolean = currentLine == (lines.indexOfLast { it.isNotEmpty() }) || bufferIsEmpty()
     private fun atStartOfLine(): Boolean = currentColumn == 0
     private fun atEndOfLine(): Boolean = currentColumn == maxColumn - 1
     private fun atEndOfText(): Boolean = currentColumn == lines[currentLine].length
-    // If the last line of the buffer contains text we cannot add anymore lines, therefore the buffer is full.
+    private fun bufferIsEmpty(): Boolean = lines.indexOfFirst { it.isEmpty() } == 0
     private fun bufferIsFull(): Boolean = lines.last().isNotEmpty()
     private fun canAddNewLine(): Boolean = !onLastLine() && !bufferIsFull()
     // Test whether the line above has space for the text remaining on the current line.
