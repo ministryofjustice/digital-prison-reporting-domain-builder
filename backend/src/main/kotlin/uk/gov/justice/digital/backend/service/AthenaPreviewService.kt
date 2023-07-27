@@ -26,7 +26,7 @@ class AthenaPreviewService(private val client: PreviewClient,
         val domain = domains.firstOrNull()
             ?: throw DomainNotFoundException("No domains found for name: $domainName status: $status")
 
-        // TODO - only domains with a single table are supported
+        // We expect a domain definition to contain a single table.
         return domain.tables
             ?.firstOrNull()
             ?.let { preview(it.transform.viewText, limit )}

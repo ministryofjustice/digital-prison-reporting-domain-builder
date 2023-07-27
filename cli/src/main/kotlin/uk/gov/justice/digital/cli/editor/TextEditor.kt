@@ -13,7 +13,7 @@ import kotlin.math.min
  * There are some limitations with regard to how text wrapping is handled as follows
  *   o pressing enter does not insert a new line or break the current line at the cursor location
  *   o deletion will only move any trailing text up to the next line if there is space for the entire string
- *   o maximum number of lines hardcoded to 20 lines (this can easily be made dynamic if required)
+ *   o maximum number of lines hardcoded to 18 lines (this can easily be made dynamic if required)
  */
 class TextEditor(private val session: InteractiveSession, private val heading: String) {
 
@@ -21,10 +21,11 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
 
     private val terminal = session.terminal()
 
+    // Editor bounds (except width) hard coded to fit within the constraints of a default 80 x 24 terminal session.
     private val lineOffset = 4 // Top three lines of the screen are not editable
     // Editor bounds. Can be made dynamic by taking width/height from the terminal.
     private val minLine = 0
-    private val maxLine = 20
+    private val maxLine = 18 // Top 4 and bottom 2 lines reserved for heading and status lines
     private val minColumn = 0
     private val maxColumn = terminal.width
 
@@ -105,29 +106,20 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
     }
 
     private fun handleUp() {
-        if (currentLine > minLine) {
-            terminal.moveCursorUp(1)
-            currentLine--
-            val line = lines[currentLine]
-
-            if (currentColumn > line.length) {
-                print("\u001B[0G")
-                print("\u001B[${line.length + 1}G")
-                currentColumn = line.length
-            }
-        }
+        if (onFirstLine()) terminal.bell()
+        else handleVerticalMovement(-1)
     }
 
     private fun handleDown() {
-        if ((currentLine < lines.filter { it.isNotEmpty() }.size - 1) && lines[currentLine].isNotEmpty()) {
-            currentLine++
-            terminal.moveCursorDown(1)
-            terminal.flush()
-            // When moving from a longer line to a shorter line ensure the cursor is at the end of the line.
-            currentColumn = Integer.min(currentColumn, lines[currentLine].length)
-            terminal.moveCursorTo(currentLine + lineOffset, currentColumn)
-            terminal.flush()
-        }
+        if (onLastPopulatedLine()) terminal.bell()
+        else handleVerticalMovement(1)
+    }
+
+    private fun handleVerticalMovement(offset: Int) {
+        currentLine += offset
+        // When moving from a longer line to a shorter line, ensure the cursor is at the end of the shorter line.
+        currentColumn = Integer.min(currentColumn, lines[currentLine].length)
+        terminal.moveCursorTo(currentLine + lineOffset, currentColumn + 1)
     }
 
     private fun handleLeft() {
@@ -135,10 +127,12 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
             terminal.moveCursorLeft(1)
             currentColumn--
         }
+        else terminal.bell()
     }
 
     private fun handleRight() {
-        if (currentColumn < maxColumn && currentColumn < lines[currentLine].length) {
+        if (atEndOfText() || atEndOfLine()) terminal.bell()
+        else {
             terminal.moveCursorRight(1)
             currentColumn++
         }
@@ -148,79 +142,104 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
         // Remap tab to spaces
         val input = if (lastBinding == "\t") " ".repeat(tabLength) else lastBinding
         input.forEach { c ->
-            if (currentColumn < maxColumn - 1) {
-                val line = lines[currentLine]
-                if (currentColumn == line.length) {
-                    lines[currentLine] = line + c
-                    print(c)
-                    currentColumn++
-                } else {
-                    val charsRemaining = line.substring(currentColumn).length
-                    lines[currentLine] = line.substring(0, currentColumn) +
-                        c +
-                        line.substring(currentColumn)
-                    print(c)
-                    print(line.substring(currentColumn))
-                    currentColumn++
-
-                    terminal.moveCursorLeft(charsRemaining)
-
-                    terminal.flush()
-                }
+            if (atEndOfLine()) {
+                if (canAddNewLine()) addNewLineStartingWithCharacter(c)
+                else terminal.bell()
             }
-            else if (currentLine < maxLine) {
-                terminal.moveCursorDown(1)
-                print("\r")
-                currentLine++
-                lines[currentLine] = c + lines[currentLine]
-                print(lines[currentLine])
-                terminal.moveCursorLeft(lines[currentLine].length - 1)
-                terminal.flush()
-                currentColumn = 1
+            else {
+                if (atEndOfText()) appendCharacterToCurrentLine(c)
+                else insertCharacterAtCurrentPosition(c)
             }
         }
     }
 
     private fun handleEnter() {
-        if (currentLine < maxLine) {
+        if (canAddNewLine()) {
             terminal.moveCursorDown(1)
             print("\r")
             currentColumn = 0
             currentLine++
         }
+        else terminal.bell()
     }
 
     private fun handleDelete() {
+        if (lines[currentLine].isNotEmpty() && !atStartOfLine()) deleteCharacterAtCurrentPosition()
+        else if (!onFirstLine() && currentLineCanFitOnLineAbove()) moveCurrentLineToEndOfPreviousLine()
+        else terminal.bell() // Cannot much current line content to line above - not enough space.
+    }
+
+    private fun deleteCharacterAtCurrentPosition() {
+        val line = lines[currentLine]
+        lines[currentLine] = line.removeRange(currentColumn - 1, currentColumn)
+        terminal.moveCursorLeft(1)
+        terminal.puts(Capability.delete_character)
+        currentColumn--
+    }
+
+    private fun moveCurrentLineToEndOfPreviousLine() {
         val line = lines[currentLine]
 
-        if (line.isNotEmpty() && currentColumn > 0) {
-            lines[currentLine] = line.removeRange(currentColumn - 1, currentColumn)
-            terminal.moveCursorLeft(1)
-            terminal.puts(Capability.delete_character)
-            currentColumn--
-        } else if (currentLine > minLine) {
-            // Only allow the text on the current line to be moved to the line above if there is space.
-            if (line.length + lines[currentLine-1].length < terminal.width) {
-                // Clear the current line since the contents will be moved up to the end of line above.
-                lines[currentLine] = ""
-                terminal.clearLine()
+        // Clear the current line since the contents will be moved up to the end of line above.
+        lines[currentLine] = ""
+        terminal.clearLine()
 
-                currentLine--
+        currentLine--
 
-                // Move the cursor up to the end of the line above.
-                terminal.moveCursorUp(1)
-                terminal.moveCursorRight(lines[currentLine].length)
-                currentColumn = lines[currentLine].length
+        // Move the cursor up to the end of the line above.
+        terminal.moveCursorUp(1)
+        terminal.moveCursorRight(lines[currentLine].length)
+        currentColumn = lines[currentLine].length
 
-                // Print the contents of the line we started on and move the cursor back to where it was...
-                print(line)
-                terminal.moveCursorLeft(line.length)
-                // ...and append the original line to the end of the current line.
-                lines[currentLine] = lines[currentLine] + line
-            }
-            else terminal.bell() // Cannot much current line content to line above - not enough space.
-        }
+        // Print the contents of the line we started on and move the cursor back to where it was...
+        print(line)
+        terminal.moveCursorLeft(line.length)
+        // ...and append the original line to the end of the current line.
+        lines[currentLine] = lines[currentLine] + line
     }
+
+    private fun addNewLineStartingWithCharacter(c: Char) {
+        terminal.moveCursorDown(1)
+        print("\r")
+        currentLine++
+        lines[currentLine] = c + lines[currentLine]
+        print(lines[currentLine])
+        terminal.moveCursorLeft(lines[currentLine].length - 1)
+        terminal.flush()
+        currentColumn = 1
+    }
+
+    private fun appendCharacterToCurrentLine(c: Char) {
+        lines[currentLine] = lines[currentLine] + c
+        print(c)
+        currentColumn++
+    }
+
+    private fun insertCharacterAtCurrentPosition(c: Char) {
+        val line = lines[currentLine]
+        val charsRemaining = line.substring(currentColumn).length
+        lines[currentLine] = line.substring(0, currentColumn) +
+            c +
+            line.substring(currentColumn)
+        print(c)
+        print(line.substring(currentColumn))
+        currentColumn++
+
+        terminal.moveCursorLeft(charsRemaining)
+    }
+
+    // Predicate methods defining various tests around the context of the lines array aka the buffer.
+    private fun onFirstLine(): Boolean = currentLine == minLine
+    private fun onLastLine(): Boolean = currentLine == maxLine - 1
+    private fun onLastPopulatedLine(): Boolean = currentLine == (lines.indexOfLast { it.isNotEmpty() }) || bufferIsEmpty()
+    private fun atStartOfLine(): Boolean = currentColumn == 0
+    private fun atEndOfLine(): Boolean = currentColumn == maxColumn - 1
+    private fun atEndOfText(): Boolean = currentColumn == lines[currentLine].length
+    private fun bufferIsEmpty(): Boolean = lines.indexOfFirst { it.isEmpty() } == 0
+    private fun bufferIsFull(): Boolean = lines.last().isNotEmpty()
+    private fun canAddNewLine(): Boolean = !onLastLine() && !bufferIsFull()
+    // Test whether the line above has space for the text remaining on the current line.
+    private fun currentLineCanFitOnLineAbove(): Boolean = lines[currentLine].length + lines[currentLine-1].length < terminal.width
 
     enum class Operation {
         UP,
