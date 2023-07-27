@@ -131,7 +131,7 @@ class TextEditor(private val session: InteractiveSession, private val heading: S
     }
 
     private fun handleRight() {
-        if (atEndOfText() || atEndOfText()) terminal.bell()
+        if (atEndOfText() || atEndOfLine()) terminal.bell()
         else {
             terminal.moveCursorRight(1)
             currentColumn++
