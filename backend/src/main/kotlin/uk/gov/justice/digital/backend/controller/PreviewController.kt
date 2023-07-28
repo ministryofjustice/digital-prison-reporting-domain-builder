@@ -9,7 +9,6 @@ import uk.gov.justice.digital.backend.service.DomainNotFoundException
 import uk.gov.justice.digital.backend.service.NoTablesInDomainException
 import uk.gov.justice.digital.backend.service.PreviewService
 import uk.gov.justice.digital.model.Status
-import java.util.*
 
 @Controller("/preview")
 class PreviewController(private val service: PreviewService) {

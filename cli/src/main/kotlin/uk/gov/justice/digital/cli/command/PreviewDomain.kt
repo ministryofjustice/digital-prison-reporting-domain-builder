@@ -57,4 +57,7 @@ class PreviewDomain(private val service: DomainService) : Runnable {
             result.forEach { parent.print("$it\n") }
         }
 
+    private fun generateOutput(data: List<Map<String, String>>): String {
+        return ""
+    }
 }

@@ -22,7 +22,6 @@ import uk.gov.justice.digital.backend.service.PreviewService
 import uk.gov.justice.digital.headers.Header
 import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.test.Fixtures
-import java.util.*
 
 @MicronautTest
 class PreviewControllerTest {
