@@ -51,7 +51,8 @@ class PreviewDomain(private val service: DomainService) : Runnable {
 
     override fun run() =
         runAndHandleExceptions(parent) {
-            val result = service.previewDomain(domainName(), domainStatus)
+            // TODO - look at the best way to make the limit dynamic (interactive only :/)
+            val result = service.previewDomain(domainName(), domainStatus, 25)
             // TODO - generate tabulated output
             result.forEach { parent.print("$it\n") }
         }

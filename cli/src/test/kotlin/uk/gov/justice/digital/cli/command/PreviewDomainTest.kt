@@ -25,7 +25,8 @@ class PreviewDomainTest {
         underTest.domainStatus = Status.DRAFT
 
         every { mockDomainBuilder.print(capture(capturedOutput)) } answers {  }
-        every { mockDomainService.previewDomain(any(), any()) } answers {
+        every { mockDomainService.previewDomain(any(), any(), any()) } answers {
+            // TODO - define this in fixtures for use in other tests
             arrayOf(mapOf("foo" to "1", "bar" to "1", "baz" to "1"))
         }
 

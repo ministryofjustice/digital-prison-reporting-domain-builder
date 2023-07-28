@@ -45,7 +45,8 @@ class DomainService(private val client: DomainClient) {
         }
     }
 
-    fun previewDomain(name: String, status: Status): Array<Map<String, String>> = client.previewDomain(name, status)
+    fun previewDomain(name: String, status: Status, limit: Int): Array<Map<String, String>> =
+        client.previewDomain(name, status, limit)
 
 }
 

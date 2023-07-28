@@ -31,7 +31,7 @@ interface DomainClient {
     fun getDomains(): Array<Domain>
     fun getDomains(name: String, status: Status? = null): Array<Domain>
     fun createDomain(domain: WriteableDomain): String
-    fun previewDomain(name: String, status: Status): Array<Map<String, String>>
+    fun previewDomain(name: String, status: Status, limit: Int): Array<Map<String, String>>
 }
 
 /**
@@ -56,7 +56,7 @@ class BlockingDomainClient : DomainClient {
     }
 
     private val previewResource by lazy {
-        UriBuilder.of("$baseUrl/domain").build()
+        UriBuilder.of("$baseUrl/preview").build()
     }
 
     override fun getDomains(): Array<Domain> = client.get<Array<Domain>>(domainResource)
@@ -117,9 +117,29 @@ class BlockingDomainClient : DomainClient {
         }
     }
 
-    override fun previewDomain(name: String, status: Status): Array<Map<String, String>> {
-        TODO("Not yet implemented")
+    private inline fun <reified T> HttpResponse<String>.deserialize() =
+        this.body()
+            ?.let { objectMapper.readValue(it, T::class.java) }
+            ?: throw UnexpectedResponseException("No data in response")
+
+    override fun previewDomain(name: String, status: Status, limit: Int): Array<Map<String, String>> {
+        val requestBody = mapOf(
+            "domainName" to name,
+            "status" to status,
+            "limit" to limit
+        )
+        val request = configuredRequestBuilder(previewResource)
+            .header(CONTENT_TYPE, APPLICATION_JSON)
+            .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(requestBody)))
+            .build()
+
+        val response: HttpResponse<String> = client.send(request, HttpResponse.BodyHandlers.ofString())
+
+        // TODO - this could be factored out into the deserialize method and shared
+        if (response.statusCode() == 200) return response.deserialize()
+        else throw UnexpectedResponseException("Server returned an unexpected response: HTTP ${response.statusCode()}")
     }
+
 
     private fun <T> createErrorMessageForBadRequest(response: HttpResponse<T>) = response.headers()
             .firstValue(CONTENT_TYPE)

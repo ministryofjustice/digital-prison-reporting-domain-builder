@@ -6,6 +6,7 @@ import io.micronaut.http.HttpHeaders.USER_AGENT
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
+import io.micronaut.http.MediaType
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
@@ -20,7 +21,6 @@ import uk.gov.justice.digital.headers.Header.Companion.API_KEY_HEADER_NAME
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.model.WriteableDomain
-import uk.gov.justice.digital.test.Fixtures
 import uk.gov.justice.digital.test.Fixtures.TEST_API_KEY
 import uk.gov.justice.digital.test.Fixtures.domain1
 import uk.gov.justice.digital.test.Fixtures.domain2
@@ -109,6 +109,14 @@ class BlockingDomainClientTest {
         assertEquals(sessionId, client.createDomain(writeableDomain))
     }
 
+    @Test
+    fun `previewDomain should return a list of data for a valid request`() {
+        val expectedData = listOf(
+            mapOf("foo" to "1", "bar" to "1", "baz" to "1")
+        )
+        assertEquals(expectedData, createClientForScenario(Scenarios.HAPPY_PATH).previewDomain("foo", Status.DRAFT, 100).toList())
+    }
+
     @Requires(property = TEST_SCENARIO, value = Scenarios.HAPPY_PATH)
     @Controller
     class HappyPathController {
@@ -120,6 +128,12 @@ class BlockingDomainClientTest {
         @Post("/domain")
         fun createDomain(@Suppress("UNUSED_PARAMETER") domain: WriteableDomain): HttpResponse<Unit> =
             HttpResponse.created(URI.create("/domain/$FIXED_UUID"))
+        @Post("/preview", consumes = [MediaType.APPLICATION_JSON], produces = [MediaType.APPLICATION_JSON])
+        fun preview(domainName: String, status: Status, limit: Int): HttpResponse<List<Map<String, String>>> {
+            return HttpResponse.ok(listOf(
+                mapOf("foo" to "1", "bar" to "1", "baz" to "1")
+            ))
+        }
     }
 
     @Requires(property = TEST_SCENARIO, value = Scenarios.NO_DATA)
