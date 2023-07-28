@@ -31,7 +31,7 @@ class PreviewDomainTest {
 
         underTest.run()
 
-        val expectedOutput = "{foo=1, bar=1, baz=1}i\n"
+        val expectedOutput = "{foo=1, bar=1, baz=1}\n"
 
         assertEquals(expectedOutput, capturedOutput.joinToString(""))
     }

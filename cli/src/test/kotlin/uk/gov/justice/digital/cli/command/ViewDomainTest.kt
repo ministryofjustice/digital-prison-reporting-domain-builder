@@ -10,7 +10,6 @@ import uk.gov.justice.digital.test.Fixtures.domain1
 import uk.gov.justice.digital.test.Fixtures.table1
 import uk.gov.justice.digital.test.Fixtures.transform
 
-//  TODO - test handling of multiline query strings which should be flattened and trimmed
 class ViewDomainTest {
 
     private val mockDomainService: DomainService = mockk()
