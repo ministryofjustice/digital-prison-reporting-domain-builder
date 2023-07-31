@@ -9,18 +9,21 @@ class TableTest {
         arrayOf("heading1", "heading2", "heading3"),
         arrayOf(
             arrayOf("foo", "bar", "baz"),
-            arrayOf("a", "this value is much longer than the other fields", "baz"),
+            arrayOf("a", "this value is much longer than the other fields", "1"),
+            arrayOf("b", "", "foo"),
         )
     )
 
     @Test
-    fun `it should render the table correctly`() {
+    fun `it should render data as a table correctly`() {
         val expectedOutput = """
             ┌──────────┬─────────────────────────────────────────────────┬──────────┐
             │ heading1 │ heading2                                        │ heading3 │
-            ├──────────┴─────────────────────────────────────────────────┴──────────┤
+            ├──────────┼─────────────────────────────────────────────────┼──────────┤
             │ foo      │ bar                                             │ baz      │
-            │ a        │ this value is much longer than the other fields │ baz      │
+            │ a        │ this value is much longer than the other fields │ 1        │
+            │ b        │                                                 │ foo      │
+            └──────────┴─────────────────────────────────────────────────┴──────────┘
         """.trimIndent()
 
         assertEquals(expectedOutput, underTest.render())

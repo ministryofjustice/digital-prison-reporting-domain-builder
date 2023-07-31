@@ -1,10 +1,13 @@
 package uk.gov.justice.digital.cli.output
 
-import uk.gov.justice.digital.cli.output.Table.TableElements.HeadingSeparatorBottom
-import uk.gov.justice.digital.cli.output.Table.TableElements.HeadingSeparatorTop
+import uk.gov.justice.digital.cli.output.Table.TableElements.BottomLeftCorner
+import uk.gov.justice.digital.cli.output.Table.TableElements.BottomRightCorner
+import uk.gov.justice.digital.cli.output.Table.TableElements.ColumnSeparatorBottom
+import uk.gov.justice.digital.cli.output.Table.TableElements.ColumnSeparatorTop
 import uk.gov.justice.digital.cli.output.Table.TableElements.HorizontalConnectorLeft
 import uk.gov.justice.digital.cli.output.Table.TableElements.HorizontalConnectorRight
 import uk.gov.justice.digital.cli.output.Table.TableElements.HorizontalLine
+import uk.gov.justice.digital.cli.output.Table.TableElements.HorizontalVerticalConnector
 import uk.gov.justice.digital.cli.output.Table.TableElements.TopLeftCorner
 import uk.gov.justice.digital.cli.output.Table.TableElements.TopRightCorner
 import uk.gov.justice.digital.cli.output.Table.TableElements.VerticalLine
@@ -24,12 +27,13 @@ class Table(private val headings: Array<String>, private val data: Array<Array<S
         return listOf(
             generateColumnHeadings(),
             generateDataRows(),
+            generateClosingRow(),
         ).joinToString("\n")
     }
 
     private fun generateColumnHeadings(): String {
         val headingsTopBar = maxColumnWidths
-            .joinToString(prefix = TopLeftCorner, separator = HeadingSeparatorTop, postfix = TopRightCorner) {
+            .joinToString(prefix = TopLeftCorner, separator = ColumnSeparatorTop, postfix = TopRightCorner) {
                 HorizontalLine.repeat(it + 2)
             }
         val headingsLine = headings.mapIndexed { index, value ->
@@ -39,28 +43,25 @@ class Table(private val headings: Array<String>, private val data: Array<Array<S
 
 
         val headingsBottomBar = maxColumnWidths
-            .joinToString(prefix = HorizontalConnectorLeft, separator = HeadingSeparatorBottom, postfix = HorizontalConnectorRight) {
+            .joinToString(prefix = HorizontalConnectorLeft, separator = HorizontalVerticalConnector, postfix = HorizontalConnectorRight) {
                 HorizontalLine.repeat(it + 2)
             }
 
         return listOf(headingsTopBar, headingsLine, headingsBottomBar).joinToString("\n")
     }
 
-    private fun generateDataRows(): String {
-        val rowSeparator = maxColumnWidths
-            .joinToString(prefix = VerticalLine, separator = VerticalLine, postfix = VerticalLine) { " ".repeat(it + 2) }
-        // Iterate over format strings to build up each line with appropriate delimiters.
-        // Consider a function to do this so a row can easily be passed in.
-
-        val dataRows = data.joinToString("\n") {
-            val row = it.mapIndexed { index: Int, value: String ->
+    private fun generateDataRows(): String =
+        data.joinToString("\n") {
+            it.mapIndexed { index: Int, value: String ->
                 columnFormatStrings[index].format(value)
             }.joinToString(prefix = VerticalLine, separator = VerticalLine, postfix = VerticalLine)
-            listOf(row).joinToString("\n")
         }
 
-        return dataRows
-    }
+    private fun generateClosingRow(): String =
+        maxColumnWidths
+            .joinToString(prefix = BottomLeftCorner, separator = ColumnSeparatorBottom, postfix = BottomRightCorner) {
+                HorizontalLine.repeat(it + 2)
+            }
 
     object TableElements {
         const val TopLeftCorner = "┌"
@@ -74,8 +75,8 @@ class Table(private val headings: Array<String>, private val data: Array<Array<S
         const val HorizontalConnectorLeft = "├"
         const val HorizontalConnectorRight = "┤"
 
-        const val HeadingSeparatorTop = "┬"
-        const val HeadingSeparatorBottom = "┴"
+        const val ColumnSeparatorTop = "┬"
+        const val ColumnSeparatorBottom = "┴"
 
         const val HorizontalVerticalConnector = "┼"
     }
