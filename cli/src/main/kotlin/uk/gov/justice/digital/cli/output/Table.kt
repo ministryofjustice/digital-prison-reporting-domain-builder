@@ -36,8 +36,10 @@ class Table(private val headings: Array<String>, private val data: Array<Array<S
             .joinToString(prefix = TopLeftCorner, separator = ColumnSeparatorTop, postfix = TopRightCorner) {
                 HorizontalLine.repeat(it + 2)
             }
+
         val headingsLine = headings.mapIndexed { index, value ->
-            columnFormatStrings[index].format(value)
+            // Render headings in bold
+            "@|bold ${columnFormatStrings[index].format(value)}|@"
         }
         .joinToString(prefix = VerticalLine, separator = VerticalLine, postfix = VerticalLine)
 

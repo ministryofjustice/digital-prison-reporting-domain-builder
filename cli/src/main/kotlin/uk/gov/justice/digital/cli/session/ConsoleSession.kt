@@ -19,6 +19,7 @@ import picocli.CommandLine
 import picocli.shell.jline3.PicocliCommands
 import uk.gov.justice.digital.headers.SessionIdHeader
 import java.io.ByteArrayInputStream
+import kotlin.text.Charsets.UTF_8
 
 interface ConsoleSession {
 
@@ -55,7 +56,7 @@ class InteractiveSession: ConsoleSession {
     // current terminal size less will be shown, allowing the user to scroll through the output. Otherwise the output
     // will just be printed directly to the screen.
     override fun print(s: String) {
-        less.run(Source.InputStreamSource(ByteArrayInputStream(toAnsi(s).toByteArray()), true, pagerText))
+        less.run(Source.InputStreamSource(ByteArrayInputStream(toAnsi(s).toByteArray(UTF_8)), true, pagerText))
     }
 
     fun terminal() = terminal
@@ -66,6 +67,7 @@ class InteractiveSession: ConsoleSession {
         try {
             this.terminal = TerminalBuilder
                 .builder()
+                .encoding(UTF_8)
                 .system(true)
                 .build()
             this.terminal.use { interactiveSession(commandLine, it) }

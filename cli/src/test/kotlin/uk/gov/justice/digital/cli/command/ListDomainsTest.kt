@@ -30,19 +30,19 @@ class ListDomainsTest {
         underTest.run()
 
         val expectedOutput = """
-    
-            @|bold,green Found 3 domains|@
             
-            +----------+--------+--------------------+
-            | @|bold Name    |@ | @|bold Status|@ | @|bold Description       |@ |
-            +----------+--------+--------------------+
-            | Domain 1 | DRAFT  | A domain           |
-            | Domain 2 | DRAFT  | Another domain     |
-            | Domain 3 | DRAFT  | Yet another domain |
-            +----------+--------+--------------------+
-    
-    
-""".trimIndent()
+            @|bold,green Found 3 domains|@
+
+            ┌──────────┬────────┬────────────────────┐
+            │@|bold  Name     |@│@|bold  Status |@│@|bold  Description        |@│
+            ├──────────┼────────┼────────────────────┤
+            │ Domain 1 │ DRAFT  │ A domain           │
+            │ Domain 2 │ DRAFT  │ Another domain     │
+            │ Domain 3 │ DRAFT  │ Yet another domain │
+            └──────────┴────────┴────────────────────┘
+            
+            
+        """.trimIndent()
 
         assertEquals(expectedOutput, capturedOutput.joinToString(""))
     }
