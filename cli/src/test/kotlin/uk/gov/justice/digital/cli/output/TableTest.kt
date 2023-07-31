@@ -16,9 +16,11 @@ class TableTest {
     @Test
     fun `it should render the table correctly`() {
         val expectedOutput = """
-           ┌──────────┬──────────┬──────────┐
-           │ heading1 │ heading2 │ heading3 │
-           ├──────────┴──────────┴──────────┤
+            ┌──────────┬─────────────────────────────────────────────────┬──────────┐
+            │ heading1 │ heading2                                        │ heading3 │
+            ├──────────┴─────────────────────────────────────────────────┴──────────┤
+            │ foo      │ bar                                             │ baz      │
+            │ a        │ this value is much longer than the other fields │ baz      │
         """.trimIndent()
 
         assertEquals(expectedOutput, underTest.render())

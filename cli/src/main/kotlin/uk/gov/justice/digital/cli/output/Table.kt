@@ -8,30 +8,59 @@ import uk.gov.justice.digital.cli.output.Table.TableElements.HorizontalLine
 import uk.gov.justice.digital.cli.output.Table.TableElements.TopLeftCorner
 import uk.gov.justice.digital.cli.output.Table.TableElements.TopRightCorner
 import uk.gov.justice.digital.cli.output.Table.TableElements.VerticalLine
+import kotlin.math.max
 
 class Table(private val headings: Array<String>, private val data: Array<Array<String>>) {
 
-    private val maxColumnWidths = headings.map { it.length }
-
-    fun render(): String {
-        return generateColumnHeadings()
+    // Determine maximum value lengths per column for formatting.
+    private val maxColumnWidths = headings.mapIndexed { index: Int, value: String ->
+        val longestColumnValue = data.maxOfOrNull { it[index].length } ?: Int.MIN_VALUE
+        max(value.length, longestColumnValue)
     }
 
-    fun generateColumnHeadings(): String {
-        val headingsTopBar = headings
+    private val columnFormatStrings = maxColumnWidths.map { " %-${it}s " }
+
+    fun render(): String {
+        return listOf(
+            generateColumnHeadings(),
+            generateDataRows(),
+        ).joinToString("\n")
+    }
+
+    private fun generateColumnHeadings(): String {
+        val headingsTopBar = maxColumnWidths
             .joinToString(prefix = TopLeftCorner, separator = HeadingSeparatorTop, postfix = TopRightCorner) {
-                HorizontalLine.repeat(it.length + 2)
+                HorizontalLine.repeat(it + 2)
             }
-        val headingsLine = headings.joinToString(prefix = VerticalLine, separator = VerticalLine, postfix = VerticalLine) { " $it " }
-        val headingsBottomBar = headings
+        val headingsLine = headings.mapIndexed { index, value ->
+            columnFormatStrings[index].format(value)
+        }
+        .joinToString(prefix = VerticalLine, separator = VerticalLine, postfix = VerticalLine)
+
+
+        val headingsBottomBar = maxColumnWidths
             .joinToString(prefix = HorizontalConnectorLeft, separator = HeadingSeparatorBottom, postfix = HorizontalConnectorRight) {
-                HorizontalLine.repeat(it.length + 2)
+                HorizontalLine.repeat(it + 2)
             }
 
         return listOf(headingsTopBar, headingsLine, headingsBottomBar).joinToString("\n")
     }
 
+    private fun generateDataRows(): String {
+        val rowSeparator = maxColumnWidths
+            .joinToString(prefix = VerticalLine, separator = VerticalLine, postfix = VerticalLine) { " ".repeat(it + 2) }
+        // Iterate over format strings to build up each line with appropriate delimiters.
+        // Consider a function to do this so a row can easily be passed in.
 
+        val dataRows = data.joinToString("\n") {
+            val row = it.mapIndexed { index: Int, value: String ->
+                columnFormatStrings[index].format(value)
+            }.joinToString(prefix = VerticalLine, separator = VerticalLine, postfix = VerticalLine)
+            listOf(row).joinToString("\n")
+        }
+
+        return dataRows
+    }
 
     object TableElements {
         const val TopLeftCorner = "┌"
