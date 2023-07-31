@@ -31,7 +31,7 @@ interface DomainClient {
     fun getDomains(): Array<Domain>
     fun getDomains(name: String, status: Status? = null): Array<Domain>
     fun createDomain(domain: WriteableDomain): String
-    fun previewDomain(name: String, status: Status, limit: Int): Array<Map<String, String>>
+    fun previewDomain(name: String, status: Status, limit: Int): Array<Array<String>>
 }
 
 /**
@@ -122,7 +122,7 @@ class BlockingDomainClient : DomainClient {
             ?.let { objectMapper.readValue(it, T::class.java) }
             ?: throw UnexpectedResponseException("No data in response")
 
-    override fun previewDomain(name: String, status: Status, limit: Int): Array<Map<String, String>> {
+    override fun previewDomain(name: String, status: Status, limit: Int): Array<Array<String>> {
         val requestBody = mapOf(
             "domainName" to name,
             "status" to status,

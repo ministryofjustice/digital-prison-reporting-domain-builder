@@ -116,4 +116,9 @@ object Fixtures {
         }
     )
 
+    val domainPreviewData = arrayOf(
+        arrayOf("foo", "bar", "baz"),
+        arrayOf("1", "1", "1")
+    )
+
 }

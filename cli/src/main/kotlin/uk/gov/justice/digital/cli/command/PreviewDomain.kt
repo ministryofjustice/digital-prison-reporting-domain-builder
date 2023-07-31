@@ -4,6 +4,7 @@ import jakarta.inject.Singleton
 import picocli.CommandLine
 import uk.gov.justice.digital.cli.DomainBuilder
 import uk.gov.justice.digital.cli.command.ExceptionHandler.runAndHandleExceptions
+import uk.gov.justice.digital.cli.output.Table
 import uk.gov.justice.digital.cli.service.DomainService
 import uk.gov.justice.digital.model.Status
 
@@ -51,13 +52,16 @@ class PreviewDomain(private val service: DomainService) : Runnable {
 
     override fun run() =
         runAndHandleExceptions(parent) {
-            // TODO - look at the best way to make the limit dynamic (interactive only :/)
+            // TODO - look at the best way to make the limit dynamic (interactive only)
             val result = service.previewDomain(domainName(), domainStatus, 25)
-            // TODO - generate tabulated output
-            result.forEach { parent.print("$it\n") }
+            val output = generateOutput(result)
+            parent.print("\n@|bold, green Previewing domain ${domainName()} with status ${domainStatus}|@\n\n")
+            parent.print(output)
+            parent.print("\n")
         }
 
-    private fun generateOutput(data: List<Map<String, String>>): String {
-        return ""
-    }
+    private fun generateOutput(data: Array<Array<String>>) =
+        Table(headings = data[0], data = data.copyOfRange(1, data.size))
+            .render()
+
 }

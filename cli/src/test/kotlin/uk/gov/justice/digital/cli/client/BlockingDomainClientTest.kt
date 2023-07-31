@@ -24,6 +24,7 @@ import uk.gov.justice.digital.model.WriteableDomain
 import uk.gov.justice.digital.test.Fixtures.TEST_API_KEY
 import uk.gov.justice.digital.test.Fixtures.domain1
 import uk.gov.justice.digital.test.Fixtures.domain2
+import uk.gov.justice.digital.test.Fixtures.domainPreviewData
 import uk.gov.justice.digital.test.Fixtures.domains
 import uk.gov.justice.digital.test.Fixtures.writeableDomain
 import java.net.URI
@@ -111,10 +112,10 @@ class BlockingDomainClientTest {
 
     @Test
     fun `previewDomain should return a list of data for a valid request`() {
-        val expectedData = listOf(
-            mapOf("foo" to "1", "bar" to "1", "baz" to "1")
-        )
-        assertEquals(expectedData, createClientForScenario(Scenarios.HAPPY_PATH).previewDomain("foo", Status.DRAFT, 100).toList())
+        val actualResult =
+            createClientForScenario(Scenarios.HAPPY_PATH).previewDomain("foo", Status.DRAFT, 100)
+
+        assertTrue(domainPreviewData.contentDeepEquals(actualResult))
     }
 
     @Requires(property = TEST_SCENARIO, value = Scenarios.HAPPY_PATH)
@@ -129,10 +130,10 @@ class BlockingDomainClientTest {
         fun createDomain(@Suppress("UNUSED_PARAMETER") domain: WriteableDomain): HttpResponse<Unit> =
             HttpResponse.created(URI.create("/domain/$FIXED_UUID"))
         @Post("/preview", consumes = [MediaType.APPLICATION_JSON], produces = [MediaType.APPLICATION_JSON])
-        fun preview(domainName: String, status: Status, limit: Int): HttpResponse<List<Map<String, String>>> {
-            return HttpResponse.ok(listOf(
-                mapOf("foo" to "1", "bar" to "1", "baz" to "1")
-            ))
+        fun preview(@Suppress("UNUSED_PARAMETER") domainName: String,
+                    @Suppress("UNUSED_PARAMETER") status: Status,
+                    @Suppress("UNUSED_PARAMETER") limit: Int): HttpResponse<Array<Array<String>>> {
+            return HttpResponse.ok(domainPreviewData)
         }
     }
 

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.cli.DomainBuilder
 import uk.gov.justice.digital.cli.service.DomainService
 import uk.gov.justice.digital.model.Status
+import uk.gov.justice.digital.test.Fixtures.domainPreviewData
 
 class PreviewDomainTest {
 
@@ -25,14 +26,21 @@ class PreviewDomainTest {
         underTest.domainStatus = Status.DRAFT
 
         every { mockDomainBuilder.print(capture(capturedOutput)) } answers {  }
-        every { mockDomainService.previewDomain(any(), any(), any()) } answers {
-            // TODO - define this in fixtures for use in other tests
-            arrayOf(mapOf("foo" to "1", "bar" to "1", "baz" to "1"))
-        }
+        every { mockDomainService.previewDomain(any(), any(), any()) } answers { domainPreviewData }
 
         underTest.run()
 
-        val expectedOutput = "{foo=1, bar=1, baz=1}\n"
+        val expectedOutput = """
+            
+            @|bold, green Previewing domain Domain 1 with status DRAFT|@
+
+            ┌─────┬─────┬─────┐
+            │@|bold  foo |@│@|bold  bar |@│@|bold  baz |@│
+            ├─────┼─────┼─────┤
+            │ 1   │ 1   │ 1   │
+            └─────┴─────┴─────┘
+
+        """.trimIndent()
 
         assertEquals(expectedOutput, capturedOutput.joinToString(""))
     }
