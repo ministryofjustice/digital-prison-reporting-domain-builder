@@ -44,9 +44,8 @@ class PreviewControllerTest {
     @Test
     fun `request for valid domain returns a HTTP 200 response containing the preview data`() {
         val fakeData = listOf(
-            mapOf("foo" to "1"),
-            mapOf("bar" to "1"),
-            mapOf("baz" to "1"),
+            listOf("foo", "bar", "baz"),
+            listOf("1", "1", "1")
         )
 
         every { mockPreviewService.preview("someDomain", Status.DRAFT, 10) } returns fakeData

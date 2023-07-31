@@ -14,7 +14,7 @@ import uk.gov.justice.digital.model.Status
 class PreviewController(private val service: PreviewService) {
 
     @Post(consumes = [APPLICATION_JSON], produces = [APPLICATION_JSON])
-    fun runPreview(domainName: String, status: Status, limit: Int): List<Map<String, String>> =
+    fun runPreview(domainName: String, status: Status, limit: Int): List<List<String>> =
         service.preview(domainName, status, limit)
 
     @Error(exception = DomainNotFoundException::class)

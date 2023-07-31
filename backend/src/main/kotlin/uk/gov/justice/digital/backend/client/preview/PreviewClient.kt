@@ -2,6 +2,6 @@ package uk.gov.justice.digital.backend.client.preview
 
 interface PreviewClient {
 
-    fun runQuery(query: String): List<Map<String, String>>
+    fun runQuery(query: String): List<List<String>>
 
 }

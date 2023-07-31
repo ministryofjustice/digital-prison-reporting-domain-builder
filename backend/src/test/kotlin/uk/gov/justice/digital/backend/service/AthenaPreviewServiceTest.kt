@@ -1,8 +1,8 @@
 package uk.gov.justice.digital.backend.service
 
 import io.mockk.every
-import io.mockk.verify
 import io.mockk.mockk
+import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
@@ -14,7 +14,6 @@ import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.model.Table
 import uk.gov.justice.digital.model.Transform
 import uk.gov.justice.digital.test.Fixtures.domain1
-import uk.gov.justice.digital.test.Fixtures.domain2
 import uk.gov.justice.digital.test.Fixtures.table1
 
 class AthenaPreviewServiceTest {
@@ -33,7 +32,7 @@ class AthenaPreviewServiceTest {
             listOf(table1.copy(transform = Transform(queryString, emptyList())))
         )
 
-        val mockResult = listOf(mapOf("foo" to "bar"))
+        val mockResult = listOf(listOf("foo"), listOf("bar"))
 
         every { mockRepository.getDomains(any(), any()) } answers { listOf(domainWithTestDomainQuery) }
         every { mockClient.runQuery(any()) } answers { mockResult }
@@ -50,7 +49,7 @@ class AthenaPreviewServiceTest {
             listOf(table1.copy(transform = Transform(queryString, emptyList())))
         )
 
-        val mockResult = listOf(mapOf("foo" to "bar"))
+        val mockResult = listOf(listOf("foo"), listOf("bar"))
 
         every { mockRepository.getDomains(any(), any()) } answers { listOf(domainWithTestDomainQuery) }
         every { mockClient.runQuery(any()) } answers { mockResult }
@@ -69,7 +68,7 @@ class AthenaPreviewServiceTest {
             listOf(table1.copy(transform = Transform(queryString, emptyList())))
         )
 
-        val mockResult = listOf(mapOf("foo" to "bar"))
+        val mockResult = listOf(listOf("foo"), listOf("bar"))
 
         every { mockRepository.getDomains(any(), any()) } answers { listOf(domainWithTestDomainQuery) }
         every { mockClient.runQuery(any()) } answers { mockResult }

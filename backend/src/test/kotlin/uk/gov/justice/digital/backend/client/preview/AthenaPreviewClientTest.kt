@@ -2,6 +2,7 @@ package uk.gov.justice.digital.backend.client.preview
 
 import org.flywaydb.core.Flyway
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.postgresql.ds.PGSimpleDataSource
@@ -49,17 +50,29 @@ class AthenaPreviewClientTest {
 
         val result = underTest.runQuery("select * from test_domain")
 
-        Assertions.assertEquals(5, result.size)
+        assertEquals(6, result.size)
 
-        val expectedFirstRow = mapOf(
-            "id" to "1",
-            "name" to "Foo",
-            "street" to "Montague Road",
-            "postcode" to "SW12 2PB",
-            "items" to "5"
+        val headingsRow = listOf(
+            "id",
+            "name",
+            "street",
+            "postcode",
+            "items"
         )
 
-        Assertions.assertEquals(expectedFirstRow, result[0])
+        val firstDataRow = listOf(
+            "1",
+            "Foo",
+            "Montague Road",
+            "SW12 2PB",
+            "5"
+        )
+
+        // First row of results contains headings...
+        assertEquals(headingsRow, result[0])
+        // ...followed by data.
+        assertEquals(firstDataRow, result[1])
+
     }
 
 }
