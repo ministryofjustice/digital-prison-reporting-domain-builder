@@ -8,6 +8,7 @@ import picocli.CommandLine.Command
 import picocli.CommandLine.Option
 import uk.gov.justice.digital.cli.command.*
 import uk.gov.justice.digital.cli.session.BatchSession
+import uk.gov.justice.digital.cli.session.ConsoleSession
 import uk.gov.justice.digital.cli.session.InteractiveSession
 import kotlin.system.exitProcess
 
@@ -39,7 +40,7 @@ class DomainBuilder(
         description = ["Run domain-builder in interactive mode"],
         required = false
     )
-    private var isInteractive = false
+    private var interactive = false
 
     @Option(
         names = ["--enable-ansi"],
@@ -51,24 +52,28 @@ class DomainBuilder(
     override fun run() {
         System.setProperty("picocli.ansi", "$ansiEnabled")
 
-        if (isInteractive) {
+        if (interactive) {
             val commandLine = CommandLine(this, MicronautFactory())
             interactiveSession.start(commandLine)
         }
     }
 
     fun print(s: String) {
-        if (isInteractive) interactiveSession.print(s)
+        if (interactive) interactiveSession.print(s)
         else batchSession.print(s)
     }
 
     fun getInteractiveSession(): InteractiveSession {
-        if (isInteractive) return interactiveSession
+        if (interactive) return interactiveSession
         else {
             println("\nThis command is only available when run interactively\n")
             exitProcess(1)
         }
     }
+
+    fun session(): ConsoleSession =
+        if (interactive) interactiveSession
+        else batchSession
 
     companion object {
 

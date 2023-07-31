@@ -135,11 +135,9 @@ class BlockingDomainClient : DomainClient {
 
         val response: HttpResponse<String> = client.send(request, HttpResponse.BodyHandlers.ofString())
 
-        // TODO - this could be factored out into the deserialize method and shared
         if (response.statusCode() == 200) return response.deserialize()
         else throw UnexpectedResponseException("Server returned an unexpected response: HTTP ${response.statusCode()}")
     }
-
 
     private fun <T> createErrorMessageForBadRequest(response: HttpResponse<T>) = response.headers()
             .firstValue(CONTENT_TYPE)

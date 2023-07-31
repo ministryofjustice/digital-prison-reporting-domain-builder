@@ -22,11 +22,9 @@ import java.io.ByteArrayInputStream
 import kotlin.text.Charsets.UTF_8
 
 interface ConsoleSession {
-
     fun print(s: String)
-
     fun toAnsi(s: String): String = CommandLine.Help.Ansi.AUTO.string(s)
-
+    fun isInteractive(): Boolean
 }
 
 @Singleton
@@ -35,6 +33,8 @@ class BatchSession: ConsoleSession {
     override fun print(s: String) {
         println(toAnsi(s))
     }
+
+    override fun isInteractive(): Boolean = false
 
 }
 
@@ -58,6 +58,8 @@ class InteractiveSession: ConsoleSession {
     override fun print(s: String) {
         less.run(Source.InputStreamSource(ByteArrayInputStream(toAnsi(s).toByteArray(UTF_8)), true, pagerText))
     }
+
+    override fun isInteractive(): Boolean = true
 
     fun terminal() = terminal
 

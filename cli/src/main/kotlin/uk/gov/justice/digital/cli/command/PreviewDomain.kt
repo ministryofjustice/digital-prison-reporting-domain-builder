@@ -52,8 +52,7 @@ class PreviewDomain(private val service: DomainService) : Runnable {
 
     override fun run() =
         runAndHandleExceptions(parent) {
-            // TODO - look at the best way to make the limit dynamic (interactive only)
-            val result = service.previewDomain(domainName(), domainStatus, 25)
+            val result = service.previewDomain(domainName(), domainStatus, displayHeight())
             val output = generateOutput(result)
             parent.print("\n@|bold, green Previewing domain ${domainName()} with status ${domainStatus}|@\n\n")
             parent.print(output)
@@ -64,4 +63,7 @@ class PreviewDomain(private val service: DomainService) : Runnable {
         Table(headings = data[0], data = data.copyOfRange(1, data.size))
             .render()
 
+    private fun displayHeight() =
+        if (parent.session().isInteractive()) parent.getInteractiveSession().terminal().height
+        else 20
 }
