@@ -64,7 +64,7 @@ class ListDomainsTest {
             @|bold No domains were found|@
             
     
-""".trimIndent()
+        """.trimIndent()
 
         assertEquals(expectedOutput, capturedOutput.joinToString(""))
     }

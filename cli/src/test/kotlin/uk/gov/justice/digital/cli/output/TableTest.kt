@@ -18,7 +18,7 @@ class TableTest {
     fun `it should render data as a table correctly`() {
         val expectedOutput = """
             ┌──────────┬─────────────────────────────────────────────────┬──────────┐
-            │ heading1 │ heading2                                        │ heading3 │
+            │@|bold  heading1 |@│@|bold  heading2                                        |@│@|bold  heading3 |@│
             ├──────────┼─────────────────────────────────────────────────┼──────────┤
             │ foo      │ bar                                             │ baz      │
             │ a        │ this value is much longer than the other fields │ 1        │
