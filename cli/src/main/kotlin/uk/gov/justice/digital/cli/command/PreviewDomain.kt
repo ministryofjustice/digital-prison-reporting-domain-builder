@@ -68,6 +68,6 @@ class PreviewDomain(private val service: DomainService) : Runnable {
         ).render()
 
     private fun displayHeight() =
-        if (parent.session().isInteractive()) parent.getInteractiveSession().terminal().height
-        else 20
+        if (parent.session().isInteractive()) parent.getInteractiveSession().terminal().height - 8
+        else 10
 }
