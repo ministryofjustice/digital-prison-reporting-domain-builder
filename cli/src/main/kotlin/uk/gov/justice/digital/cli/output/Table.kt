@@ -17,8 +17,7 @@ class Table(private val headings: List<String>, private val data: List<List<Stri
 
     // Determine maximum value lengths per column for formatting.
     private val maxColumnWidths = headings.mapIndexed { index: Int, value: String ->
-        // TODO - review this
-        val longestColumnValue = data.maxOfOrNull { it[index]?.length ?: Int.MIN_VALUE } ?: Int.MIN_VALUE
+        val longestColumnValue = data.maxOf { it[index]?.length ?: Int.MIN_VALUE }
         max(value.length, longestColumnValue)
     }
 
