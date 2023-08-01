@@ -2,6 +2,8 @@ package uk.gov.justice.digital.cli.client
 
 import io.micronaut.context.annotation.Factory
 import io.micronaut.context.annotation.Value
+import io.micronaut.core.type.Argument
+import io.micronaut.core.type.GenericArgument;
 import io.micronaut.http.HttpHeaders.*
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.HttpStatus.*
@@ -28,10 +30,10 @@ import java.time.Duration
 import java.util.*
 
 interface DomainClient {
-    fun getDomains(): Array<Domain>
-    fun getDomains(name: String, status: Status? = null): Array<Domain>
+    fun getDomains(): List<Domain>
+    fun getDomains(name: String, status: Status? = null): List<Domain>
     fun createDomain(domain: WriteableDomain): String
-    fun previewDomain(name: String, status: Status, limit: Int): Array<Array<String>>
+    fun previewDomain(name: String, status: Status, limit: Int): List<List<String?>>
 }
 
 /**
@@ -59,16 +61,16 @@ class BlockingDomainClient : DomainClient {
         UriBuilder.of("$baseUrl/preview").build()
     }
 
-    override fun getDomains(): Array<Domain> = client.get<Array<Domain>>(domainResource)
+    override fun getDomains(): List<Domain> = client.get(domainResource, Argument.listOf(Domain::class.java))
 
-    override fun getDomains(name: String, status: Status?): Array<Domain> {
+    override fun getDomains(name: String, status: Status?): List<Domain> {
         val requestUri =
             UriBuilder.of(domainResource)
                 .queryParam("name", name)
                 .withOptionalParameter("status", status?.name)
                 .build()
 
-        return client.get<Array<Domain>>(requestUri)
+        return client.get(requestUri, Argument.listOf(Domain::class.java))
     }
 
     // Only add the query parameter if the value is not null.
@@ -87,15 +89,15 @@ class BlockingDomainClient : DomainClient {
 
     private fun HttpRequest.Builder.withCustomHeader(header: Header) = this.header(header.name, header.value)
 
-    private inline fun <reified T> HttpClient.get(uri: URI): T {
+    private inline fun <reified T> HttpClient.get(uri: URI, type: Argument<T> = Argument.of(T::class.java)): T {
         val request = configuredRequestBuilder(uri)
             .GET()
             .build()
 
-        val response = this.send(request, HttpResponse.BodyHandlers.ofInputStream())
+        val response = this.send(request, HttpResponse.BodyHandlers.ofString())
 
         if (response.statusCode() in 200..299)
-            return objectMapper.readValue(response.body(), T::class.java) ?: throw UnexpectedResponseException("No data in response")
+            return response.deserialize(type)
         else throw UnexpectedResponseException("Server returned an unexpected response: HTTP ${response.statusCode()}")
     }
 
@@ -117,12 +119,12 @@ class BlockingDomainClient : DomainClient {
         }
     }
 
-    private inline fun <reified T> HttpResponse<String>.deserialize() =
+    private inline fun <reified T> HttpResponse<String>.deserialize(type: Argument<T> = Argument.of(T::class.java)): T =
         this.body()
-            ?.let { objectMapper.readValue(it, T::class.java) }
+            ?.let { objectMapper.readValue(it, type) }
             ?: throw UnexpectedResponseException("No data in response")
 
-    override fun previewDomain(name: String, status: Status, limit: Int): Array<Array<String>> {
+    override fun previewDomain(name: String, status: Status, limit: Int): List<List<String?>> {
         val requestBody = mapOf(
             "domainName" to name,
             "status" to status,
@@ -135,7 +137,7 @@ class BlockingDomainClient : DomainClient {
 
         val response: HttpResponse<String> = client.send(request, HttpResponse.BodyHandlers.ofString())
 
-        if (response.statusCode() == 200) return response.deserialize()
+        if (response.statusCode() == 200) return response.deserialize(Argument.listOf(Argument.LIST_OF_STRING))
         else throw UnexpectedResponseException("Server returned an unexpected response: HTTP ${response.statusCode()}")
     }
 

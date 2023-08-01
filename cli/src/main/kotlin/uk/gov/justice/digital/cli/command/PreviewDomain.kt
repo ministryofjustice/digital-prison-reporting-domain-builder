@@ -59,8 +59,8 @@ class PreviewDomain(private val service: DomainService) : Runnable {
             parent.print("\n")
         }
 
-    private fun generateOutput(data: Array<Array<String>>) =
-        Table(headings = data[0], data = data.copyOfRange(1, data.size))
+    private fun generateOutput(data: List<List<String?>>) =
+        Table(headings = data[0].map { it ?: "" }, data = data.subList(1, data.size))
             .render()
 
     private fun displayHeight() =

@@ -36,15 +36,15 @@ class ListDomains(private val service: DomainService) : Runnable {
         else parent.print(generateOutput(result))
     }
 
-    private fun generateOutput(data: Array<Domain>): String {
+    private fun generateOutput(data: List<Domain>): String {
 
         val heading = "\n@|bold,green Found ${data.size} domains|@\n"
 
         val tableData = data.map {
-            arrayOf(it.name, it.status.name, it.description ?: "")
-        }.toTypedArray()
+            listOf(it.name, it.status.name, it.description)
+        }
 
-        val renderedTable = Table(arrayOf("Name", "Status", "Description"), tableData).render()
+        val renderedTable = Table(listOf("Name", "Status", "Description"), tableData).render()
 
         return listOf(
             heading,

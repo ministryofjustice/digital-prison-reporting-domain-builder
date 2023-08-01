@@ -6,11 +6,11 @@ import org.junit.jupiter.api.Test
 class TableTest {
 
     private val underTest = Table(
-        arrayOf("heading1", "heading2", "heading3"),
-        arrayOf(
-            arrayOf("foo", "bar", "baz"),
-            arrayOf("a", "this value is much longer than the other fields", "1"),
-            arrayOf("b", "", "foo"),
+        listOf("heading1", "heading2", "heading3"),
+        listOf(
+            listOf("foo", "bar", "baz"),
+            listOf("a", "this value is much longer than the other fields", "1"),
+            listOf("b", null, "foo"),
         )
     )
 

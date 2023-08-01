@@ -26,7 +26,7 @@ class ViewDomainTest {
         underTest.domainNameElements = arrayOf("Domain 1")
 
         every { mockDomainBuilder.print(capture(capturedOutput)) } answers {  }
-        every { mockDomainService.getDomains(any(), any()) } answers { arrayOf(domain1) }
+        every { mockDomainService.getDomains(any(), any()) } answers { listOf(domain1) }
 
         underTest.run()
 
@@ -64,7 +64,7 @@ class ViewDomainTest {
         underTest.domainNameElements = arrayOf("Domain 1")
 
         every { mockDomainBuilder.print(capture(capturedOutput)) } answers {  }
-        every { mockDomainService.getDomains(any(), any()) } answers { emptyArray() }
+        every { mockDomainService.getDomains(any(), any()) } answers { listOf() }
 
         underTest.run()
 
@@ -98,7 +98,7 @@ class ViewDomainTest {
         )
 
         every { mockDomainBuilder.print(capture(capturedOutput)) } answers {  }
-        every { mockDomainService.getDomains(any(), any()) } answers { arrayOf(domainWithMultilineSQLString) }
+        every { mockDomainService.getDomains(any(), any()) } answers { listOf(domainWithMultilineSQLString) }
 
         underTest.run()
 

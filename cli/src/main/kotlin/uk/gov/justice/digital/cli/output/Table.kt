@@ -13,11 +13,12 @@ import uk.gov.justice.digital.cli.output.Table.TableElements.TopRightCorner
 import uk.gov.justice.digital.cli.output.Table.TableElements.VerticalLine
 import kotlin.math.max
 
-class Table(private val headings: Array<String>, private val data: Array<Array<String>>) {
+class Table(private val headings: List<String>, private val data: List<List<String?>>) {
 
     // Determine maximum value lengths per column for formatting.
     private val maxColumnWidths = headings.mapIndexed { index: Int, value: String ->
-        val longestColumnValue = data.maxOfOrNull { it[index].length } ?: Int.MIN_VALUE
+        // TODO - review this
+        val longestColumnValue = data.maxOfOrNull { it[index]?.length ?: Int.MIN_VALUE } ?: Int.MIN_VALUE
         max(value.length, longestColumnValue)
     }
 
@@ -54,8 +55,8 @@ class Table(private val headings: Array<String>, private val data: Array<Array<S
 
     private fun generateDataRows(): String =
         data.joinToString("\n") {
-            it.mapIndexed { index: Int, value: String ->
-                columnFormatStrings[index].format(value)
+            it.mapIndexed { index: Int, value: String? ->
+                columnFormatStrings[index].format(value ?: "")
             }.joinToString(prefix = VerticalLine, separator = VerticalLine, postfix = VerticalLine)
         }
 

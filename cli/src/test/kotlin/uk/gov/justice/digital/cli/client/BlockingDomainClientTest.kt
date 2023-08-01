@@ -15,7 +15,6 @@ import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
-import uk.gov.justice.digital.cli.client.BlockingDomainClient
 import uk.gov.justice.digital.headers.Header
 import uk.gov.justice.digital.headers.Header.Companion.API_KEY_HEADER_NAME
 import uk.gov.justice.digital.model.Domain
@@ -115,7 +114,7 @@ class BlockingDomainClientTest {
         val actualResult =
             createClientForScenario(Scenarios.HAPPY_PATH).previewDomain("foo", Status.DRAFT, 100)
 
-        assertTrue(domainPreviewData.contentDeepEquals(actualResult))
+        assertEquals(domainPreviewData, actualResult)
     }
 
     @Requires(property = TEST_SCENARIO, value = Scenarios.HAPPY_PATH)
@@ -132,7 +131,7 @@ class BlockingDomainClientTest {
         @Post("/preview", consumes = [MediaType.APPLICATION_JSON], produces = [MediaType.APPLICATION_JSON])
         fun preview(@Suppress("UNUSED_PARAMETER") domainName: String,
                     @Suppress("UNUSED_PARAMETER") status: Status,
-                    @Suppress("UNUSED_PARAMETER") limit: Int): HttpResponse<Array<Array<String>>> {
+                    @Suppress("UNUSED_PARAMETER") limit: Int): HttpResponse<List<List<String?>>> {
             return HttpResponse.ok(domainPreviewData)
         }
     }

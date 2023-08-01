@@ -47,7 +47,7 @@ class PreviewDomainTest {
             ┌─────┬─────┬─────┐
             │@|bold  foo |@│@|bold  bar |@│@|bold  baz |@│
             ├─────┼─────┼─────┤
-            │ 1   │ 1   │ 1   │
+            │ 1   │     │ 1   │
             └─────┴─────┴─────┘
 
         """.trimIndent()

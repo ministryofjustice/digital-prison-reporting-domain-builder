@@ -22,9 +22,9 @@ class DomainService(private val client: DomainClient) {
     @Inject
     private lateinit var objectMapper: ObjectMapper
 
-    fun getAllDomains(): Array<Domain> = client.getDomains()
+    fun getAllDomains(): List<Domain> = client.getDomains()
 
-    fun getDomains(name: String, status: Status? = null): Array<Domain> = client.getDomains(name, status)
+    fun getDomains(name: String, status: Status? = null): List<Domain> = client.getDomains(name, status)
 
     fun createDomain(domain: WriteableDomain): String = client.createDomain(domain)
 
@@ -45,7 +45,7 @@ class DomainService(private val client: DomainClient) {
         }
     }
 
-    fun previewDomain(name: String, status: Status, limit: Int): Array<Array<String>> =
+    fun previewDomain(name: String, status: Status, limit: Int): List<List<String?>> =
         client.previewDomain(name, status, limit)
 
 }

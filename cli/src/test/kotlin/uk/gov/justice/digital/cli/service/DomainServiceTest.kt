@@ -9,8 +9,6 @@ import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.cli.client.DomainClient
-import uk.gov.justice.digital.cli.service.DomainService
-import uk.gov.justice.digital.cli.service.JsonParsingFailedException
 import uk.gov.justice.digital.cli.test.DomainJsonResources
 import uk.gov.justice.digital.test.Fixtures.domain1
 import uk.gov.justice.digital.test.Fixtures.domains
@@ -28,14 +26,14 @@ class DomainServiceTest {
 
     @Test
     fun `getDomains should return a list of domains`() {
-        every { mockDomainClient.getDomains() } returns domains.toTypedArray()
+        every { mockDomainClient.getDomains() } returns domains
         assertEquals(3, underTest.getAllDomains().size)
         verify { mockDomainClient.getDomains() }
     }
 
     @Test
     fun `getDomains should return a Domain given a name that exists`() {
-        every { mockDomainClient.getDomains(any(), any()) } returns arrayOf(domain1)
+        every { mockDomainClient.getDomains(any(), any()) } returns listOf(domain1)
 
         val name = "Domain 1"
         val result = underTest.getDomains(name)
@@ -46,7 +44,7 @@ class DomainServiceTest {
 
     @Test
     fun `getDomains should return null given a name that does not exist`() {
-        every { mockDomainClient.getDomains(any(), any()) } returns emptyArray()
+        every { mockDomainClient.getDomains(any(), any()) } returns emptyList()
         assertTrue(underTest.getDomains("This is not a valid domain name").isEmpty())
     }
 
