@@ -42,7 +42,7 @@ class PreviewDomainTest {
 
         val expectedOutput = """
             
-            @|bold, green Previewing domain Domain 1 with status DRAFT|@
+            @|bold,green Previewing domain Domain 1 with status DRAFT|@
 
             ┌─────┬─────┬─────┐
             │@|bold  foo |@│@|bold  bar |@│@|bold  baz |@│

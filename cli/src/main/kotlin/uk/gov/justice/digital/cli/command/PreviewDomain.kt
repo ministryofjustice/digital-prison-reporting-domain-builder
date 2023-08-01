@@ -53,15 +53,19 @@ class PreviewDomain(private val service: DomainService) : Runnable {
     override fun run() =
         runAndHandleExceptions(parent) {
             val result = service.previewDomain(domainName(), domainStatus, displayHeight())
-            val output = generateOutput(result)
-            parent.print("\n@|bold, green Previewing domain ${domainName()} with status ${domainStatus}|@\n\n")
+            val output = listOf(
+                "\n@|bold,green Previewing domain ${domainName()} with status ${domainStatus}|@\n",
+                generateOutput(result),
+                ""
+            ).joinToString("\n")
             parent.print(output)
-            parent.print("\n")
         }
 
     private fun generateOutput(data: List<List<String?>>) =
-        Table(headings = data[0].map { it ?: "" }, data = data.subList(1, data.size))
-            .render()
+        Table(
+            headings = data[0].map { it ?: "" },
+            data = data.subList(1, data.size)
+        ).render()
 
     private fun displayHeight() =
         if (parent.session().isInteractive()) parent.getInteractiveSession().terminal().height
