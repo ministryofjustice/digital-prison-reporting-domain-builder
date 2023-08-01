@@ -68,6 +68,12 @@ class PreviewDomain(private val service: DomainService) : Runnable {
         ).render()
 
     private fun displayHeight() =
-        if (parent.session().isInteractive()) parent.getInteractiveSession().terminal().height - 8
-        else 10
+        // Retrieve enough data to fill the current screen size allowing for headings.
+        if (parent.session().isInteractive()) parent.getInteractiveSession().terminal().height - NON_DATA_ROWS
+        else BATCH_SESSION_LIMIT
+
+    companion object {
+        const val BATCH_SESSION_LIMIT = 10
+        const val NON_DATA_ROWS = 8
+    }
 }
