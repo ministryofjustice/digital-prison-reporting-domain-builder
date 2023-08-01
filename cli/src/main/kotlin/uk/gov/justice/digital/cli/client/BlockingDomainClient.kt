@@ -3,7 +3,6 @@ package uk.gov.justice.digital.cli.client
 import io.micronaut.context.annotation.Factory
 import io.micronaut.context.annotation.Value
 import io.micronaut.core.type.Argument
-import io.micronaut.core.type.GenericArgument;
 import io.micronaut.http.HttpHeaders.*
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.HttpStatus.*
@@ -89,7 +88,7 @@ class BlockingDomainClient : DomainClient {
 
     private fun HttpRequest.Builder.withCustomHeader(header: Header) = this.header(header.name, header.value)
 
-    private inline fun <reified T> HttpClient.get(uri: URI, type: Argument<T> = Argument.of(T::class.java)): T {
+    private inline fun <reified T> HttpClient.get(uri: URI, type: Argument<T>): T {
         val request = configuredRequestBuilder(uri)
             .GET()
             .build()
@@ -119,7 +118,7 @@ class BlockingDomainClient : DomainClient {
         }
     }
 
-    private inline fun <reified T> HttpResponse<String>.deserialize(type: Argument<T> = Argument.of(T::class.java)): T =
+    private inline fun <reified T> HttpResponse<String>.deserialize(type: Argument<T>): T =
         this.body()
             ?.let { objectMapper.readValue(it, type) }
             ?: throw UnexpectedResponseException("No data in response")
