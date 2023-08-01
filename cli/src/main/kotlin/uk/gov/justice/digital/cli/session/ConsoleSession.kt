@@ -41,7 +41,7 @@ class BatchSession: ConsoleSession {
 @Singleton
 class InteractiveSession: ConsoleSession {
 
-    private val pagerText = " keys │ ↑ move up │ ↓ move down │ h help │ q exit this view "
+    val pagerText = " keys │ ↑ move up │ ↓ move down │ ← move left │ → move right │ h help │ q exit "
 
     private lateinit var terminal: Terminal
 
@@ -49,7 +49,7 @@ class InteractiveSession: ConsoleSession {
         val l = Less(terminal, null)
         // Do not show pager if output will fit on the current screen
         l.quitIfOneScreen = true
-        l.chopLongLines = true
+        l.chopLongLines = true // Disable line wrap and allow left/right nav along long lines
         l
     }
 
