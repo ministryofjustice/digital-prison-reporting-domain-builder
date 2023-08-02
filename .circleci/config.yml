@@ -35,7 +35,7 @@ workflows:
               ignore: /.*/
           requires: [reporting/gradle_build_publish]
           context:
-            - hmpps-reporting-common          
+            - hmpps-reporting-common
       - pause_workflow:
           channel: dpr_cicd_approvals
           type: approval
@@ -46,7 +46,7 @@ workflows:
               ignore: /.*/
           requires: [slack/on-hold]
           context:
-            - hmpps-reporting-common          
+            - hmpps-reporting-common
       - reporting/gradle_promote_live:
           app: digital-prison-reporting-jobs
           release_ready: true
@@ -58,7 +58,7 @@ workflows:
               ignore: /.*/
           requires: [pause_workflow]
           context:
-            - hmpps-reporting-common            
+            - hmpps-reporting-common
 
   owasp-security:
     triggers:
