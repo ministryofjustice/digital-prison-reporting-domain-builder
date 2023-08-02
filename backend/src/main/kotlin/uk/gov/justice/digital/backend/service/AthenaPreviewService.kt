@@ -8,7 +8,7 @@ import uk.gov.justice.digital.model.Status
 import kotlin.math.min
 
 interface PreviewService {
-    fun preview(domainName: String, status: Status, limit: Int): List<Map<String, String>>
+    fun preview(domainName: String, status: Status, limit: Int): List<List<String>>
 
     companion object {
         const val MaximumLimit = 100
@@ -20,7 +20,7 @@ class AthenaPreviewService(private val client: PreviewClient,
                            private val repository: DomainRepository,
                            private val converter: DomainToPreviewQueryConverter): PreviewService {
 
-    override fun preview(domainName: String, status: Status, limit: Int): List<Map<String, String>> {
+    override fun preview(domainName: String, status: Status, limit: Int): List<List<String>> {
         val domains = repository.getDomains(domainName, status)
 
         val domain = domains.firstOrNull()
@@ -33,7 +33,7 @@ class AthenaPreviewService(private val client: PreviewClient,
             ?: throw NoTablesInDomainException("No tables found in domain with name: $domainName status: $status")
     }
 
-    private fun preview(sql: String, limit: Int): List<Map<String, String>> {
+    private fun preview(sql: String, limit: Int): List<List<String>> {
         val convertedQuery = converter.convertQuery(sql, min(limit, PreviewService.MaximumLimit))
         return client.runQuery(convertedQuery)
     }

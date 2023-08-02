@@ -19,13 +19,12 @@ import picocli.CommandLine
 import picocli.shell.jline3.PicocliCommands
 import uk.gov.justice.digital.headers.SessionIdHeader
 import java.io.ByteArrayInputStream
+import kotlin.text.Charsets.UTF_8
 
 interface ConsoleSession {
-
     fun print(s: String)
-
     fun toAnsi(s: String): String = CommandLine.Help.Ansi.AUTO.string(s)
-
+    fun isInteractive(): Boolean
 }
 
 @Singleton
@@ -35,12 +34,14 @@ class BatchSession: ConsoleSession {
         println(toAnsi(s))
     }
 
+    override fun isInteractive(): Boolean = false
+
 }
 
 @Singleton
 class InteractiveSession: ConsoleSession {
 
-    private val pagerText = "use arrow keys to move up and down | press q to exit this view | press h for help"
+    val pagerText = " keys │ ↑ move up │ ↓ move down │ ← move left │ → move right │ h help │ q exit "
 
     private lateinit var terminal: Terminal
 
@@ -48,6 +49,7 @@ class InteractiveSession: ConsoleSession {
         val l = Less(terminal, null)
         // Do not show pager if output will fit on the current screen
         l.quitIfOneScreen = true
+        l.chopLongLines = true // Disable line wrap and allow left/right nav along long lines
         l
     }
 
@@ -55,8 +57,10 @@ class InteractiveSession: ConsoleSession {
     // current terminal size less will be shown, allowing the user to scroll through the output. Otherwise the output
     // will just be printed directly to the screen.
     override fun print(s: String) {
-        less.run(Source.InputStreamSource(ByteArrayInputStream(toAnsi(s).toByteArray()), true, pagerText))
+        less.run(Source.InputStreamSource(ByteArrayInputStream(toAnsi(s).toByteArray(UTF_8)), true, pagerText))
     }
+
+    override fun isInteractive(): Boolean = true
 
     fun terminal() = terminal
 
@@ -66,6 +70,7 @@ class InteractiveSession: ConsoleSession {
         try {
             this.terminal = TerminalBuilder
                 .builder()
+                .encoding(UTF_8)
                 .system(true)
                 .build()
             this.terminal.use { interactiveSession(commandLine, it) }

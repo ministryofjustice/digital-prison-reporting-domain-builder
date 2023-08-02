@@ -4,6 +4,7 @@ import jakarta.inject.Singleton
 import picocli.CommandLine.*
 import uk.gov.justice.digital.cli.DomainBuilder
 import uk.gov.justice.digital.cli.command.ExceptionHandler.runAndHandleExceptions
+import uk.gov.justice.digital.cli.output.Table
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.cli.service.DomainService
 
@@ -24,11 +25,6 @@ class ListDomains(private val service: DomainService) : Runnable {
     @ParentCommand
     lateinit var parent: DomainBuilder
 
-    private val padding = 2
-    private val defaultNameWidth = 4
-    private val defaultStatusWidth = 6
-    private val defaultDescriptionWidth = 10
-
     override fun run() =
         runAndHandleExceptions(parent) {
             fetchAndDisplayDomains()
@@ -40,42 +36,21 @@ class ListDomains(private val service: DomainService) : Runnable {
         else parent.print(generateOutput(result))
     }
 
-    private fun generateOutput(data: Array<Domain>): String {
-        // Format name and description widths dynamically
-        val nameWidth = data.maxOf { it.name.length }.let { if (it > defaultNameWidth) it else defaultNameWidth }
-        val statusWidth = data.maxOf { it.status.name.length }.let { if (it > defaultStatusWidth) it else defaultStatusWidth }
-        val descriptionWidth = data.maxOf { it.description?.length ?: 0 }.let { if (it > defaultDescriptionWidth) it else defaultDescriptionWidth }
+    private fun generateOutput(data: List<Domain>): String {
 
-        val tableBorder = tableRowBorder(nameWidth, statusWidth, descriptionWidth)
+        val heading = "\n@|bold,green Found ${data.size} domains|@\n"
 
-        val heading = listOf(
-            "\n@|bold,green Found ${data.size} domains|@\n",
-            tableBorder,
-            String.format("| @|bold %-${nameWidth}s|@ | @|bold %-${statusWidth}s|@ | @|bold %-${descriptionWidth}s|@ |", "Name", "Status", "Description"),
-            tableBorder,
-        )
-        val dataRows = data.map {
-            String.format(
-                "| %-${nameWidth}s | %-${statusWidth}s | %-${descriptionWidth}s |", it.name, it.status, it.description ?: "") }
-        val footer = listOf("$tableBorder\n\n")
+        val tableData = data.map {
+            listOf(it.name, it.status.name, it.description)
+        }
 
-        return listOf(heading, dataRows, footer)
-            .flatten()
-            .joinToString("\n")
-    }
+        val renderedTable = Table(listOf("Name", "Status", "Description"), tableData).render()
 
-    /**
-     * Creates a horizontal table row line for the given number of column widths.
-     * For example tableRowDelimiter(2, 2, 2) will return
-     * +----+----+----+
-     * which can be used between table rows e.g.
-     * +----+----+----+
-     * | C1 | C2 | C3 |
-     * +----+----+----+
-     */
-    private fun tableRowBorder(vararg columnWidths: Int): String {
-        return columnWidths
-            .joinToString(separator = "+", prefix = "+", postfix = "+") { "-".repeat(it + padding) }
+        return listOf(
+            heading,
+            renderedTable,
+            "\n"
+        ).joinToString("\n")
     }
 
 }

@@ -116,4 +116,10 @@ object Fixtures {
         }
     )
 
+    val domainPreviewData: List<List<String?>> =
+        listOf(
+            listOf("foo", "bar", "baz"),
+            listOf("1", null, "1")
+        )
+
 }

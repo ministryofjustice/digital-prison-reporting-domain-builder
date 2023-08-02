@@ -25,24 +25,24 @@ class ListDomainsTest {
         underTest.parent = mockDomainBuilder
 
         every { mockDomainBuilder.print(capture(capturedOutput)) } answers {  }
-        every { mockDomainService.getAllDomains() } answers { arrayOf(domain1, domain2, domain3) }
+        every { mockDomainService.getAllDomains() } answers { listOf(domain1, domain2, domain3) }
 
         underTest.run()
 
         val expectedOutput = """
-    
-            @|bold,green Found 3 domains|@
             
-            +----------+--------+--------------------+
-            | @|bold Name    |@ | @|bold Status|@ | @|bold Description       |@ |
-            +----------+--------+--------------------+
-            | Domain 1 | DRAFT  | A domain           |
-            | Domain 2 | DRAFT  | Another domain     |
-            | Domain 3 | DRAFT  | Yet another domain |
-            +----------+--------+--------------------+
-    
-    
-""".trimIndent()
+            @|bold,green Found 3 domains|@
+
+            ┌──────────┬────────┬────────────────────┐
+            │@|bold  Name     |@│@|bold  Status |@│@|bold  Description        |@│
+            ├──────────┼────────┼────────────────────┤
+            │ Domain 1 │ DRAFT  │ A domain           │
+            │ Domain 2 │ DRAFT  │ Another domain     │
+            │ Domain 3 │ DRAFT  │ Yet another domain │
+            └──────────┴────────┴────────────────────┘
+            
+            
+        """.trimIndent()
 
         assertEquals(expectedOutput, capturedOutput.joinToString(""))
     }
@@ -55,7 +55,7 @@ class ListDomainsTest {
         underTest.parent = mockDomainBuilder
 
         every { mockDomainBuilder.print(capture(capturedOutput)) } answers {  }
-        every { mockDomainService.getAllDomains() } answers { emptyArray() }
+        every { mockDomainService.getAllDomains() } answers { emptyList() }
 
         underTest.run()
 
@@ -64,7 +64,7 @@ class ListDomainsTest {
             @|bold No domains were found|@
             
     
-""".trimIndent()
+        """.trimIndent()
 
         assertEquals(expectedOutput, capturedOutput.joinToString(""))
     }

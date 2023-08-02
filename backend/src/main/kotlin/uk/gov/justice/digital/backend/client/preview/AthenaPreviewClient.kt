@@ -10,7 +10,7 @@ class AthenaPreviewClient(@Named("preview") private val previewDataSource: DataS
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    override fun runQuery(query: String): List<Map<String, String>> {
+    override fun runQuery(query: String): List<List<String>> {
         logger.info("Executing query: {}", query)
         val startTime = System.currentTimeMillis()
         val statement = previewDataSource.connection.createStatement()
@@ -25,10 +25,14 @@ class AthenaPreviewClient(@Named("preview") private val previewDataSource: DataS
         val columnNames = (1..columnCount)
             .map { metadata.getColumnName(it) }
 
-        val result = mutableListOf<Map<String, String>>()
+        // First row of result contains the column names
+        val result = mutableListOf<List<String>>(columnNames)
 
         while(resultSet.next()) {
-            result.add( columnNames.associateWith { resultSet.getString(it) } )
+            val row = (1..columnCount)
+                .map { resultSet.getString(it) }
+
+            result.add(row)
         }
 
         logger.info("Query returned {} row{}", result.size, if (result.size != 1) "s" else "")
