@@ -36,7 +36,7 @@ parameters:
     description: Deploy to PreProd Environment
 
 workflows:
-  checkout-build-publish:
+  checkout-build-release:
     jobs:
       - reporting/gradle_build_publish:
           app: << pipeline.parameters.app >>
