@@ -33,7 +33,7 @@ parameters:
   deploy_to_preprod:
     type: boolean
     default: true
-    description: Deploy to PreProd Environment         
+    description: Deploy to PreProd Environment
 
 workflows:
   checkout-build-publish:
