@@ -4,19 +4,50 @@ orbs:
   reporting: ministryofjustice/hmpps-reporting@1.0.25
   slack: circleci/slack@4.12.5
 
+parameters:
+  app:
+    type: string
+    default: "domain-builder"
+  alerts_channel:
+    type: string
+    default: "dpr_cicd_alerts"
+  approval_channel:
+    type: string
+    default: "dpr_cicd_approvals"
+  release_ready:
+    type: boolean
+    default: true
+    description: When true, Releases artifacts to Live
+  notify_slack:
+    type: boolean
+    default: true
+    description: Send notifications to Slack
+  notify_jira:
+    type: boolean
+    default: true
+    description: Send notifications to Associated Jira
+  deploy_to_test:
+    type: boolean
+    default: true
+    description: Deploy to Test Environment
+  deploy_to_preprod:
+    type: boolean
+    default: true
+    description: Deploy to PreProd Environment
+
 workflows:
-  checkout-build-publish:
+  checkout-build-release:
     jobs:
       - reporting/gradle_build_publish:
-          app: domain-builder
+          app: << pipeline.parameters.app >>
           app_artifacts_directory: build/libs/
           bucket_prefix: dpr-artifact-store
-          deploy_to_test: true # Deploy to Test Environment
-          deploy_to_preprod: true # Deploy to PreProd Environment
+          deploy_to_test: << pipeline.parameters.deploy_to_test >>
+          deploy_to_preprod: << pipeline.parameters.deploy_to_preprod >>
           cache_key: "dpr-domain-builder-build-cache-v4"
-          notify_jira: true
-          notify_slack: true
-          channel: dpr_cicd_alerts
+          notify_jira: << pipeline.parameters.notify_jira >>
+          notify_slack: << pipeline.parameters.notify_slack >>
+          channel: << pipeline.parameters.alerts_channel >>
           filters:
             branches:
               only: /.*/
@@ -27,7 +58,7 @@ workflows:
             - hmpps-reporting-common
             - hmpps-reporting-orb
       - slack/on-hold:
-          channel: dpr_cicd_approvals
+          channel: << pipeline.parameters.approval_channel >>
           filters:
             branches:
               only: main
@@ -37,7 +68,7 @@ workflows:
           context:
             - hmpps-reporting-common
       - pause_workflow:
-          channel: dpr_cicd_approvals
+          channel: << pipeline.parameters.approval_channel >>
           type: approval
           filters:
             branches:
@@ -48,9 +79,9 @@ workflows:
           context:
             - hmpps-reporting-common
       - reporting/gradle_promote_live:
-          app: digital-prison-reporting-jobs
-          release_ready: true
-          notify_slack: true
+          app: << pipeline.parameters.app >>
+          release_ready: << pipeline.parameters.release_ready >>
+          notify_slack: << pipeline.parameters.notify_slack >>
           filters:
             branches:
               only: main
@@ -71,7 +102,7 @@ workflows:
     jobs:
       - reporting/gradle_owasp_check:
           notify_slack: true
-          channel: dpr_cicd_alerts
+          channel: << pipeline.parameters.alerts_channel >>
           context:
             - hmpps-reporting-common
             - hmpps-reporting-orb
