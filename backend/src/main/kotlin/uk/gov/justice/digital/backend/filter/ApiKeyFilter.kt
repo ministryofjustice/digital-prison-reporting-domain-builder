@@ -26,16 +26,18 @@ class ApiKeyFilter : HttpServerFilter {
     private lateinit var apiKey: String
 
     override fun doFilter(request: HttpRequest<*>?, chain: ServerFilterChain?): Publisher<MutableHttpResponse<*>> {
-        val apiKeyIsValid = request?.headers?.get(API_KEY_HEADER_NAME)?.let {
-            it == apiKey
-        } ?: false
+        val apiKeyHeader = request?.headers?.get(API_KEY_HEADER_NAME)
+        val apiKeyIsValid = apiKeyHeader?.let { it == apiKey } ?: false
 
         return if (apiKeyIsValid) {
             logger.info("Incoming request has a valid {} header", API_KEY_HEADER_NAME)
             Publishers.map(chain?.proceed(request), Function.identity())
         }
         else {
-            logger.warn("Incoming request has an invalid or missing {} header", API_KEY_HEADER_NAME)
+            logger.warn("Incoming request has {} {} header",
+                apiKeyHeader?.let { "an invalid" } ?: "missing",
+                API_KEY_HEADER_NAME
+            )
             Publishers.just(HttpResponse.unauthorized<Unit>())
         }
     }

@@ -16,7 +16,7 @@ class RequestResponseLogger : HttpServerFilter {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    override fun getOrder(): Int = ServerFilterPhase.LAST.after()
+    override fun getOrder(): Int = ServerFilterPhase.FIRST.before()
 
     override fun doFilter(request: HttpRequest<*>?, chain: ServerFilterChain?): Publisher<MutableHttpResponse<*>> {
 
