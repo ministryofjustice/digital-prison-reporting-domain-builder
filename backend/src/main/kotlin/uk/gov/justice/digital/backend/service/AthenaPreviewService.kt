@@ -30,7 +30,6 @@ class AthenaPreviewService(private val client: PreviewClient,
         return client.runQuery(convertedQuery)
     }
 
-
 }
 
 sealed class PreviewServiceException(message: String, cause: Exception? = null) : RuntimeException(message, cause)
