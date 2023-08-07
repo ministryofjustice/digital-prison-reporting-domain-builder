@@ -6,6 +6,7 @@ import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.backend.client.domain.DomainRegistryClient
 import uk.gov.justice.digital.backend.repository.DomainRepository
 import uk.gov.justice.digital.backend.validator.InvalidSparkSqlResult
 import uk.gov.justice.digital.backend.validator.SparkSqlValidator
@@ -22,9 +23,11 @@ class RepositoryBackedDomainServiceTest {
 
     private val mockRepository: DomainRepository = mockk()
     private val mockValidator: SparkSqlValidator = mockk()
+    private val mockRegistryClient: DomainRegistryClient = mockk()
+
     private val fixedUUID = UUID.randomUUID()
 
-    private val underTest = RepositoryBackedDomainService(mockRepository, mockValidator)
+    private val underTest = RepositoryBackedDomainService(mockRepository, mockValidator, mockRegistryClient)
 
     @Test
     fun `create should create a domain containing valid spark sql`() {

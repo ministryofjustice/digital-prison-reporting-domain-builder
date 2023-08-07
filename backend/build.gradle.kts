@@ -15,7 +15,6 @@ micronaut {
   version.set("3.9.4")
 }
 
-// TODO - review this - better way to set versions?
 val kotlinVersion = "1.8.21"
 val ktormVersion = "3.6.0"
 val testContainersVersion = "1.18.0"
@@ -34,6 +33,7 @@ dependencies {
   implementation("io.micronaut:micronaut-validation")
 
   implementation("io.burt:athena-jdbc:0.4.0")
+  implementation("com.amazonaws:aws-java-sdk-dynamodb:1.12.523")
 
   implementation("jakarta.annotation:jakarta.annotation-api")
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
