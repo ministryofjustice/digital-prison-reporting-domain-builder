@@ -2,6 +2,7 @@ package uk.gov.justice.digital.backend.service
 
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
@@ -9,7 +10,9 @@ import uk.gov.justice.digital.backend.repository.DomainRepository
 import uk.gov.justice.digital.backend.validator.InvalidSparkSqlResult
 import uk.gov.justice.digital.backend.validator.SparkSqlValidator
 import uk.gov.justice.digital.backend.validator.ValidSparkSqlResult
+import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.model.WriteableDomain
+import uk.gov.justice.digital.test.Fixtures.domain1
 import uk.gov.justice.digital.test.Fixtures.writeableDomain
 import uk.gov.justice.digital.test.Fixtures.writeableDomainWithInvalidMappingSql
 import uk.gov.justice.digital.test.Fixtures.writeableDomainWithInvalidTransformSql
@@ -47,6 +50,21 @@ class RepositoryBackedDomainServiceTest {
         assertThrows(InvalidSparkSqlException::class.java) {
             underTest.createDomain(writeableDomainWithInvalidTransformSql)
         }
+    }
+
+    @Test
+    fun `publish should return the UUID of the published domain when successful`() {
+        val publishedDomain = domain1.copy(status = Status.PUBLISHED)
+
+        every { mockValidator.validate(any()) } returns ValidSparkSqlResult()
+        every { mockRepository.getDomains(any(), any()) } returns listOf(domain1)
+        every { mockRepository.updateDomain(publishedDomain) } returns Unit
+
+        val result = underTest.publishDomain("domain1", Status.DRAFT)
+
+        assertEquals(domain1.id, result)
+
+        verify { mockRepository.updateDomain(publishedDomain) }
     }
 
 }

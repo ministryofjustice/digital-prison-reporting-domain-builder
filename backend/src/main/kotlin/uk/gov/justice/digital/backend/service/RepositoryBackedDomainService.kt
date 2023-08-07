@@ -18,10 +18,10 @@ import java.util.*
  * Update and delete to follow in later work.
  */
 @Singleton
-class RepositoryBackedDomainService(
-    private val repository: DomainRepository,
-    private val sqlValidator: SparkSqlValidator): DomainService {
+class RepositoryBackedDomainService(private val repository: DomainRepository,
+                                    private val sqlValidator: SparkSqlValidator): DomainService {
 
+    // TODO - review this usage - do we ever get a status to pass to the repository?
     override fun getDomains(name: String?, status: Status?): List<Domain> = repository.getDomains(name)
 
     override fun getDomain(id: UUID): Domain? = repository.getDomain(id)
@@ -31,6 +31,30 @@ class RepositoryBackedDomainService(
             .validateSql { it.mapping?.viewText }
             .validateSql { it.transform.viewText }
             .let { repository.createDomain(it) }
+
+    // TODO - this needs to
+    //      o add the domain in published state to the dynamodb table replacing any existing domain
+    //      o store domain source relationships to support lookups
+    //      o store a published version of the domain in postgres
+    override fun publishDomain(name: String, status: Status): UUID {
+        // TODO - We should only get one domain here - fail if not
+        val domains = repository.getDomains(name, status)
+
+        if (domains.size == 1) {
+
+            val domain = domains.first().copy(status = Status.PUBLISHED)
+
+            repository.updateDomain(domain)
+
+
+            // TODO - update domain and
+            //  o store in dynamo with table source entries
+            //  o store in postgres
+            return domain.id
+        }
+        else throw RuntimeException("Expected one domain with name: $name status: $status")
+
+    }
 
     private fun validateDomainSql(domain: WriteableDomain, getSqlFromTable: (Table) -> String?): WriteableDomain =
         domain.tables

@@ -9,4 +9,5 @@ interface DomainService {
     fun getDomains(name: String? = null, status: Status? = null): List<Domain>
     fun getDomain(id: UUID): Domain?
     fun createDomain(domain: WriteableDomain): UUID
+    fun publishDomain(name: String, status: Status): UUID
 }
