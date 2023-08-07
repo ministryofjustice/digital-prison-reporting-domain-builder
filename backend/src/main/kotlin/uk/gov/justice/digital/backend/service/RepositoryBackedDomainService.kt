@@ -1,11 +1,14 @@
 package uk.gov.justice.digital.backend.service
 
 import jakarta.inject.Singleton
+import uk.gov.justice.digital.backend.client.domain.DomainRegistryClient
 import uk.gov.justice.digital.backend.repository.DomainRepository
 import uk.gov.justice.digital.backend.validator.InvalidSparkSqlResult
 import uk.gov.justice.digital.backend.validator.SparkSqlValidator
 import uk.gov.justice.digital.model.Domain
 import uk.gov.justice.digital.model.Status
+import uk.gov.justice.digital.model.Status.DRAFT
+import uk.gov.justice.digital.model.Status.PUBLISHED
 import uk.gov.justice.digital.model.Table
 import uk.gov.justice.digital.model.WriteableDomain
 import java.util.*
@@ -19,7 +22,8 @@ import java.util.*
  */
 @Singleton
 class RepositoryBackedDomainService(private val repository: DomainRepository,
-                                    private val sqlValidator: SparkSqlValidator): DomainService {
+                                    private val sqlValidator: SparkSqlValidator,
+                                    private val domainRegistryClient: DomainRegistryClient): DomainService {
 
     // TODO - review this usage - do we ever get a status to pass to the repository?
     override fun getDomains(name: String?, status: Status?): List<Domain> = repository.getDomains(name)
@@ -42,14 +46,20 @@ class RepositoryBackedDomainService(private val repository: DomainRepository,
 
         if (domains.size == 1) {
 
-            val domain = domains.first().copy(status = Status.PUBLISHED)
+            val domain = domains.first().copy(status = PUBLISHED)
 
-            repository.updateDomain(domain)
+            // KTORM - can we do this in one transaction?
+            // If we're promoting a draft which is usually the case, removing the PUBLISHED record if it exists.
+            if (status == DRAFT) {
+                val existingDomain = repository.getDomains(name, PUBLISHED).firstOrNull()
+                existingDomain?.let { repository.deleteDomain(it.id) }
+                repository.updateDomain(domain)
+            }
+            else {
+                repository.updateDomain(domain)
+            }
 
-
-            // TODO - update domain and
-            //  o store in dynamo with table source entries
-            //  o store in postgres
+            // TODO - update dynamo
             return domain.id
         }
         else throw RuntimeException("Expected one domain with name: $name status: $status")

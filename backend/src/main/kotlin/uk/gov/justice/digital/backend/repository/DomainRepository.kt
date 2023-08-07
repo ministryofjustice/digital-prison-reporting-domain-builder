@@ -125,7 +125,6 @@ class DomainRepository(dataSource: DataSource, clockProvider: ClockProvider) {
                 where { it.id eq updatedDomain.id }
             }
             .throwExceptionIfNoRecordsChanged(UpdateFailedException("Failed to update domain with id: ${domain.id}"))
-
     }
 
     fun deleteDomain(id: UUID) {
