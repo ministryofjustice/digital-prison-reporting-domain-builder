@@ -7,14 +7,6 @@ import uk.gov.justice.digital.backend.repository.DomainRepository
 import uk.gov.justice.digital.model.Status
 import kotlin.math.min
 
-interface PreviewService {
-    fun preview(domainName: String, status: Status, limit: Int): List<List<String>>
-
-    companion object {
-        const val MaximumLimit = 100
-    }
-}
-
 @Singleton
 class AthenaPreviewService(private val client: PreviewClient,
                            private val repository: DomainRepository,
