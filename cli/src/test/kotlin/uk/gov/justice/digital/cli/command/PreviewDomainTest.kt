@@ -21,7 +21,7 @@ class PreviewDomainTest {
     private val underTest = PreviewDomain(mockDomainService)
 
     @Test
-    fun `preview domain should generate some output`() {
+    fun `preview domain should generate some output for a valid request`() {
         val capturedOutput = mutableListOf<String>()
 
         underTest.parent = mockDomainBuilder
@@ -30,7 +30,7 @@ class PreviewDomainTest {
         underTest.domainStatus = Status.DRAFT
 
         every { mockInteractiveSession.isInteractive() } answers { true }
-        every { mockInteractiveSession.terminal() } answers {mockTerminal }
+        every { mockInteractiveSession.terminal() } answers { mockTerminal }
         every { mockTerminal.height } answers { 25 }
 
         every { mockDomainBuilder.print(capture(capturedOutput)) } answers {  }
@@ -49,6 +49,64 @@ class PreviewDomainTest {
             ├─────┼─────┼─────┤
             │ 1   │     │ 1   │
             └─────┴─────┴─────┘
+
+        """.trimIndent()
+
+        assertEquals(expectedOutput, capturedOutput.joinToString(""))
+    }
+
+    @Test
+    fun `preview domain should display a suitable message if no data was returned by the query`() {
+        val capturedOutput = mutableListOf<String>()
+
+        underTest.parent = mockDomainBuilder
+        // Ensure properties that are set via the CLI are initialized
+        underTest.domainNameElements = arrayOf("Domain 1")
+        underTest.domainStatus = Status.DRAFT
+
+        every { mockInteractiveSession.isInteractive() } answers { true }
+        every { mockInteractiveSession.terminal() } answers { mockTerminal }
+        every { mockTerminal.height } answers { 25 }
+
+        every { mockDomainBuilder.print(capture(capturedOutput)) } answers {  }
+        every { mockDomainBuilder.session() } answers { mockInteractiveSession }
+        every { mockDomainBuilder.getInteractiveSession() } answers { mockInteractiveSession }
+        every { mockDomainService.previewDomain(any(), any(), any()) } answers { domainPreviewData.subList(0, 1) }
+
+        underTest.run()
+
+        val expectedOutput = """
+            
+            @|bold,white Domain Domain 1 with status DRAFT is empty|@
+
+        """.trimIndent()
+
+        assertEquals(expectedOutput, capturedOutput.joinToString(""))
+    }
+
+    @Test
+    fun `preview domain should display a suitable message if the domain was not found`() {
+        val capturedOutput = mutableListOf<String>()
+
+        underTest.parent = mockDomainBuilder
+        // Ensure properties that are set via the CLI are initialized
+        underTest.domainNameElements = arrayOf("Domain 1")
+        underTest.domainStatus = Status.DRAFT
+
+        every { mockInteractiveSession.isInteractive() } answers { true }
+        every { mockInteractiveSession.terminal() } answers { mockTerminal }
+        every { mockTerminal.height } answers { 25 }
+
+        every { mockDomainBuilder.print(capture(capturedOutput)) } answers {  }
+        every { mockDomainBuilder.session() } answers { mockInteractiveSession }
+        every { mockDomainBuilder.getInteractiveSession() } answers { mockInteractiveSession }
+        every { mockDomainService.previewDomain(any(), any(), any()) } answers { domainPreviewData.subList(0, 1) }
+
+        underTest.run()
+
+        val expectedOutput = """
+            
+            @|bold,white Domain Domain 1 with status DRAFT is empty|@
 
         """.trimIndent()
 

@@ -53,11 +53,19 @@ class PreviewDomain(private val service: DomainService) : Runnable {
     override fun run() =
         runAndHandleExceptions(parent) {
             val result = service.previewDomain(domainName(), domainStatus, displayHeight())
-            val output = listOf(
-                "\n@|bold,green Previewing domain ${domainName()} with status ${domainStatus}|@\n",
-                generateOutput(result),
-                ""
-            ).joinToString("\n")
+            val output =
+                if (result.size > 1)
+                    listOf(
+                        "\n@|bold,green Previewing domain ${domainName()} with status ${domainStatus}|@\n",
+                        generateOutput(result),
+                        ""
+                    ).joinToString("\n")
+                else """
+                    
+                    @|bold,white Domain ${domainName()} with status $domainStatus is empty|@
+                    
+                """.trimIndent()
+
             parent.print(output)
         }
 
