@@ -6,6 +6,7 @@ import org.jline.terminal.Terminal
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.cli.DomainBuilder
+import uk.gov.justice.digital.cli.client.DomainNotFoundException
 import uk.gov.justice.digital.cli.service.DomainService
 import uk.gov.justice.digital.cli.session.InteractiveSession
 import uk.gov.justice.digital.model.Status
@@ -100,13 +101,20 @@ class PreviewDomainTest {
         every { mockDomainBuilder.print(capture(capturedOutput)) } answers {  }
         every { mockDomainBuilder.session() } answers { mockInteractiveSession }
         every { mockDomainBuilder.getInteractiveSession() } answers { mockInteractiveSession }
-        every { mockDomainService.previewDomain(any(), any(), any()) } answers { domainPreviewData.subList(0, 1) }
+        every { mockDomainService.previewDomain(any(), any(), any()) } throws(DomainNotFoundException("Domain with name: Domain 1 and status: DRAFT was not found"))
 
         underTest.run()
 
         val expectedOutput = """
             
-            @|bold,white Domain Domain 1 with status DRAFT is empty|@
+            @|red,bold There was a problem with your request|@
+
+            @|white,bold Domain with name: Domain 1 and status: DRAFT was not found|@
+
+            @|blue,bold Possible fixes|@
+
+            1. Use the list command to confirm that the domain exists with the status you requested
+
 
         """.trimIndent()
 

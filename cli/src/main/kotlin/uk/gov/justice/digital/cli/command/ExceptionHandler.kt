@@ -3,6 +3,7 @@ package uk.gov.justice.digital.cli.command
 import uk.gov.justice.digital.cli.DomainBuilder
 import uk.gov.justice.digital.cli.client.BadRequestException
 import uk.gov.justice.digital.cli.client.ConflictException
+import uk.gov.justice.digital.cli.client.DomainNotFoundException
 import uk.gov.justice.digital.cli.service.JsonParsingFailedException
 
 object ExceptionHandler {
@@ -29,7 +30,7 @@ object ExceptionHandler {
         catch (jpx: JsonParsingFailedException) {
             d.print("""
                 
-                @|red,bold Error: Could not create new domain|@
+                @|red,bold Could not create new domain|@
                 
                 @|white,bold Cause: ${jpx.localizedMessage}|@
                 
@@ -60,6 +61,20 @@ object ExceptionHandler {
                 else "\nNo reason was given.\n"
 
             d.print(errorDescription)
+        }
+        catch (dnfx: DomainNotFoundException) {
+            d.print("""
+                
+                @|red,bold There was a problem with your request|@
+                
+                @|white,bold ${dnfx.localizedMessage}|@
+                
+                @|blue,bold Possible fixes|@
+                
+                1. Use the list command to confirm that the domain exists with the status you requested
+                
+                
+            """.trimIndent())
         }
         catch (ex: Exception) {
             d.print("""
