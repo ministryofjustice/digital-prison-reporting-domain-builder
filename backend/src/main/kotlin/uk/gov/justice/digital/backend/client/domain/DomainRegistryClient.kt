@@ -1,8 +1,9 @@
 package uk.gov.justice.digital.backend.client.domain
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
+import com.amazonaws.services.dynamodbv2.model.GetItemRequest
 import jakarta.inject.Singleton
-import java.util.*
+import uk.gov.justice.digital.model.Domain
 
 /**
  * TODO
@@ -16,5 +17,31 @@ import java.util.*
 class DomainRegistryClient(clientProvider: DynamoDBClientProvider) {
 
     private val client: AmazonDynamoDB by lazy { clientProvider.client }
+
+    // TODO - determine what the publish process is and what operations are supported by the API
+    fun publish(d: Domain) {
+
+        // First get the domain by name
+        val doaminName = d.name
+
+
+
+    }
+
+    // TODO - return
+    fun getDomainByName(domainName: String) {
+
+        val request = GetItemRequest(
+            "domainName",
+        )
+        val result = client.getItem()
+        client.getItem(
+            "domain",
+            mapOf(
+
+            )
+        )
+
+    }
 
 }
