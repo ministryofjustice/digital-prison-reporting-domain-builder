@@ -33,4 +33,5 @@ auth:
 aws:
   region: eu-west-2
   dynamo:
+    # TODO - add config entry for table name - dpr-domain-registry-development
     endpointUrl: https://dynamodb.eu-west-2.amazonaws.com
