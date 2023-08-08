@@ -67,7 +67,7 @@ class CreateDomainTest {
 
         val expectedOutput = """
             
-            @|red,bold Error: Could not create new domain|@
+            @|red,bold Could not create new domain|@
 
             @|white,bold Cause: Unexpected character ('s' (code 115)): was expecting double-quote to start field name on line: 11 at column: 4|@
 
