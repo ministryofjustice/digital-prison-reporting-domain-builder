@@ -63,6 +63,7 @@ class RepositoryBackedDomainServiceTest {
         every { mockRepository.getDomains(any(), any()) } returns listOf(domain1)
         every { mockRepository.updateDomain(publishedDomain) } returns Unit
         every { mockRepository.deleteDomain(domain1.id) } returns Unit
+        every { mockRegistryClient.publish(any()) } returns Unit
 
         val result = underTest.publishDomain("domain1", Status.DRAFT)
 
