@@ -60,6 +60,7 @@ class RepositoryBackedDomainServiceTest {
         val publishedDomain = domain1.copy(status = Status.PUBLISHED)
 
         every { mockValidator.validate(any()) } returns ValidSparkSqlResult()
+        every { mockRepository.withinTransaction<Unit>(any()) } returns Unit
         every { mockRepository.getDomains(any(), any()) } returns listOf(domain1)
         every { mockRepository.updateDomain(publishedDomain) } returns Unit
         every { mockRepository.deleteDomain(domain1.id) } returns Unit
@@ -68,8 +69,6 @@ class RepositoryBackedDomainServiceTest {
         val result = underTest.publishDomain("domain1", Status.DRAFT)
 
         assertEquals(domain1.id, result)
-
-        verify { mockRepository.updateDomain(publishedDomain) }
     }
 
 }

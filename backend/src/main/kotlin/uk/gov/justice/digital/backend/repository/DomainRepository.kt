@@ -2,6 +2,7 @@ package uk.gov.justice.digital.backend.repository
 
 import jakarta.inject.Singleton
 import org.ktorm.database.Database
+import org.ktorm.database.Transaction
 import org.ktorm.dsl.*
 import org.postgresql.util.PSQLException
 import org.postgresql.util.PSQLState
@@ -132,6 +133,8 @@ class DomainRepository(dataSource: DataSource, clockProvider: ClockProvider) {
             .delete(DomainTable) { it.id eq id }
             .throwExceptionIfNoRecordsChanged(DeleteFailedException("Failed to delete domain with id: $id"))
     }
+
+    fun <T> withinTransaction(block: (Transaction) -> T): T = database.useTransaction { block(it) }
 
     private fun Int.throwExceptionIfNoRecordsChanged(e: RepositoryException) {
         if (this == 0) throw e

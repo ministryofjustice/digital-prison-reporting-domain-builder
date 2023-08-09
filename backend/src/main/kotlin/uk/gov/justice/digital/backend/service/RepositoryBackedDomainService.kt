@@ -37,31 +37,26 @@ class RepositoryBackedDomainService(private val repository: DomainRepository,
             .let { repository.createDomain(it) }
 
     override fun publishDomain(name: String, status: Status): UUID {
-        // TODO - We should only get one domain here - fail if not
         val domains = repository.getDomains(name, status)
 
         if (domains.size == 1) {
-
             val domain = domains.first().copy(status = PUBLISHED)
 
-            // TODO - make this transactional
-            // KTORM - can we do this in one transaction?
-            // If we're promoting a draft which is usually the case, removing the PUBLISHED record if it exists.
-            if (status == DRAFT) {
-                val existingDomain = repository.getDomains(name, PUBLISHED).firstOrNull()
-                existingDomain?.let { repository.deleteDomain(it.id) }
-                repository.updateDomain(domain)
-            }
-            else {
-                repository.updateDomain(domain)
-            }
+            repository.withinTransaction {
+                if (status == DRAFT) {
+                    val existingDomain = repository.getDomains(name, PUBLISHED).firstOrNull()
+                    existingDomain?.let { repository.deleteDomain(it.id) }
+                    repository.updateDomain(domain)
+                } else {
+                    repository.updateDomain(domain)
+                }
 
-            domainRegistryClient.publish(domain)
+                domainRegistryClient.publish(domain)
+            }
 
             return domain.id
         }
         else throw RuntimeException("Expected one domain with name: $name status: $status")
-
     }
 
     private fun validateDomainSql(domain: WriteableDomain, getSqlFromTable: (Table) -> String?): WriteableDomain =
