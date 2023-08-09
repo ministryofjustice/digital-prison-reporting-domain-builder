@@ -10,14 +10,13 @@ import uk.gov.justice.digital.backend.client.domain.DomainRegistryClient.Compani
 import uk.gov.justice.digital.backend.client.domain.DomainRegistryClient.Companion.Fields.SECONDARY_ID
 import uk.gov.justice.digital.backend.client.domain.DomainRegistryClient.Companion.Fields.TYPE
 import uk.gov.justice.digital.backend.client.domain.DomainRegistryClient.Companion.Indexes.SECONDARY_ID_TYPE_INDEX
+import uk.gov.justice.digital.backend.client.domain.DomainRegistryClient.Companion.Types.DOMAIN
 import uk.gov.justice.digital.model.Domain
 import java.util.*
 
 @Singleton
-class DomainRegistryClient(clientProvider: DynamoDBClientProvider) {
-
-    @Value("\${dpr.domainRegistry}")
-    private lateinit var domainRegistryName: String
+class DomainRegistryClient(clientProvider: DynamoDBClientProvider,
+                           @Value("\${dpr.domainRegistry}") private val domainRegistryName: String) {
 
     private val client: AmazonDynamoDB by lazy { clientProvider.client }
 
@@ -50,7 +49,7 @@ class DomainRegistryClient(clientProvider: DynamoDBClientProvider) {
                         mapOf(
                             PRIMARY_ID to AttributeValue().withS(d.id.toString()),
                             SECONDARY_ID to AttributeValue().withS(d.name),
-                            TYPE to AttributeValue().withS("domain"),
+                            TYPE to AttributeValue().withS(DOMAIN),
                             // TODO - this needs to pass in the JSON string representing the domain
                             DATA to AttributeValue().withS("""
                                 { "foo": "${UUID.randomUUID()} }"
