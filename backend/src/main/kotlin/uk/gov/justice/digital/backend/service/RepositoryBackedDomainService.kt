@@ -36,10 +36,6 @@ class RepositoryBackedDomainService(private val repository: DomainRepository,
             .validateSql { it.transform.viewText }
             .let { repository.createDomain(it) }
 
-    // TODO - this needs to
-    //      o add the domain in published state to the dynamodb table replacing any existing domain
-    //      o store domain source relationships to support lookups
-    //      o store a published version of the domain in postgres
     override fun publishDomain(name: String, status: Status): UUID {
         // TODO - We should only get one domain here - fail if not
         val domains = repository.getDomains(name, status)
@@ -48,6 +44,7 @@ class RepositoryBackedDomainService(private val repository: DomainRepository,
 
             val domain = domains.first().copy(status = PUBLISHED)
 
+            // TODO - make this transactional
             // KTORM - can we do this in one transaction?
             // If we're promoting a draft which is usually the case, removing the PUBLISHED record if it exists.
             if (status == DRAFT) {
@@ -59,7 +56,8 @@ class RepositoryBackedDomainService(private val repository: DomainRepository,
                 repository.updateDomain(domain)
             }
 
-            // TODO - update dynamo
+            domainRegistryClient.publish(domain)
+
             return domain.id
         }
         else throw RuntimeException("Expected one domain with name: $name status: $status")
