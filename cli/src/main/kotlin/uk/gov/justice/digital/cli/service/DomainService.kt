@@ -48,6 +48,8 @@ class DomainService(private val client: DomainClient) {
     fun previewDomain(name: String, status: Status, limit: Int): List<List<String?>> =
         client.previewDomain(name, status, limit)
 
+    fun publishDomain(name: String, status: Status) = client.publishDomain(name, status)
+
 }
 
 sealed class DomainServiceException(message: String, cause: Exception? = null) : RuntimeException(message, cause)

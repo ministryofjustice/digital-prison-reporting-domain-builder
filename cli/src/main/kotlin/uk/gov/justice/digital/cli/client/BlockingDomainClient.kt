@@ -33,6 +33,7 @@ interface DomainClient {
     fun getDomains(name: String, status: Status? = null): List<Domain>
     fun createDomain(domain: WriteableDomain): String
     fun previewDomain(name: String, status: Status, limit: Int): List<List<String?>>
+    fun publishDomain(name: String, status: Status): Unit
 }
 
 /**
@@ -58,6 +59,10 @@ class BlockingDomainClient : DomainClient {
 
     private val previewResource by lazy {
         UriBuilder.of("$baseUrl/preview").build()
+    }
+
+    private val publishResource by lazy {
+        UriBuilder.of("$baseUrl/publish").build()
     }
 
     override fun getDomains(): List<Domain> = client.get(domainResource, Argument.listOf(Domain::class.java))
@@ -137,6 +142,23 @@ class BlockingDomainClient : DomainClient {
         val response: HttpResponse<String> = client.send(request, HttpResponse.BodyHandlers.ofString())
 
         if (response.statusCode() == 200) return response.deserialize(Argument.listOf(Argument.LIST_OF_STRING))
+        else if (response.statusCode() == 404) throw DomainNotFoundException("Domain with name: $name and status: $status was not found")
+        else throw UnexpectedResponseException("Server returned an unexpected response: HTTP ${response.statusCode()}")
+    }
+
+    override fun publishDomain(name: String, status: Status) {
+        val requestBody = mapOf(
+            "domainName" to name,
+            "status" to status,
+        )
+        val request = configuredRequestBuilder(previewResource)
+            .header(CONTENT_TYPE, APPLICATION_JSON)
+            .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(requestBody)))
+            .build()
+
+        val response: HttpResponse<String> = client.send(request, HttpResponse.BodyHandlers.ofString())
+
+        if (response.statusCode() == 200) return
         else if (response.statusCode() == 404) throw DomainNotFoundException("Domain with name: $name and status: $status was not found")
         else throw UnexpectedResponseException("Server returned an unexpected response: HTTP ${response.statusCode()}")
     }
