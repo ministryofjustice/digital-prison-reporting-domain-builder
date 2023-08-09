@@ -30,11 +30,10 @@ auth:
     # The delimiter to use instead (Athena table names are of the form source_table eg. nomis_offenders
     outputSourceDelimiter: "_"
 
-# TODO - add environment variables where necessary
 aws:
   region: eu-west-2
   dynamo:
     endpointUrl: https://dynamodb.eu-west-2.amazonaws.com
 
 dpr:
-  domainRegistry: dpr-domain-registry-development
+  domainRegistry: "${DOMAIN_REGISTRY_NAME}"
