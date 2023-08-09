@@ -4,6 +4,7 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
 import com.amazonaws.services.dynamodbv2.model.AttributeValue
 import com.amazonaws.services.dynamodbv2.model.QueryResult
 import com.amazonaws.services.dynamodbv2.model.TransactWriteItemsResult
+import io.micronaut.serde.ObjectMapper
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -17,10 +18,11 @@ class DomainRegistryClientTest {
 
     private val mockProvider: DynamoDBClientProvider = mockk()
     private val mockClient: AmazonDynamoDB = mockk()
+    private val mockObjectMapper: ObjectMapper = mockk()
 
     private val domainRegistryName = "test-registry"
 
-    private val underTest = DomainRegistryClient(mockProvider, domainRegistryName)
+    private val underTest = DomainRegistryClient(mockProvider, domainRegistryName, mockObjectMapper)
 
     @Test
     fun `publish should delete an existing domain and replace it with the provided domain`() {
@@ -36,11 +38,14 @@ class DomainRegistryClientTest {
             )
         )
 
+        val publishedDomain = domain1.copy(status = Status.PUBLISHED)
+
         every { mockProvider.client } returns mockClient
         every { mockClient.query(any()) } returns fakeQueryResponse
         every { mockClient.transactWriteItems(any()) } returns TransactWriteItemsResult()
+        every { mockObjectMapper.writeValueAsString(publishedDomain) } returns """{ "foo": "bar" }"""
 
-        underTest.publish(domain1.copy(status = Status.PUBLISHED))
+        underTest.publish(publishedDomain)
 
         verify { mockClient.query(any()) }
         verify { mockClient.transactWriteItems(any()) }

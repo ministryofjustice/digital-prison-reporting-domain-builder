@@ -4,6 +4,7 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB
 import com.amazonaws.services.dynamodbv2.model.*
 import com.amazonaws.services.dynamodbv2.model.ComparisonOperator.EQ
 import io.micronaut.context.annotation.Value
+import io.micronaut.serde.ObjectMapper
 import jakarta.inject.Singleton
 import uk.gov.justice.digital.backend.client.domain.DomainRegistryClient.Companion.Fields.DATA
 import uk.gov.justice.digital.backend.client.domain.DomainRegistryClient.Companion.Fields.PRIMARY_ID
@@ -16,7 +17,8 @@ import java.util.*
 
 @Singleton
 class DomainRegistryClient(clientProvider: DynamoDBClientProvider,
-                           @Value("\${dpr.domainRegistry}") private val domainRegistryName: String) {
+                           @Value("\${dpr.domainRegistry}") private val domainRegistryName: String,
+                           private val objectMapper: ObjectMapper) {
 
     private val client: AmazonDynamoDB by lazy { clientProvider.client }
 
@@ -47,19 +49,15 @@ class DomainRegistryClient(clientProvider: DynamoDBClientProvider,
                     .withTableName(domainRegistryName)
                     .withItem(
                         mapOf(
-                            PRIMARY_ID to AttributeValue().withS(d.id.toString()),
-                            SECONDARY_ID to AttributeValue().withS(d.name),
-                            TYPE to AttributeValue().withS(DOMAIN),
-                            // TODO - this needs to pass in the JSON string representing the domain
-                            DATA to AttributeValue().withS("""
-                                { "foo": "${UUID.randomUUID()} }"
-                            """.trimIndent())
+                            PRIMARY_ID to d.id.toString().asAttributeValue(),
+                            SECONDARY_ID to d.name.asAttributeValue(),
+                            TYPE to DOMAIN.asAttributeValue(),
+                            DATA to objectMapper.writeValueAsString(d).asAttributeValue(),
                         )
                     )
             )
 
-        // TODO - do we need any atrributes from the result?
-        val result = client.transactWriteItems(TransactWriteItemsRequest()
+        client.transactWriteItems(TransactWriteItemsRequest()
             .withTransactItems(existingDomainDeletions + putWriteItem))
     }
 
@@ -71,12 +69,11 @@ class DomainRegistryClient(clientProvider: DynamoDBClientProvider,
             .withIndexName(SECONDARY_ID_TYPE_INDEX)
             .withKeyConditions(
                 mapOf(
-                    // TODO - we can use extension methods here
                     PRIMARY_ID to Condition()
                         .withAttributeValueList(AttributeValue().withS(domainName))
                         .withComparisonOperator(EQ),
                     TYPE to Condition()
-                        .withAttributeValueList(AttributeValue().withS("domain"))
+                        .withAttributeValueList(AttributeValue().withS(DOMAIN))
                         .withComparisonOperator(EQ),
                 )
             )
@@ -85,6 +82,8 @@ class DomainRegistryClient(clientProvider: DynamoDBClientProvider,
             .query(existingDomainQuery)
             .items
     }
+
+    private fun String.asAttributeValue() = AttributeValue().withS(this)
 
     companion object {
 
