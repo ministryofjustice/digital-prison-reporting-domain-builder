@@ -151,7 +151,7 @@ class BlockingDomainClient : DomainClient {
             "domainName" to name,
             "status" to status,
         )
-        val request = configuredRequestBuilder(previewResource)
+        val request = configuredRequestBuilder(publishResource)
             .header(CONTENT_TYPE, APPLICATION_JSON)
             .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(requestBody)))
             .build()
