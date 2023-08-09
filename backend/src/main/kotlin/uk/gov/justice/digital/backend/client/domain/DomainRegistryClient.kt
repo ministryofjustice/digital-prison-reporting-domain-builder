@@ -69,7 +69,7 @@ class DomainRegistryClient(clientProvider: DynamoDBClientProvider,
             .withIndexName(SECONDARY_ID_TYPE_INDEX)
             .withKeyConditions(
                 mapOf(
-                    PRIMARY_ID to Condition()
+                    SECONDARY_ID to Condition()
                         .withAttributeValueList(AttributeValue().withS(domainName))
                         .withComparisonOperator(EQ),
                     TYPE to Condition()
