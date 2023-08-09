@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  reporting: ministryofjustice/hmpps-reporting@1.0.25
+  reporting: ministryofjustice/hmpps-reporting@1.0.31
   slack: circleci/slack@4.12.5
 
 parameters:
@@ -34,6 +34,14 @@ parameters:
     type: boolean
     default: true
     description: Deploy to PreProd Environment
+  refresh_lambda:
+    type: boolean
+    default: true
+    description: Refresh Backend Lambda Code
+  refresh_function:
+    type: string
+    default: "dpr-domain-builder-backend-api-function"
+    description: Domain Builder Lambda Code to Refresh
 
 workflows:
   checkout-build-release:
@@ -45,6 +53,8 @@ workflows:
           deploy_to_test: << pipeline.parameters.deploy_to_test >>
           deploy_to_preprod: << pipeline.parameters.deploy_to_preprod >>
           cache_key: "dpr-domain-builder-build-cache-v4"
+          refresh_lambda: << pipeline.parameters.refresh_lambda >>
+          refresh_function: << pipeline.parameters.refresh_function >>
           notify_jira: << pipeline.parameters.notify_jira >>
           notify_slack: << pipeline.parameters.notify_slack >>
           channel: << pipeline.parameters.alerts_channel >>
@@ -81,6 +91,8 @@ workflows:
       - reporting/gradle_promote_live:
           app: << pipeline.parameters.app >>
           release_ready: << pipeline.parameters.release_ready >>
+          refresh_lambda: << pipeline.parameters.refresh_lambda >>
+          refresh_function: << pipeline.parameters.refresh_function >>
           notify_slack: << pipeline.parameters.notify_slack >>
           filters:
             branches:
