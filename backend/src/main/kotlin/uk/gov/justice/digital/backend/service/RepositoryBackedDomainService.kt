@@ -37,26 +37,28 @@ class RepositoryBackedDomainService(private val repository: DomainRepository,
             .let { repository.createDomain(it) }
 
     override fun publishDomain(name: String, status: Status): UUID {
-        val domains = repository.getDomains(name, status)
+        if (status.canBePublished()) {
+            val domains = repository.getDomains(name, status)
 
-        if (domains.size == 1) {
-            val domain = domains.first().copy(status = PUBLISHED)
+            if (domains.size == 1) {
+                val domain = domains.first().copy(status = PUBLISHED)
 
-            repository.withinTransaction {
-                if (status == DRAFT) {
-                    val existingDomain = repository.getDomains(name, PUBLISHED).firstOrNull()
-                    existingDomain?.let { repository.deleteDomain(it.id) }
-                    repository.updateDomain(domain)
-                } else {
-                    repository.updateDomain(domain)
+                repository.withinTransaction {
+                    if (status == DRAFT) {
+                        val existingDomain = repository.getDomains(name, PUBLISHED).firstOrNull()
+                        existingDomain?.let { repository.deleteDomain(it.id) }
+                        repository.updateDomain(domain)
+                    } else {
+                        repository.updateDomain(domain)
+                    }
+
+                    domainRegistryClient.publish(domain)
                 }
 
-                domainRegistryClient.publish(domain)
-            }
-
-            return domain.id
+                return domain.id
+            } else throw RuntimeException("Expected one domain with name: $name status: $status")
         }
-        else throw RuntimeException("Expected one domain with name: $name status: $status")
+        else throw InvalidStatusException("Failed to publish domain: $name Invalid status: $status")
     }
 
     private fun validateDomainSql(domain: WriteableDomain, getSqlFromTable: (Table) -> String?): WriteableDomain =
@@ -70,6 +72,8 @@ class RepositoryBackedDomainService(private val repository: DomainRepository,
     private fun WriteableDomain.validateSql(getSqlFromTable: (Table) -> String?): WriteableDomain =
         validateDomainSql(this, getSqlFromTable)
 
+    private fun Status.canBePublished() = this == Status.DRAFT
 }
 
 class InvalidSparkSqlException(validationResult: InvalidSparkSqlResult) : RuntimeException(validationResult.reason)
+class InvalidStatusException(message: String) : RuntimeException(message)

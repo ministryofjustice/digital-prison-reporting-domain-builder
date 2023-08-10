@@ -13,7 +13,6 @@ import uk.gov.justice.digital.backend.client.domain.DomainRegistryClient.Compani
 import uk.gov.justice.digital.backend.client.domain.DomainRegistryClient.Companion.Indexes.SECONDARY_ID_TYPE_INDEX
 import uk.gov.justice.digital.backend.client.domain.DomainRegistryClient.Companion.Types.DOMAIN
 import uk.gov.justice.digital.model.Domain
-import java.util.*
 
 @Singleton
 class DomainRegistryClient(clientProvider: DynamoDBClientProvider,
