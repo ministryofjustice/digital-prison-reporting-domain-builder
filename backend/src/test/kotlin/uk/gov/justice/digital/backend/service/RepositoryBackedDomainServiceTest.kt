@@ -2,7 +2,6 @@ package uk.gov.justice.digital.backend.service
 
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
@@ -69,6 +68,13 @@ class RepositoryBackedDomainServiceTest {
         val result = underTest.publishDomain("domain1", Status.DRAFT)
 
         assertEquals(domain1.id, result)
+    }
+
+    @Test
+    fun `publish should throw an exception on attempt to publish domain that is already published`() {
+        assertThrows(InvalidStatusException::class.java) {
+            underTest.publishDomain("domain1", Status.PUBLISHED)
+        }
     }
 
 }
