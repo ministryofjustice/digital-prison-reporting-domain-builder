@@ -1,12 +1,14 @@
 package uk.gov.justice.digital.backend.controller
 
 import io.micronaut.http.HttpResponse
+import io.micronaut.http.HttpStatus.UNPROCESSABLE_ENTITY
 import io.micronaut.http.MediaType.APPLICATION_JSON
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Error
 import io.micronaut.http.annotation.Post
 import uk.gov.justice.digital.backend.service.DomainNotFoundException
 import uk.gov.justice.digital.backend.service.DomainService
+import uk.gov.justice.digital.backend.service.InvalidStatusException
 import uk.gov.justice.digital.model.Status
 
 @Controller("/publish")
@@ -20,5 +22,8 @@ class PublishController(private val service: DomainService) {
 
     @Error(exception = DomainNotFoundException::class)
     fun handleDomainNotFoundException(): HttpResponse<Unit> = HttpResponse.notFound()
+
+    @Error(exception = InvalidStatusException::class)
+    fun handleInvalidStatusException(): HttpResponse<Unit> = HttpResponse.status(UNPROCESSABLE_ENTITY)
 
 }

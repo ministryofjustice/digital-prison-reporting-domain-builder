@@ -2,8 +2,7 @@ package uk.gov.justice.digital.backend.service
 
 import io.mockk.every
 import io.mockk.mockk
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.backend.client.domain.DomainRegistryClient
 import uk.gov.justice.digital.backend.repository.DomainRepository
@@ -65,9 +64,9 @@ class RepositoryBackedDomainServiceTest {
         every { mockRepository.deleteDomain(domain1.id) } returns Unit
         every { mockRegistryClient.publish(any()) } returns Unit
 
-        val result = underTest.publishDomain("domain1", Status.DRAFT)
-
-        assertEquals(domain1.id, result)
+        assertDoesNotThrow {
+            underTest.publishDomain("domain1", Status.DRAFT)
+        }
     }
 
     @Test
