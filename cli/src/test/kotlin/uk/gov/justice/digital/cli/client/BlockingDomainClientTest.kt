@@ -142,7 +142,7 @@ class BlockingDomainClientTest {
             return HttpResponse.ok(domainPreviewData)
         }
         @Post("/publish", consumes = [MediaType.APPLICATION_JSON], produces = [MediaType.APPLICATION_JSON])
-        fun preview(@Suppress("UNUSED_PARAMETER") domainName: String,
+        fun publish(@Suppress("UNUSED_PARAMETER") domainName: String,
                     @Suppress("UNUSED_PARAMETER") status: Status): HttpResponse<Unit> {
             return HttpResponse.noContent()
         }
