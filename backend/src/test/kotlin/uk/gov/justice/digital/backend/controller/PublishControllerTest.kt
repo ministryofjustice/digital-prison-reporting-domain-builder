@@ -16,9 +16,9 @@ import jakarta.inject.Inject
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.backend.service.DomainNotFoundException
 import uk.gov.justice.digital.backend.service.DomainService
 import uk.gov.justice.digital.backend.service.InvalidStatusException
+import uk.gov.justice.digital.backend.service.PublishDomainNotFoundException
 import uk.gov.justice.digital.headers.Header
 import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.test.Fixtures
@@ -47,7 +47,7 @@ class PublishControllerTest {
 
     @Test
     fun `request for domain that does not exist returns a HTTP 404`() {
-        every { mockDomainService.publishDomain(any(), any()) } throws DomainNotFoundException("Error")
+        every { mockDomainService.publishDomain(any(), any()) } throws PublishDomainNotFoundException("Error")
         val response = assertThrows(HttpClientResponseException::class.java) { sendRequest() }
         assertEquals(HttpStatus.NOT_FOUND, response.status)
     }
@@ -68,7 +68,7 @@ class PublishControllerTest {
                         """
                                 {
                                     "domainName": "someDomain",
-                                    "status": "DRAFT"
+                                    "status": "$status"
                                 }
                             """.trimIndent()
                     )

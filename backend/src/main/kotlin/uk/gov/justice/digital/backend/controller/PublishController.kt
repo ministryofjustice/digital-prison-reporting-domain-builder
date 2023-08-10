@@ -6,9 +6,9 @@ import io.micronaut.http.MediaType.APPLICATION_JSON
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Error
 import io.micronaut.http.annotation.Post
-import uk.gov.justice.digital.backend.service.DomainNotFoundException
 import uk.gov.justice.digital.backend.service.DomainService
 import uk.gov.justice.digital.backend.service.InvalidStatusException
+import uk.gov.justice.digital.backend.service.PublishDomainNotFoundException
 import uk.gov.justice.digital.model.Status
 
 @Controller("/publish")
@@ -20,7 +20,7 @@ class PublishController(private val service: DomainService) {
             HttpResponse.noContent()
         }
 
-    @Error(exception = DomainNotFoundException::class)
+    @Error(exception = PublishDomainNotFoundException::class)
     fun handleDomainNotFoundException(): HttpResponse<Unit> = HttpResponse.notFound()
 
     @Error(exception = InvalidStatusException::class)

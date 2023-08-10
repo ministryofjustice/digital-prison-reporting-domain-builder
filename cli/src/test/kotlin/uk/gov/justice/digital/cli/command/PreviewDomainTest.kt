@@ -79,7 +79,8 @@ class PreviewDomainTest {
         val expectedOutput = """
             
             @|bold,white Domain Domain 1 with status DRAFT is empty|@
-
+            
+            
         """.trimIndent()
 
         assertEquals(expectedOutput, capturedOutput.joinToString(""))

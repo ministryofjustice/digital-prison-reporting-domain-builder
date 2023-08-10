@@ -20,6 +20,7 @@ import kotlin.system.exitProcess
         CreateDomain::class,
         CreateDomainInteractive::class,
         PreviewDomain::class,
+        PublishDomain::class,
     ],
 )
 @Singleton

@@ -47,13 +47,14 @@ class RepositoryBackedDomainService(private val repository: DomainRepository,
                         val existingDomain = repository.getDomains(name, PUBLISHED).firstOrNull()
                         existingDomain?.let { repository.deleteDomain(it.id) }
                         repository.updateDomain(domain)
-                    } else {
-                        repository.updateDomain(domain)
                     }
+                    else repository.updateDomain(domain)
 
                     domainRegistryClient.publish(domain)
                 }
-            } else throw RuntimeException("Expected one domain with name: $name status: $status")
+            }
+            else if (domains.size > 1) throw MultipleDomainsFoundException("Found more than one domain with name: $name status: $status")
+            else throw PublishDomainNotFoundException("No domain found for name: $name with status: $status was not found")
         }
         else throw InvalidStatusException("Failed to publish domain: $name Invalid status: $status")
     }
@@ -69,8 +70,11 @@ class RepositoryBackedDomainService(private val repository: DomainRepository,
     private fun WriteableDomain.validateSql(getSqlFromTable: (Table) -> String?): WriteableDomain =
         validateDomainSql(this, getSqlFromTable)
 
-    private fun Status.canBePublished() = this == Status.DRAFT
+    private fun Status.canBePublished() = this == DRAFT
 }
 
-class InvalidSparkSqlException(validationResult: InvalidSparkSqlResult) : RuntimeException(validationResult.reason)
-class InvalidStatusException(message: String) : RuntimeException(message)
+sealed class DomainServiceException(message: String) : RuntimeException(message)
+class InvalidSparkSqlException(validationResult: InvalidSparkSqlResult) : DomainServiceException(validationResult.reason)
+class InvalidStatusException(message: String) : DomainServiceException(message)
+class MultipleDomainsFoundException(message: String): DomainServiceException(message)
+class PublishDomainNotFoundException(message: String): DomainServiceException(message)

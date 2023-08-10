@@ -12,6 +12,7 @@ import uk.gov.justice.digital.backend.validator.ValidSparkSqlResult
 import uk.gov.justice.digital.model.Status
 import uk.gov.justice.digital.model.WriteableDomain
 import uk.gov.justice.digital.test.Fixtures.domain1
+import uk.gov.justice.digital.test.Fixtures.domains
 import uk.gov.justice.digital.test.Fixtures.writeableDomain
 import uk.gov.justice.digital.test.Fixtures.writeableDomainWithInvalidMappingSql
 import uk.gov.justice.digital.test.Fixtures.writeableDomainWithInvalidTransformSql
@@ -73,6 +74,24 @@ class RepositoryBackedDomainServiceTest {
     fun `publish should throw an exception on attempt to publish domain that is already published`() {
         assertThrows(InvalidStatusException::class.java) {
             underTest.publishDomain("domain1", Status.PUBLISHED)
+        }
+    }
+
+    @Test
+    fun `publish should throw an exception if the requested domain could not be found`() {
+        every { mockRepository.getDomains(any(), any()) } returns emptyList()
+
+        assertThrows(PublishDomainNotFoundException::class.java) {
+            underTest.publishDomain("domain1", Status.DRAFT)
+        }
+    }
+
+    @Test
+    fun `publish should throw an exception if more than one matching domain was found`() {
+        every { mockRepository.getDomains(any(), any()) } returns domains
+
+        assertThrows(MultipleDomainsFoundException::class.java) {
+            underTest.publishDomain("domain1", Status.DRAFT)
         }
     }
 
