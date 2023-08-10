@@ -25,7 +25,6 @@ class RepositoryBackedDomainService(private val repository: DomainRepository,
                                     private val sqlValidator: SparkSqlValidator,
                                     private val domainRegistryClient: DomainRegistryClient): DomainService {
 
-    // TODO - review this usage - do we ever get a status to pass to the repository?
     override fun getDomains(name: String?, status: Status?): List<Domain> = repository.getDomains(name)
 
     override fun getDomain(id: UUID): Domain? = repository.getDomain(id)
@@ -36,7 +35,7 @@ class RepositoryBackedDomainService(private val repository: DomainRepository,
             .validateSql { it.transform.viewText }
             .let { repository.createDomain(it) }
 
-    override fun publishDomain(name: String, status: Status): UUID {
+    override fun publishDomain(name: String, status: Status) {
         if (status.canBePublished()) {
             val domains = repository.getDomains(name, status)
 
@@ -54,8 +53,6 @@ class RepositoryBackedDomainService(private val repository: DomainRepository,
 
                     domainRegistryClient.publish(domain)
                 }
-
-                return domain.id
             } else throw RuntimeException("Expected one domain with name: $name status: $status")
         }
         else throw InvalidStatusException("Failed to publish domain: $name Invalid status: $status")
