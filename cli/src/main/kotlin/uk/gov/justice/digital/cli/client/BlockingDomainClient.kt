@@ -158,7 +158,7 @@ class BlockingDomainClient : DomainClient {
 
         val response: HttpResponse<String> = client.send(request, HttpResponse.BodyHandlers.ofString())
 
-        if (response.statusCode() == 200) return
+        if (response.statusCode() == 204) return
         else if (response.statusCode() == 404) throw DomainNotFoundException("Domain with name: $name and status: $status was not found")
         else throw UnexpectedResponseException("Server returned an unexpected response: HTTP ${response.statusCode()}")
     }

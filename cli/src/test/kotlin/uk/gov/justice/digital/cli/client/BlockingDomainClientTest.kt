@@ -117,6 +117,13 @@ class BlockingDomainClientTest {
         assertEquals(domainPreviewData, actualResult)
     }
 
+    @Test
+    fun `publishDomain should return without error for a successful request`() {
+        assertDoesNotThrow {
+            createClientForScenario(Scenarios.HAPPY_PATH).publishDomain("foo", Status.DRAFT)
+        }
+    }
+
     @Requires(property = TEST_SCENARIO, value = Scenarios.HAPPY_PATH)
     @Controller
     class HappyPathController {
@@ -133,6 +140,11 @@ class BlockingDomainClientTest {
                     @Suppress("UNUSED_PARAMETER") status: Status,
                     @Suppress("UNUSED_PARAMETER") limit: Int): HttpResponse<List<List<String?>>> {
             return HttpResponse.ok(domainPreviewData)
+        }
+        @Post("/publish", consumes = [MediaType.APPLICATION_JSON], produces = [MediaType.APPLICATION_JSON])
+        fun preview(@Suppress("UNUSED_PARAMETER") domainName: String,
+                    @Suppress("UNUSED_PARAMETER") status: Status): HttpResponse<Unit> {
+            return HttpResponse.noContent()
         }
     }
 

@@ -52,8 +52,7 @@ class PublishDomain(private val service: DomainService) : Runnable {
     override fun run() =
         runAndHandleExceptions(parent) {
             service.publishDomain(domainName(), domainStatus)
-            // TODO - colorize
-            parent.print("Published domain successfully")
+            parent.print("\n@|bold,green Published domain Domain 1 with status DRAFT successfully|@\n")
         }
 
 }

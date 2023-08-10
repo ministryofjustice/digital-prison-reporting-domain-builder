@@ -64,6 +64,7 @@ class PreviewDomain(private val service: DomainService) : Runnable {
                     
                     @|bold,white Domain ${domainName()} with status $domainStatus is empty|@
                     
+                    
                 """.trimIndent()
 
             parent.print(output)
