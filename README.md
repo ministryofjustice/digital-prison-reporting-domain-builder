@@ -230,11 +230,15 @@ The following environment variables are referenced in the backend
 configuration so the backend will fail if any of these variables are _not_ set on the environment.
 
 - `DOMAIN_API_KEY`
-- `POSTGRES_HOST`
-- `POSTGRES_PORT`
+- `DOMAIN_REGISTRY_NAME`
 - `POSTGRES_DB_NAME`
-- `POSTGRES_USERNAME`
+- `POSTGRES_HOST`
 - `POSTGRES_PASSWORD`
+- `POSTGRES_PORT`
+- `POSTGRES_USERNAME`
+- `PREVIEW_DB_NAME`
+- `PREVIEW_S3_LOCATION`
+- `PREVIEW_WORKGROUP`
 
 > _Note_ The scripts set these variables with suitable values for local development.
 
@@ -257,12 +261,14 @@ For local development the scripts ensure the api key is set to a common value.
 
 ## Deployment
 
-The deployment process is TBD.
+The code is deployed as follows
+- Backend API is run as a lambda behind API Gateway
+- Domain Builder is pushed to an ec2 instance accessible via SSM
 
-Part of this process will need to trigger the `apply-migrations` script with appropriate configuration in order to run
-the migrations as part of the deployment process.
-
-> _Note_ At the time of writing some modifications to this script will be needed to support this.
+The deployment process is managed by circle CI which takes care of the following
+- updating the lambda hosting the backend API code
+- runnng migrations prior to the new lambda code being pushed
+- ensuring the domain-builder SSM host has the latest jar
 
 ## Contributing
 

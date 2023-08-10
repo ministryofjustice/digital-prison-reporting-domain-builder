@@ -53,7 +53,7 @@ function apply_migrations {
   log_file="/tmp/migration-log-$(date +'%Y-%m-%dT%H:%M:%S').log"
   show_info "Launching $jar_path"
   show_wait "Applying migrations..."
-  if run_with_local_postgres_config java -cp $jar_path uk.gov.justice.digital.backend.MigrationRunner &> $log_file
+  if run_with_local_config java -cp $jar_path uk.gov.justice.digital.backend.MigrationRunner &> $log_file
   then
     show_ok "Migrations applied successfully"
   else

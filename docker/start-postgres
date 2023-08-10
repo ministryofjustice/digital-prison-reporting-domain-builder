@@ -11,7 +11,7 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "$script_dir/../bin/lib/script-helpers"
 
 database_name="domain_builder"  # name of database to create/connect to
-test_records=1000               # maximum number of test records to create
+test_records=10                 # maximum number of test records to create
                                 # when domain table is empty
 
 function check_no_other_instances_running {
