@@ -262,10 +262,12 @@ For local development the scripts ensure the api key is set to a common value.
 ## Deployment
 
 The code is deployed as follows
+
 - Backend API is run as a lambda behind API Gateway
 - Domain Builder is pushed to an ec2 instance accessible via SSM
 
 The deployment process is managed by circle CI which takes care of the following
+
 - updating the lambda hosting the backend API code
 - runnng migrations prior to the new lambda code being pushed
 - ensuring the domain-builder SSM host has the latest jar
