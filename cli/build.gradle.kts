@@ -5,6 +5,8 @@ plugins {
   id("io.micronaut.minimal.application") version "3.7.10"
   id("kotlin-kapt")
   id("com.github.johnrengelman.shadow") version "7.1.2"
+  id("jacoco")
+  id("org.barfuin.gradle.jacocolog") version "3.1.0"
 }
 
 repositories {
@@ -69,4 +71,12 @@ tasks {
     archiveBaseName.set("domain-builder-cli-frontend")
     destinationDirectory.set(File("${project.rootDir}/build/libs"))
   }
+}
+
+tasks.test {
+  finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+  dependsOn(tasks.test)
 }
