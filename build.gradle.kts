@@ -50,6 +50,18 @@ tasks.check {
     dependsOn(tasks.withType(JacocoReport::class))
 }
 
+sonarqube {
+    properties {
+        property "sonar.exclusions", ""
+        property "sonar.coverage.exclusions", ""
+        property "sonar.projectKey", "ministryofjustice_digital-prison-reporting-domain-builder"
+        property "sonar.organization", "ministryofjustice"
+        property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.projectName", "DPR :: digital-prison-reporting-domain-builder "
+        property "sonar.core.codeCoveragePlugin", "jacoco"
+    }
+}
+
 dependencies {
   implementation(project(":common"))
   implementation(project(":backend"))
