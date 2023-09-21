@@ -1,8 +1,8 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-  id("org.jetb"rains.kotlin.jvm") version "1.8.21"
-  jacoco
+  id("org.jetbrains.kotlin.jvm") version "1.8.21"
+  id("jacoco")
   id("org.sonarqube") version "4.3.1.3277"
   id("org.owasp.dependencycheck") version "8.2.1"
   id("jacoco-report-aggregation")
