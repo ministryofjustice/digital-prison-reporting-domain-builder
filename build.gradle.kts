@@ -31,18 +31,6 @@ subprojects {
       duplicatesStrategy = DuplicatesStrategy.WARN
     }
   }
-
-
-  tasks.test {
-    finalizedBy(tasks.jacocoTestReport)
-  }
-
-  tasks.jacocoTestReport {
-    dependsOn(tasks.test)
-    reports {
-      xml.required.set(true)
-    }
-  }
 }
 
 dependencies {
@@ -54,4 +42,16 @@ dependencies {
 dependencyCheck {
   suppressionFile = "dependency-check-suppressions.xml"
   failBuildOnCVSS = 4.0F
+}
+
+
+tasks.test {
+  finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+  dependsOn(tasks.test)
+  reports {
+    xml.required.set(true)
+  }
 }
