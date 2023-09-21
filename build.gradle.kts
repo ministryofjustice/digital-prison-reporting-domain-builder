@@ -48,7 +48,7 @@ sonarqube {
     properties {
         property("sonar.exclusions", "")
         property("sonar.coverage.exclusions", "")
-        property("sonar.jacoco.reportPath", "${buildDir}/reports/jacoco/jacoco.xml")
+        property("sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/jacoco.xml")
         property("sonar.projectKey", "ministryofjustice_digital-prison-reporting-jobs")
         property("sonar.organization", "ministryofjustice")
         property("sonar.host.url", "https://sonarcloud.io")
