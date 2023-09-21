@@ -17,10 +17,23 @@ allprojects {
   apply(plugin = "jacoco")
 
   tasks.withType<Test>().configureEach {
-    finalizedBy(tasks.withType<JacocoReport>()) // report is always generated after tests run
+    finalizedBy(tasks.withType<jacocoTestReport>()) // report is always generated after tests run
   }
-  tasks.withType<JacocoReport>().configureEach {
-    dependsOn(tasks.test) // tests are required to run before generating the report
+
+  tasks.jacocoTestReport {
+      reports {
+          xml.required.set(true)
+          html.required.set(true)
+      }
+  }
+
+  jacoco {
+      toolVersion = "0.8.8"
+  }
+
+  // when subproject has Jacoco pLugin applied we want to generate XML report for coverage
+  plugins.withType<JacocoPlugin> {
+      tasks["test"].finalizedBy("jacocoTestReport")
   }
 }
 
