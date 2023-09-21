@@ -35,18 +35,6 @@ subprojects {
   }
 }
 
-sonarqube {
-    properties {
-        property("sonar.exclusions", "")
-        property("sonar.coverage.exclusions", "")
-        property("sonar.projectKey", "ministryofjustice_digital-prison-reporting-domain-builder")
-        property("sonar.organization", "ministryofjustice")
-        property("sonar.host.url", "https://sonarcloud.io")
-        property("sonar.projectName", "DPR :: digital-prison-reporting-domain-builder")
-        property("sonar.core.codeCoveragePlugin", "jacoco")
-    }
-}
-
 tasks.test {
   finalizedBy(tasks.jacocoTestReport)
 }
@@ -57,7 +45,6 @@ tasks.jacocoTestReport {
     xml.required.set(true)
   }
 }
-
 
 dependencies {
   implementation(project(":common"))
