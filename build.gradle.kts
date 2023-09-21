@@ -35,10 +35,6 @@ subprojects {
   }
 }
 
-tasks.check {
-    dependsOn(tasks.withType(JacocoReport::class))
-}
-
 sonarqube {
     properties {
         property("sonar.exclusions", "")
