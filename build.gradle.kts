@@ -2,39 +2,14 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
   id("org.jetbrains.kotlin.jvm") version "1.8.21"
-  jacoco
+  id("jacoco")
   id("org.sonarqube") version "3.5.0.2730"
   id("org.owasp.dependencycheck") version "8.2.1"
-  id("jacoco-report-aggregation")
   id("org.barfuin.gradle.jacocolog") version "3.1.0"
 }
 
 repositories {
   mavenCentral()
-}
-
-allprojects {
-  apply(plugin = "jacoco")
-
-  tasks.withType<Test>().configureEach {
-    finalizedBy(tasks.withType<jacocoTestReport>()) // report is always generated after tests run
-  }
-
-  tasks.jacocoTestReport {
-      reports {
-          xml.required.set(true)
-          html.required.set(true)
-      }
-  }
-
-  jacoco {
-      toolVersion = "0.8.8"
-  }
-
-  // when subproject has Jacoco pLugin applied we want to generate XML report for coverage
-  plugins.withType<JacocoPlugin> {
-      tasks["test"].finalizedBy("jacocoTestReport")
-  }
 }
 
 subprojects {
@@ -73,6 +48,18 @@ sonarqube {
         property("sonar.projectName", "DPR :: digital-prison-reporting-domain-builder")
         property("sonar.core.codeCoveragePlugin", "jacoco")
     }
+}
+
+tasks.test {
+  finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+  dependsOn(tasks.test)
+  reports {
+    xml.required.set(true)
+    html.required.set(true)
+  }
 }
 
 dependencies {

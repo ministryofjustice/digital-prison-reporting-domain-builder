@@ -20,7 +20,7 @@ parameters:
     description: When true, Releases artifacts to Live
   notify_slack:
     type: boolean
-    default: true
+    default: false
     description: Send notifications to Slack
   notify_jira:
     type: boolean
