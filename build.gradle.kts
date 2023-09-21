@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
   id("org.jetbrains.kotlin.jvm") version "1.8.21"
   id("jacoco")
-  id("org.sonarqube") version "4.3.1.3277"
+  id("org.sonarqube") version '3.3'
   id("org.owasp.dependencycheck") version "8.2.1"
 }
 
@@ -44,14 +44,28 @@ dependencyCheck {
   failBuildOnCVSS = 4.0F
 }
 
+sonarqube {
+    properties {
+        property "sonar.exclusions", ""
+        property "sonar.coverage.exclusions", ""
+        property "sonar.jacoco.reportPath", "${buildDir}/reports/jacoco/jacoco.xml"
+        property "sonar.projectKey", "ministryofjustice_digital-prison-reporting-jobs"
+        property "sonar.organization", "ministryofjustice"
+        property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.projectName", "DPR :: digital-prison-reporting-jobs"
+        property "sonar.core.codeCoveragePlugin", "jacoco"
+    }
+}
 
 tasks.test {
   finalizedBy(tasks.jacocoTestReport)
+  jacoco.includeNoLocationClasses = true
 }
 
 tasks.jacocoTestReport {
   dependsOn(tasks.test)
   reports {
     xml.required.set(true)
+    xml.destination file("${buildDir}/reports/jacoco/jacoco.xml")
   }
 }
