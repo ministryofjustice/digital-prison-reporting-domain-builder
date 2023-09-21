@@ -5,7 +5,6 @@ plugins {
   id("jacoco")
   id("org.sonarqube") version "4.3.1.3277"
   id("org.owasp.dependencycheck") version "8.2.1"
-  id("org.barfuin.gradle.jacocolog") version "3.1.0"
 }
 
 repositories {
