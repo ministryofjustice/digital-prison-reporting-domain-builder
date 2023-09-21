@@ -52,13 +52,13 @@ tasks.check {
 
 sonarqube {
     properties {
-        property "sonar.exclusions", ""
-        property "sonar.coverage.exclusions", ""
-        property "sonar.projectKey", "ministryofjustice_digital-prison-reporting-domain-builder"
-        property "sonar.organization", "ministryofjustice"
-        property "sonar.host.url", "https://sonarcloud.io"
-        property "sonar.projectName", "DPR :: digital-prison-reporting-domain-builder "
-        property "sonar.core.codeCoveragePlugin", "jacoco"
+        property("sonar.exclusions", "")
+        property("sonar.coverage.exclusions", "")
+        property("sonar.projectKey", "ministryofjustice_digital-prison-reporting-domain-builder")
+        property("sonar.organization", "ministryofjustice")
+        property("sonar.host.url", "https://sonarcloud.io")
+        property("sonar.projectName", "DPR :: digital-prison-reporting-domain-builder")
+        property("sonar.core.codeCoveragePlugin", "jacoco")
     }
 }
 
