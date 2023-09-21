@@ -46,14 +46,14 @@ dependencyCheck {
 
 sonarqube {
     properties {
-        property "sonar.exclusions", ""
-        property "sonar.coverage.exclusions", ""
-        property "sonar.jacoco.reportPath", "${buildDir}/reports/jacoco/jacoco.xml"
-        property "sonar.projectKey", "ministryofjustice_digital-prison-reporting-jobs"
-        property "sonar.organization", "ministryofjustice"
-        property "sonar.host.url", "https://sonarcloud.io"
-        property "sonar.projectName", "DPR :: digital-prison-reporting-jobs"
-        property "sonar.core.codeCoveragePlugin", "jacoco"
+        property("sonar.exclusions", "")
+        property("sonar.coverage.exclusions", "")
+        property("sonar.jacoco.reportPath", "${buildDir}/reports/jacoco/jacoco.xml")
+        property("sonar.projectKey", "ministryofjustice_digital-prison-reporting-jobs")
+        property("sonar.organization", "ministryofjustice")
+        property("sonar.host.url", "https://sonarcloud.io")
+        property("sonar.projectName", "DPR :: digital-prison-reporting-jobs")
+        property("sonar.core.codeCoveragePlugin", "jacoco")
     }
 }
 
