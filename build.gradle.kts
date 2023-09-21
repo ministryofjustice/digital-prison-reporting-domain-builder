@@ -59,13 +59,13 @@ sonarqube {
 
 tasks.test {
   finalizedBy(tasks.jacocoTestReport)
-  jacoco.includeNoLocationClasses = true
+  jacoco.includeNoLocationClasses(true)
 }
 
 tasks.jacocoTestReport {
   dependsOn(tasks.test)
   reports {
     xml.required.set(true)
-    xml.destination file("${buildDir}/reports/jacoco/jacoco.xml")
+    xml.destination(file("${buildDir}/reports/jacoco/jacoco.xml"))
   }
 }
