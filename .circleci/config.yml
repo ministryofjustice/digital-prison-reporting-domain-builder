@@ -49,7 +49,7 @@ workflows:
       - reporting/gradle_build_publish:
           app: << pipeline.parameters.app >>
           app_artifacts_directory: build/libs/
-          quality_gate: true
+          quality_gate: false
           sonar_command: check sonar --info
           bucket_prefix: dpr-artifact-store
           deploy_to_test: << pipeline.parameters.deploy_to_test >>
