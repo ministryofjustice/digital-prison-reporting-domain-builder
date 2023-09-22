@@ -52,6 +52,15 @@ subprojects {
       duplicatesStrategy = DuplicatesStrategy.WARN
     }
   }
+
+  tasks.jacocoTestReport {
+    reports {
+      xml.required.set(true)
+      xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacoco.xml"))
+      html.required.set(true)
+      xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacoco.html"))
+    }
+  }
 }
 
 tasks.check {
