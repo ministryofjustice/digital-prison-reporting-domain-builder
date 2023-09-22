@@ -2,8 +2,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
   id("org.jetbrains.kotlin.jvm") version "1.8.21"
-  id("jacoco")
-  id("org.sonarqube") version "4.3.1.3277"
+  jacoco
+  id("org.sonarqube") version "3.5.0.2730"
   id("org.owasp.dependencycheck") version "8.2.1"
   id("jacoco-report-aggregation")
   id("org.barfuin.gradle.jacocolog") version "3.1.0"
@@ -16,33 +16,17 @@ repositories {
 allprojects {
   apply(plugin = "jacoco")
 
-  jacoco {
-      toolVersion = "0.8.8"
+  tasks.withType<Test>().configureEach {
+    finalizedBy(tasks.withType<JacocoReport>()) // report is always generated after tests run
   }
-
-  tasks.jacocoTestReport {
-      reports {
-          xml.required.set(true)
-          csv.required.set(false)
-          html.required.set(true)
-      }
+  tasks.withType<JacocoReport>().configureEach {
+    dependsOn(tasks.test) // tests are required to run before generating the report
   }
-
-  // when subproject has Jacoco pLugin applied we want to generate XML report for coverage
-  plugins.withType<JacocoPlugin> {
-      tasks["test"].finalizedBy("jacocoTestReport")
-  }
-
-
 }
 
 subprojects {
   group = "uk.gov.justice"
   version = if (version != "unspecified") version else "0.0.1-SNAPSHOT"
-
-  jacoco {
-      toolVersion = "0.8.8"
-  }
 
   tasks {
     // Force Java 11 for this project
@@ -62,6 +46,10 @@ subprojects {
   }
 }
 
+tasks.check {
+    dependsOn(tasks.withType(JacocoReport::class))
+}
+
 dependencies {
   implementation(project(":common"))
   implementation(project(":backend"))
@@ -71,6 +59,16 @@ dependencies {
 dependencyCheck {
   suppressionFile = "dependency-check-suppressions.xml"
   failBuildOnCVSS = 4.0F
+}
+
+tasks.jacocoTestReport {
+  dependsOn(tasks.test)
+  reports {
+    xml.required.set(true)
+    xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacoco.xml"))
+    html.required.set(true)
+    xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacoco.html"))
+  }
 }
 
 sonarqube {
