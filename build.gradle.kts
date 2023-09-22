@@ -17,9 +17,9 @@ allprojects {
   apply(plugin = "jacoco")
 
   tasks.withType<Test>().configureEach {
-    finalizedBy(tasks.withType<jacocoTestReport>()) // report is always generated after tests run
+    finalizedBy(tasks.withType<JacocoCoverageReport>()) // report is always generated after tests run
   }
-  tasks.withType<jacocoTestReport>().configureEach {
+  tasks.withType<JacocoCoverageReport>().configureEach {
     dependsOn(tasks.test) // tests are required to run before generating the report
   }
 }
@@ -47,7 +47,7 @@ subprojects {
 }
 
 tasks.check {
-    dependsOn(tasks.withType(jacocoTestReport::class))
+    dependsOn(tasks.withType(JacocoCoverageReport::class))
 }
 
 dependencies {
