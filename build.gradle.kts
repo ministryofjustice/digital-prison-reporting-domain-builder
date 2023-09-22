@@ -22,6 +22,16 @@ allprojects {
   tasks.withType<JacocoReport>().configureEach {
     dependsOn(tasks.test) // tests are required to run before generating the report
   }
+
+  tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+      xml.required.set(true)
+      xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacoco.xml"))
+      html.required.set(true)
+      xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacoco.html"))
+    }
+  }  
 }
 
 subprojects {
@@ -59,16 +69,6 @@ dependencies {
 dependencyCheck {
   suppressionFile = "dependency-check-suppressions.xml"
   failBuildOnCVSS = 4.0F
-}
-
-tasks.jacocoTestReport {
-  dependsOn(tasks.test)
-  reports {
-    xml.required.set(true)
-    xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacoco.xml"))
-    html.required.set(true)
-    xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacoco.html"))
-  }
 }
 
 sonarqube {
