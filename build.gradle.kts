@@ -54,7 +54,7 @@ subprojects {
 }
 
 tasks.check {
-    dependsOn(tasks.withType(jacocoTestReport::class))
+    dependsOn(tasks.withType(JacocoReport::class))
 }
 
 dependencies {
