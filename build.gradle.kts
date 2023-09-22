@@ -16,8 +16,8 @@ repositories {
 allprojects {
   apply(plugin = "jacoco")
 
-  tasks.Test {
-    finalizedBy(tasks.jacocoTestReport)
+  tasks.withType<Test>().configureEach {
+    finalizedBy(tasks.jacocoTestReport) // report is always generated after tests run
   }
 
   tasks.jacocoTestReport {
@@ -29,6 +29,7 @@ allprojects {
       xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacoco.html"))
     }
   }
+
 }
 
 subprojects {
