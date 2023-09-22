@@ -15,26 +15,34 @@ repositories {
 
 allprojects {
   apply(plugin = "jacoco")
-
-  tasks.withType<Test>().configureEach {
-    finalizedBy(tasks.jacocoTestReport) // report is always generated after tests run
-  }
-
-  tasks.jacocoTestReport {
-    dependsOn(tasks.test) // tests are required to run before generating the report
-    reports {
-      xml.required.set(true)
-      xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacoco.xml"))
-      html.required.set(true)
-      xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacoco.html"))
-    }
-  }
-
 }
 
 subprojects {
   group = "uk.gov.justice"
   version = if (version != "unspecified") version else "0.0.1-SNAPSHOT"
+
+  jacoco {
+      toolVersion = "0.8.8"
+  }
+
+  tasks.jacocoTestReport {
+      reports {
+          xml.required.set(true)
+          csv.required.set(false)
+          html.required.set(true)
+      }
+  }
+
+  // when subproject has Jacoco pLugin applied we want to generate XML report for coverage
+  plugins.withType<JacocoPlugin> {
+      tasks["test"].finalizedBy("jacocoTestReport")
+  }
+
+  if (!project.path.startsWith(":bin") && !project.path.startsWith(":cli") && !project.path.startsWith(":docker")) {
+      tasks.test {
+          useJUnitPlatform()
+      }
+  }
 
   tasks {
     // Force Java 11 for this project

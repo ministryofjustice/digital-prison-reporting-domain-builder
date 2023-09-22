@@ -78,24 +78,10 @@ application {
 
 tasks {
 
-  named<Test>("test") {
-    useJUnitPlatform()
-  }
-
   named<ShadowJar>("shadowJar") {
     archiveBaseName.set("domain-builder-backend-api")
     destinationDirectory.set(File("${project.rootDir}/build/libs"))
     setProperty("zip64", true)
   }
-
-  tasks.jacocoTestReport {
-    reports {
-      xml.required.set(true)
-      xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacoco.xml"))
-      html.required.set(true)
-      xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacoco.html"))
-    }
-  }  
-
 }
 
