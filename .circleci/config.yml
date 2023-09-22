@@ -52,7 +52,7 @@ workflows:
           bucket_prefix: dpr-artifact-store
           deploy_to_test: << pipeline.parameters.deploy_to_test >>
           deploy_to_preprod: << pipeline.parameters.deploy_to_preprod >>
-          cache_key: "dpr-domain-builder-build-cache-v4"
+          cache_key: "dpr-domain-builder-build-cache-v5"
           refresh_lambda: << pipeline.parameters.refresh_lambda >>
           refresh_function: << pipeline.parameters.refresh_function >>
           notify_jira: << pipeline.parameters.notify_jira >>
