@@ -16,11 +16,18 @@ repositories {
 allprojects {
   apply(plugin = "jacoco")
 
-  tasks.withType<Test>().configureEach {
-    finalizedBy(tasks.withType<jacocoTestReport>()) // report is always generated after tests run
+  tasks.test {
+    finalizedBy(tasks.jacocoTestReport)
   }
-  tasks.withType<jacocoTestReport>().configureEach {
-    dependsOn(tasks.test) // tests are required to run before generating the report
+
+  tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+      xml.required.set(true)
+      xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacoco.xml"))
+      html.required.set(true)
+      xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacoco.html"))
+    }
   }
 }
 
@@ -72,18 +79,4 @@ sonarqube {
         property("sonar.projectName", "DPR :: digital-prison-reporting-jobs")
         property("sonar.core.codeCoveragePlugin", "jacoco")
     }
-}
-
-tasks.test {
-  finalizedBy(tasks.jacocoTestReport)
-}
-
-tasks.jacocoTestReport {
-  dependsOn(tasks.test)
-  reports {
-    xml.required.set(true)
-    xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacoco.xml"))
-    html.required.set(true)
-    xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacoco.html"))
-  }
 }
