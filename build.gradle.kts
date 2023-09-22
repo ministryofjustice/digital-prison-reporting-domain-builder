@@ -16,12 +16,12 @@ repositories {
 allprojects {
   apply(plugin = "jacoco")
 
-  tasks.test {
+  tasks.Test {
     finalizedBy(tasks.jacocoTestReport)
   }
 
   tasks.jacocoTestReport {
-    dependsOn(tasks.test)
+    dependsOn(tasks.Test)
     reports {
       xml.required.set(true)
       xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacoco.xml"))
