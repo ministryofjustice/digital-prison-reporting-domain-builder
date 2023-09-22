@@ -20,17 +20,25 @@ allprojects {
       toolVersion = "0.8.8"
   }
 
+  tasks.jacocoTestReport {
+      reports {
+          xml.required.set(true)
+          csv.required.set(false)
+          html.required.set(true)
+      }
+  }
+
+  // when subproject has Jacoco pLugin applied we want to generate XML report for coverage
+  plugins.withType<JacocoPlugin> {
+      tasks["test"].finalizedBy("jacocoTestReport")
+  }
+
+
 }
 
 subprojects {
   group = "uk.gov.justice"
   version = if (version != "unspecified") version else "0.0.1-SNAPSHOT"
-
-  if (!project.path.startsWith(":bin") && !project.path.startsWith(":cli") && !project.path.startsWith(":docker")) {
-      tasks.test {
-          useJUnitPlatform()
-      }
-  }
 
   jacoco {
       toolVersion = "0.8.8"
@@ -76,21 +84,4 @@ sonarqube {
         property("sonar.projectName", "DPR :: digital-prison-reporting-jobs")
         property("sonar.core.codeCoveragePlugin", "jacoco")
     }
-}
-
-jacoco {
-    toolVersion = "0.8.8"
-}
-
-tasks.jacocoTestReport {
-    reports {
-        xml.required.set(true)
-        csv.required.set(false)
-        html.required.set(true)
-    }
-}
-
-// when subproject has Jacoco pLugin applied we want to generate XML report for coverage
-plugins.withType<JacocoPlugin> {
-    tasks["test"].finalizedBy("jacocoTestReport")
 }

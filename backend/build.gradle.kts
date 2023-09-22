@@ -5,6 +5,7 @@ plugins {
   id("io.micronaut.minimal.application") version "3.7.10"
   id("kotlin-kapt")
   id("com.github.johnrengelman.shadow") version "8.1.1"
+  jacoco
 }
 
 repositories {
