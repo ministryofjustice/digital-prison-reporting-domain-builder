@@ -21,7 +21,7 @@ allprojects {
   }
 
   tasks.jacocoTestReport {
-    dependsOn(tasks.Test)
+    dependsOn(tasks.test) // tests are required to run before generating the report
     reports {
       xml.required.set(true)
       xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacoco.xml"))
