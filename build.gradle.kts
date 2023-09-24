@@ -23,6 +23,11 @@ allprojects {
   tasks.withType<JacocoReport>().configureEach {
     dependsOn(tasks.test) // tests are required to run before generating the report
   }
+}
+
+subprojects {
+  group = "uk.gov.justice"
+  version = if (version != "unspecified") version else "0.0.1-SNAPSHOT"
 
   tasks.jacocoTestReport {
     dependsOn(tasks.test)
@@ -39,12 +44,7 @@ allprojects {
             }
         })
     )  
-  }  
-}
-
-subprojects {
-  group = "uk.gov.justice"
-  version = if (version != "unspecified") version else "0.0.1-SNAPSHOT"
+  }
 
   tasks {
     // Force Java 11 for this project
