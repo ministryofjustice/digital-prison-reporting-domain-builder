@@ -1,7 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
-apply from: 'jacoco'
-apply from: 'jacoco-report-aggregation'
+apply from: "$project.rootDir/build.gradle.kts"
 
 plugins {
   id("org.jetbrains.kotlin.jvm") version "1.8.21"
