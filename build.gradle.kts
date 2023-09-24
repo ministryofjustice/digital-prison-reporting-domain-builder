@@ -29,26 +29,9 @@ subprojects {
 
   apply(plugin = "jacoco")
   apply(plugin = "jacoco-report-aggregation")
-    
+
   group = "uk.gov.justice"
   version = if (version != "unspecified") version else "0.0.1-SNAPSHOT"
-
-  tasks.jacocoTestReport {
-    dependsOn(tasks.test)
-    reports {
-      xml.required.set(true)
-      xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacoco.xml"))
-      html.required.set(true)
-      xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacoco.html"))
-    }
-    classDirectories.setFrom(
-        files(classDirectories.files.map {
-            fileTree(it) {
-                exclude("backend/**")
-            }
-        })
-    )  
-  }
 
   tasks {
     // Force Java 11 for this project
@@ -87,7 +70,6 @@ sonarqube {
     properties {
         property("sonar.exclusions", "")
         property("sonar.coverage.exclusions", "")
-        property("sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/jacoco.xml")
         property("sonar.projectKey", "ministryofjustice_digital-prison-reporting-jobs")
         property("sonar.organization", "ministryofjustice")
         property("sonar.host.url", "https://sonarcloud.io")
