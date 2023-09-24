@@ -1,91 +1,85 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
   id("org.jetbrains.kotlin.jvm") version "1.8.21"
-  id("io.micronaut.minimal.application") version "3.7.10"
-  id("kotlin-kapt")
-  id("com.github.johnrengelman.shadow") version "8.1.1"
   jacoco
+  id("org.sonarqube") version "3.5.0.2730"
+  id("org.owasp.dependencycheck") version "8.2.1"
+  id("jacoco-report-aggregation")
+  id("org.barfuin.gradle.jacocolog") version "3.1.0"
 }
 
 repositories {
   mavenCentral()
 }
 
-micronaut {
-  version.set("3.9.4")
-}
+allprojects {
+  apply(plugin = "jacoco")
 
-val kotlinVersion = "1.8.21"
-val ktormVersion = "3.6.0"
-val testContainersVersion = "1.18.0"
-
-dependencies {
-  implementation(project(":common"))
-  testImplementation(testFixtures(project(":common")))
-
-  implementation("io.micronaut.aws:micronaut-function-aws-api-proxy")
-  implementation("io.micronaut.flyway:micronaut-flyway")
-  implementation("io.micronaut.picocli:micronaut-picocli")
-  implementation("io.micronaut:micronaut-http-client")
-  implementation("io.micronaut:micronaut-http-server-netty")
-  implementation("io.micronaut:micronaut-jackson-databind")
-  implementation("io.micronaut:micronaut-runtime")
-  implementation("io.micronaut:micronaut-validation")
-
-  implementation("io.burt:athena-jdbc:0.4.0")
-  implementation("com.amazonaws:aws-java-sdk-dynamodb:1.12.523")
-
-  implementation("jakarta.annotation:jakarta.annotation-api")
-  implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
-
-  compileOnly("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
-  compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlinVersion")
-
-  implementation("org.ktorm:ktorm-core:$ktormVersion")
-  implementation("org.ktorm:ktorm-jackson:$ktormVersion")
-
-  runtimeOnly("ch.qos.logback:logback-classic")
-  runtimeOnly("io.micronaut.sql:micronaut-jdbc-dbcp")
-
-  implementation("org.postgresql:postgresql:42.6.0")
-
-  kapt("io.micronaut:micronaut-inject-java")
-  kapt("io.micronaut:micronaut-http-validation")
-
-  kapt("io.micronaut.serde:micronaut-serde-processor:1.5.3")
-  runtimeOnly("io.micronaut.serde:micronaut-serde-jackson:1.5.3")
-  implementation("io.micronaut.serde:micronaut-serde-api:1.5.3")
-
-  kaptTest("io.micronaut:micronaut-inject-java")
-  kaptTest("io.micronaut:micronaut-http-validation")
-
-  testImplementation("io.micronaut.test:micronaut-test-junit5")
-  testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.1")
-  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.1")
-
-  testImplementation("org.testcontainers:testcontainers-bom:$testContainersVersion")
-  testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
-  testImplementation("org.testcontainers:junit-jupiter:$testContainersVersion")
-  testImplementation("org.testcontainers:postgresql")
-
-  testImplementation("io.mockk:mockk:1.13.5")
-}
-
-application {
-  // For local testing only.
-  mainClass.set("uk.gov.justice.digital.backend.DomainBuilderBackend")
-}
-
-tasks {
-
-  named<ShadowJar>("shadowJar") {
-    archiveBaseName.set("domain-builder-backend-api")
-    destinationDirectory.set(File("${project.rootDir}/build/libs"))
-    setProperty("zip64", true)
+  tasks.withType<Test>().configureEach {
+    finalizedBy(tasks.withType<JacocoReport>()) // report is always generated after tests run
+  }
+  tasks.withType<JacocoReport>().configureEach {
+    dependsOn(tasks.test) // tests are required to run before generating the report
   }
 }
 
-tasks.test {
-    useJUnitPlatform()
+subprojects {
+  group = "uk.gov.justice"
+  version = if (version != "unspecified") version else "0.0.1-SNAPSHOT"
+
+  tasks {
+    // Force Java 11 for this project
+    withType<KotlinCompile> {
+      kotlinOptions.jvmTarget = "11"
+    }
+    // Allow tests to run in parallel in each module
+    withType<Test>().configureEach {
+      maxParallelForks = (Runtime.getRuntime().availableProcessors() - 1).takeIf { it > 0 } ?: 1
+    }
+    withType<Tar> {
+      duplicatesStrategy = DuplicatesStrategy.WARN
+    }
+    withType<Zip> {
+      duplicatesStrategy = DuplicatesStrategy.WARN
+    }
+  }
+}
+
+tasks.check {
+    dependsOn(tasks.withType(JacocoReport::class))
+}
+
+sonarqube {
+    properties {
+        property "sonar.exclusions", ""
+        property "sonar.coverage.exclusions", ""
+        property "sonar.jacoco.reportPath", "${buildDir}/reports/jacoco/jacoco.xml"
+        property "sonar.projectKey", "ministryofjustice_digital-prison-reporting-domain-builder"
+        property "sonar.organization", "ministryofjustice"
+        property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.projectName", "DPR :: digital-prison-reporting-domain-builder"
+        property "sonar.core.codeCoveragePlugin", "jacoco"
+    }
+}
+
+tasks.jacocoTestReport {
+  dependsOn(tasks.test)
+  reports {
+    xml.required.set(true)
+    xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacoco.xml"))
+    html.required.set(true)
+    xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacoco.html"))
+  }
+}
+
+dependencies {
+  implementation(project(":common"))
+  implementation(project(":backend"))
+  implementation(project(":cli"))
+}
+
+dependencyCheck {
+  suppressionFile = "dependency-check-suppressions.xml"
+  failBuildOnCVSS = 4.0F
 }
