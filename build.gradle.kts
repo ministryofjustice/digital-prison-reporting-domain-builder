@@ -15,6 +15,7 @@ repositories {
 
 allprojects {
   apply(plugin = "jacoco")
+  apply(plugin = "jacoco-report-aggregation")
 
   tasks.withType<Test>().configureEach {
     finalizedBy(tasks.withType<JacocoReport>()) // report is always generated after tests run
