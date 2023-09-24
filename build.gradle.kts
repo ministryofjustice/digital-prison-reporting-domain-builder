@@ -26,6 +26,10 @@ allprojects {
 }
 
 subprojects {
+
+  apply(plugin = "jacoco")
+  apply(plugin = "jacoco-report-aggregation")
+    
   group = "uk.gov.justice"
   version = if (version != "unspecified") version else "0.0.1-SNAPSHOT"
 
