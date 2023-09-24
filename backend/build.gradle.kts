@@ -1,5 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
+apply plugin: 'jacoco'
+
 plugins {
   id("org.jetbrains.kotlin.jvm") version "1.8.21"
   id("io.micronaut.minimal.application") version "3.7.10"
