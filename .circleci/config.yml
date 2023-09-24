@@ -51,7 +51,7 @@ workflows:
           app_artifacts_directory: build/libs/
           bucket_prefix: dpr-artifact-store
           quality_gate: true
-          sonar_command: sonar
+          sonar_command: check sonar --info
           deploy_to_test: << pipeline.parameters.deploy_to_test >>
           deploy_to_preprod: << pipeline.parameters.deploy_to_preprod >>
           cache_key: "dpr-domain-builder-build-cache-v5"

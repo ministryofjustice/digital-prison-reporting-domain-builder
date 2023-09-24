@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
   id("org.jetbrains.kotlin.jvm") version "1.8.21"
   jacoco
-  id("org.sonarqube") version "4.0.0.2929"
+  id("org.sonarqube") version "4.3.1.3277"
   id("org.owasp.dependencycheck") version "8.2.1"
   id("jacoco-report-aggregation")
   id("org.barfuin.gradle.jacocolog") version "3.1.0"
