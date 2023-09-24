@@ -65,15 +65,3 @@ dependencyCheck {
   suppressionFile = "dependency-check-suppressions.xml"
   failBuildOnCVSS = 4.0F
 }
-
-sonarqube {
-    properties {
-        property("sonar.exclusions", "")
-        property("sonar.coverage.exclusions", "")
-        property("sonar.projectKey", "ministryofjustice_digital-prison-reporting-jobs")
-        property("sonar.organization", "ministryofjustice")
-        property("sonar.host.url", "https://sonarcloud.io")
-        property("sonar.projectName", "DPR :: digital-prison-reporting-jobs")
-        property("sonar.core.codeCoveragePlugin", "jacoco")
-    }
-}
