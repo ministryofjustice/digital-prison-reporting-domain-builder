@@ -31,6 +31,9 @@ allprojects {
       html.required.set(true)
       xml.outputLocation.set(file("${buildDir}/reports/jacoco/jacoco.html"))
     }
+    classDirectories.setFrom(files(classDirectories.files.collect {
+        fileTree(dir: backend, exclude: '**/**')
+    }))    
   }  
 }
 
