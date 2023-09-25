@@ -24,6 +24,6 @@ dependencies {
   testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.1")
 }
 
-tasks.named<Test>("test") {
-  useJUnitPlatform()
+tasks.test {
+    useJUnitPlatform()
 }

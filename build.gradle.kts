@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
   id("org.jetbrains.kotlin.jvm") version "1.8.21"
   jacoco
-  id("org.sonarqube") version "3.5.0.2730"
+  id("org.sonarqube") version "4.3.1.3277"
   id("org.owasp.dependencycheck") version "8.2.1"
   id("jacoco-report-aggregation")
   id("org.barfuin.gradle.jacocolog") version "3.1.0"
@@ -14,8 +14,6 @@ repositories {
 }
 
 allprojects {
-  apply(plugin = "jacoco")
-
   tasks.withType<Test>().configureEach {
     finalizedBy(tasks.withType<JacocoReport>()) // report is always generated after tests run
   }
