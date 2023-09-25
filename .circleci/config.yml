@@ -50,11 +50,11 @@ workflows:
           app: << pipeline.parameters.app >>
           app_artifacts_directory: build/libs/
           bucket_prefix: dpr-artifact-store
-          quality_gate: false
+          quality_gate: true
           sonar_command: sonarqube
           deploy_to_test: << pipeline.parameters.deploy_to_test >>
           deploy_to_preprod: << pipeline.parameters.deploy_to_preprod >>
-          cache_key: "dpr-domain-builder-build-cache-v4"
+          cache_key: "dpr-domain-builder-build-cache-v6"
           refresh_lambda: << pipeline.parameters.refresh_lambda >>
           refresh_function: << pipeline.parameters.refresh_function >>
           notify_jira: << pipeline.parameters.notify_jira >>
