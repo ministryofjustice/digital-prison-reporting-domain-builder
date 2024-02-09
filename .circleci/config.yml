@@ -53,7 +53,7 @@ workflows:
           cache_key: "dpr-domain-builder-build-cache-v6"
           refresh_lambda: << pipeline.parameters.refresh_lambda >>
           refresh_function: << pipeline.parameters.refresh_function >>
-          lambda_jar_prefix: domain-builder-backend-api          
+          lambda_jar_prefix: domain-builder-backend-api
           notify_jira: << pipeline.parameters.notify_jira >>
           notify_slack: << pipeline.parameters.notify_slack >>
           channel: << pipeline.parameters.alerts_channel >>
