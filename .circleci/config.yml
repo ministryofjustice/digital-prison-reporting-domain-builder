@@ -49,7 +49,6 @@ workflows:
           quality_gate: true
           sonar_command: sonar
           deploy_to_test: << pipeline.parameters.deploy_to_test >>
-          deploy_to_preprod: << pipeline.parameters.deploy_to_preprod >>
           cache_key: "dpr-domain-builder-build-cache-v6"
           refresh_lambda: << pipeline.parameters.refresh_lambda >>
           refresh_function: << pipeline.parameters.refresh_function >>
