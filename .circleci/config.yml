@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  reporting: ministryofjustice/hmpps-reporting@1.0.32
+  reporting: ministryofjustice/hmpps-reporting@dev:a214b8fb603e4c8eda2a2cb3829e43324f551ee1
   slack: circleci/slack@4.12.5
 
 parameters:
@@ -16,7 +16,7 @@ parameters:
     default: "dpr_cicd_approvals"
   release_ready:
     type: boolean
-    default: true
+    default: false
     description: When true, Releases artifacts to Live
   notify_slack:
     type: boolean
@@ -30,10 +30,6 @@ parameters:
     type: boolean
     default: true
     description: Deploy to Test Environment
-  deploy_to_preprod:
-    type: boolean
-    default: true
-    description: Deploy to PreProd Environment
   refresh_lambda:
     type: boolean
     default: true
@@ -53,10 +49,10 @@ workflows:
           quality_gate: true
           sonar_command: sonar
           deploy_to_test: << pipeline.parameters.deploy_to_test >>
-          deploy_to_preprod: << pipeline.parameters.deploy_to_preprod >>
           cache_key: "dpr-domain-builder-build-cache-v6"
           refresh_lambda: << pipeline.parameters.refresh_lambda >>
           refresh_function: << pipeline.parameters.refresh_function >>
+          lambda_jar_prefix: domain-builder-backend-api
           notify_jira: << pipeline.parameters.notify_jira >>
           notify_slack: << pipeline.parameters.notify_slack >>
           channel: << pipeline.parameters.alerts_channel >>
