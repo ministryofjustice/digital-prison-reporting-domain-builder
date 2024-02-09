@@ -16,7 +16,7 @@ parameters:
     default: "dpr_cicd_approvals"
   release_ready:
     type: boolean
-    default: true
+    default: false
     description: When true, Releases artifacts to Live
   notify_slack:
     type: boolean
@@ -30,10 +30,6 @@ parameters:
     type: boolean
     default: true
     description: Deploy to Test Environment
-  deploy_to_preprod:
-    type: boolean
-    default: true
-    description: Deploy to PreProd Environment
   refresh_lambda:
     type: boolean
     default: true
@@ -57,6 +53,7 @@ workflows:
           cache_key: "dpr-domain-builder-build-cache-v6"
           refresh_lambda: << pipeline.parameters.refresh_lambda >>
           refresh_function: << pipeline.parameters.refresh_function >>
+          lambda_jar_prefix: domain-builder-backend-api          
           notify_jira: << pipeline.parameters.notify_jira >>
           notify_slack: << pipeline.parameters.notify_slack >>
           channel: << pipeline.parameters.alerts_channel >>
