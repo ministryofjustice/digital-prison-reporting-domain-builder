@@ -32,7 +32,7 @@ jobs:
           grep 'jacocoLogAggregatedCoverage' logs.txt -A7 | grep 'Test Coverage:' -A6 > message.txt
 
       - name: PR comment
-        uses: thollander/actions-comment-pull-request@v2
+        uses: thollander/actions-comment-pull-request@v3
         with:
           comment_tag: coverage
           filePath: message.txt
